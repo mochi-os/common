@@ -30,26 +30,24 @@ export * from './components/ui/tooltip'
 
 // Layout Components
 export * from './components/layout/main'
-export * from './components/layout/nav-group'
-export * from './components/layout/nav-user'
-export * from './components/layout/types'
+export { NavGroup } from './components/layout/nav-group'
+export type { SidebarData, NavGroup as NavGroupType, NavItem, NavCollapsible, NavLink } from './components/layout/types'
 
 // Shared Components
-export * from './components/command-menu'
 export * from './components/config-drawer'
 export * from './components/confirm-dialog'
 export * from './components/navigation-progress'
-export * from './components/profile-dropdown'
 export * from './components/responsive-confirm-dialog'
-export * from './components/search'
-export * from './components/sign-out-dialog'
 export * from './components/skip-to-main'
 export * from './components/theme-switch'
 
 // Context Providers
 export * from './context/direction-provider'
-export * from './context/layout-provider'
-export * from './context/search-provider'
+export {
+  LayoutProvider,
+  useLayout,
+  type Collapsible as LayoutCollapsible,
+} from './context/layout-provider'
 export * from './context/theme-provider'
 
 // Stores
@@ -74,13 +72,13 @@ export * from './features/errors/not-found-error'
 export * from './features/errors/unauthorized-error'
 
 // Custom icons
-export { default as IconDir } from './assets/custom/icon-dir'
-export { default as IconLayoutCompact } from './assets/custom/icon-layout-compact'
-export { default as IconLayoutDefault } from './assets/custom/icon-layout-default'
-export { default as IconLayoutFull } from './assets/custom/icon-layout-full'
-export { default as IconSidebarFloating } from './assets/custom/icon-sidebar-floating'
-export { default as IconSidebarInset } from './assets/custom/icon-sidebar-inset'
-export { default as IconSidebarSidebar } from './assets/custom/icon-sidebar-sidebar'
-export { default as IconThemeDark } from './assets/custom/icon-theme-dark'
-export { default as IconThemeLight } from './assets/custom/icon-theme-light'
-export { default as IconThemeSystem } from './assets/custom/icon-theme-system'
+export { IconDir } from './assets/custom/icon-dir'
+export { IconLayoutCompact } from './assets/custom/icon-layout-compact'
+export { IconLayoutDefault } from './assets/custom/icon-layout-default'
+export { IconLayoutFull } from './assets/custom/icon-layout-full'
+export { IconSidebarFloating } from './assets/custom/icon-sidebar-floating'
+export { IconSidebarInset } from './assets/custom/icon-sidebar-inset'
+export { IconSidebarSidebar } from './assets/custom/icon-sidebar-sidebar'
+export { IconThemeDark } from './assets/custom/icon-theme-dark'
+export { IconThemeLight } from './assets/custom/icon-theme-light'
+export { IconThemeSystem } from './assets/custom/icon-theme-system'
