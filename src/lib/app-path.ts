@@ -5,7 +5,7 @@
 // Routes that are class-level (not entity-specific)
 // These include common route segments that should not be treated as entity IDs
 const CLASS_ROUTES = [
-  'new', 'create', 'info', 'assets', 'images',
+  'new', 'create', 'list', 'info', 'assets', 'images',
   // Settings app routes
   'user', 'system', 'domains', 'errors',
 ]
