@@ -54,7 +54,7 @@ export * from './context/theme-provider'
 export * from './stores/auth-store'
 
 // Hooks
-export * from './hooks/use-dialog-state'
+export { default as useDialogState } from './hooks/use-dialog-state'
 export * from './hooks/use-media-query'
 export * from './hooks/use-mobile'
 export * from './hooks/useAuth'
