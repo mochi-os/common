@@ -3,7 +3,12 @@
 // This allows the app to be mounted at any URL path
 
 // Routes that are class-level (not entity-specific)
-const CLASS_ROUTES = ['new', 'create', 'info', 'assets', 'images']
+// These include common route segments that should not be treated as entity IDs
+const CLASS_ROUTES = [
+  'new', 'create', 'info', 'assets', 'images',
+  // Settings app routes
+  'user', 'system', 'domains', 'errors',
+]
 
 // Check if a string looks like an entity ID (50-51 chars of base58)
 function isEntityId(s: string): boolean {
