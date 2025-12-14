@@ -30,7 +30,10 @@ export * from './components/ui/tooltip'
 
 // Layout Components
 export * from './components/layout/main'
+export * from './components/layout/header'
+export * from './components/layout/top-bar'
 export { NavGroup } from './components/layout/nav-group'
+export { NavUser } from './components/layout/nav-user'
 export type { SidebarData, NavGroup as NavGroupType, NavItem, NavCollapsible, NavLink } from './components/layout/types'
 
 // Shared Components
@@ -40,6 +43,10 @@ export * from './components/navigation-progress'
 export * from './components/responsive-confirm-dialog'
 export * from './components/skip-to-main'
 export * from './components/theme-switch'
+export * from './components/sign-out-dialog'
+export * from './components/profile-dropdown'
+export * from './components/command-menu'
+export * from './components/search'
 
 // Context Providers
 export * from './context/direction-provider'
@@ -49,6 +56,7 @@ export {
   type Collapsible as LayoutCollapsible,
 } from './context/layout-provider'
 export * from './context/theme-provider'
+export * from './context/search-provider'
 
 // Stores
 export * from './stores/auth-store'
@@ -58,15 +66,21 @@ export { default as useDialogState } from './hooks/use-dialog-state'
 export * from './hooks/use-media-query'
 export * from './hooks/use-mobile'
 export * from './hooks/useAuth'
+export * from './hooks/use-logout'
 
 // Lib utilities
 export * from './lib/cookies'
 export * from './lib/handle-server-error'
 export * from './lib/profile-cookie'
 export * from './lib/utils'
+export * from './lib/app-path'
+export * from './lib/api-client'
+export * from './lib/request'
+export * from './lib/auth-endpoints'
 
 // Error pages
 export * from './features/errors/forbidden'
+export * from './features/errors/general-error'
 export * from './features/errors/maintenance-error'
 export * from './features/errors/not-found-error'
 export * from './features/errors/unauthorized-error'

@@ -1,0 +1,48 @@
+import { useCallback } from 'react'
+import { toast } from 'sonner'
+import { authEndpoints } from '../lib/auth-endpoints'
+import { removeCookie } from '../lib/cookies'
+import { requestHelpers } from '../lib/request'
+import { useAuth } from './useAuth'
+import { getAuthLoginUrl } from '../lib/app-path'
+
+export function useLogout() {
+  const { logout: clearAuth, setLoading, isLoading } = useAuth()
+
+  const logout = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      try {
+        await requestHelpers.get(authEndpoints.logout)
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.error('[Logout] Backend logout failed:', error)
+        }
+      }
+
+      removeCookie('token')
+      removeCookie('mochi_me')
+      clearAuth()
+
+      toast.success('Logged out successfully')
+
+      window.location.href = getAuthLoginUrl()
+    } catch (_error) {
+      removeCookie('token')
+      removeCookie('mochi_me')
+      clearAuth()
+
+      toast.error('Logged out (with errors)')
+
+      window.location.href = getAuthLoginUrl()
+    } finally {
+      setLoading(false)
+    }
+  }, [clearAuth, setLoading])
+
+  return {
+    logout,
+    isLoggingOut: isLoading,
+  }
+}
