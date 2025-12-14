@@ -1,8 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { cn } from '@/lib/utils'
-import { Button } from '@/components/ui/button'
+import { cn } from '../lib/utils'
+import { Button } from './ui/button'
 import {
   ResponsiveDialog,
   ResponsiveDialogClose,
@@ -11,7 +11,7 @@ import {
   ResponsiveDialogFooter,
   ResponsiveDialogHeader,
   ResponsiveDialogTitle,
-} from '@/components/ui/responsive-dialog'
+} from './ui/responsive-dialog'
 
 type ResponsiveConfirmDialogProps = {
   open: boolean

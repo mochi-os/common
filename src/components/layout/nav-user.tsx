@@ -8,11 +8,11 @@ import {
   Monitor,
   CircleUser,
 } from 'lucide-react'
-import { useAuthStore } from '@/stores/auth-store'
-import { readProfileCookie } from '@/lib/profile-cookie'
-import { cn } from '@/lib/utils'
-import { useTheme } from '@/context/theme-provider'
-import useDialogState from '@/hooks/use-dialog-state'
+import { useAuthStore } from '../../stores/auth-store'
+import { readProfileCookie } from '../../lib/profile-cookie'
+import { cn } from '../../lib/utils'
+import { useTheme } from '../../context/theme-provider'
+import useDialogState from '../../hooks/use-dialog-state'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,14 +23,14 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+} from '../ui/dropdown-menu'
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from '@/components/ui/sidebar'
-import { SignOutDialog } from '@/components/sign-out-dialog'
+} from '../ui/sidebar'
+import { SignOutDialog } from '../sign-out-dialog'
 
 export function NavUser() {
   const { isMobile } = useSidebar()

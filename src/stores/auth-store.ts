@@ -1,6 +1,6 @@
 import { create } from 'zustand'
-import { removeCookie, getCookie } from '@/lib/cookies'
-import { readProfileCookie, clearProfileCookie } from '@/lib/profile-cookie'
+import { removeCookie, getCookie } from '../lib/cookies'
+import { readProfileCookie, clearProfileCookie } from '../lib/profile-cookie'
 
 const TOKEN_COOKIE = 'token'
 

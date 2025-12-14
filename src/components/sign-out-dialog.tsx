@@ -1,5 +1,5 @@
-import { useLogout } from '@/hooks/useLogout'
-import { ConfirmDialog } from '@/components/confirm-dialog'
+import { useLogout } from '../hooks/useLogout'
+import { ConfirmDialog } from './confirm-dialog'
 
 interface SignOutDialogProps {
   open: boolean

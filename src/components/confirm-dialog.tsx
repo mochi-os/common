@@ -1,4 +1,4 @@
-import { ResponsiveConfirmDialog } from '@/components/responsive-confirm-dialog'
+import { ResponsiveConfirmDialog } from './responsive-confirm-dialog'
 
 type ConfirmDialogProps = {
   open: boolean
