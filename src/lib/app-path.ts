@@ -8,6 +8,8 @@ const CLASS_ROUTES = [
   'new', 'create', 'list', 'info', 'assets', 'images',
   // Settings app routes
   'user', 'system', 'domains', 'errors',
+  // Friends app routes
+  'invitations',
 ]
 
 // Check if a string looks like an entity ID (50-51 chars of base58)

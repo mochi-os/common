@@ -14,6 +14,7 @@ const logDevError = (message: string, error: unknown) => {
 
 export const apiClient = axios.create({
   timeout: 30000,
+  withCredentials: true,
   headers: {
     'Accept': 'application/json',
     'Content-Type': 'application/json',
@@ -30,10 +31,10 @@ apiClient.interceptors.request.use(
       delete config.headers['Content-Type']
     }
 
-    // Handle global auth endpoints - they should use absolute URLs from root
-    // URLs starting with /_/ are global auth endpoints that bypass app routing
-    if (config.url?.startsWith('/_/')) {
-      config.baseURL = '/'
+    // Handle absolute URLs - they should bypass the app-specific baseURL
+    // This includes global auth endpoints (/_/) and cross-app requests (/chat/, /friends/, etc.)
+    if (config.url?.startsWith('/')) {
+      config.baseURL = ''
     }
 
     const storeToken = useAuthStore.getState().token
