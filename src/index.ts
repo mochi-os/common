@@ -35,24 +35,39 @@ export * from './components/ui/tooltip'
 export * from './components/layout/main'
 export * from './components/layout/header'
 export * from './components/layout/top-bar'
+export * from './components/layout/authenticated-layout'
+export * from './components/layout/simple-layout'
+export { AppSidebar } from './components/layout/app-sidebar'
 export { NavGroup } from './components/layout/nav-group'
 export { NavUser } from './components/layout/nav-user'
 export type { SidebarData, NavGroup as NavGroupType, NavItem, NavCollapsible, NavLink } from './components/layout/types'
 
+// Data Table Components
+export * from './components/data-table'
+
 // Shared Components
+export * from './components/coming-soon'
+export * from './components/command-menu'
 export * from './components/config-drawer'
 export * from './components/confirm-dialog'
+export * from './components/date-picker'
+export * from './components/faceless-avatar'
+export * from './components/learn-more'
+export * from './components/long-text'
 export * from './components/navigation-progress'
+export * from './components/notifications-dropdown'
+export * from './components/password-input'
+export * from './components/profile-dropdown'
 export * from './components/responsive-confirm-dialog'
+export * from './components/search'
+export * from './components/select-dropdown'
+export * from './components/sign-out-dialog'
 export * from './components/skip-to-main'
 export * from './components/theme-switch'
-export * from './components/sign-out-dialog'
-export * from './components/profile-dropdown'
-export * from './components/command-menu'
-export * from './components/search'
 
 // Context Providers
 export * from './context/direction-provider'
+export * from './context/font-provider'
 export {
   LayoutProvider,
   useLayout,
@@ -70,16 +85,19 @@ export * from './hooks/use-media-query'
 export * from './hooks/use-mobile'
 export * from './hooks/useAuth'
 export * from './hooks/use-logout'
+export * from './hooks/use-require-auth'
+export * from './hooks/use-table-url-state'
 
 // Lib utilities
+export * from './lib/api-client'
+export * from './lib/app-path'
+export * from './lib/auth-endpoints'
 export * from './lib/cookies'
 export * from './lib/handle-server-error'
 export * from './lib/profile-cookie'
-export * from './lib/utils'
-export * from './lib/app-path'
-export * from './lib/api-client'
 export * from './lib/request'
-export * from './lib/auth-endpoints'
+export * from './lib/show-submitted-data'
+export * from './lib/utils'
 
 // Error pages
 export * from './features/errors/forbidden'

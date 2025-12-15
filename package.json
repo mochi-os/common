@@ -9,6 +9,7 @@
     "./components/*": "./src/components/*",
     "./components/ui/*": "./src/components/ui/*",
     "./components/layout/*": "./src/components/layout/*",
+    "./components/data-table": "./src/components/data-table/index.ts",
     "./stores/*": "./src/stores/*",
     "./context/*": "./src/context/*",
     "./hooks/*": "./src/hooks/*",
@@ -23,10 +24,13 @@
   },
   "peerDependencies": {
     "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react-dom": "^19.0.0",
+    "@tanstack/react-table": "^8.0.0"
   },
   "dependencies": {
+    "date-fns": "^4.1.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",
+    "@radix-ui/react-icons": "^1.3.2",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-checkbox": "^1.3.3",
     "@radix-ui/react-collapsible": "^1.1.12",
@@ -60,7 +64,7 @@
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
-    "@types/react": "^19.2.2",
+    "@types/react": "19.2.2",
     "@types/react-dom": "^19.2.1",
     "prettier": "^3.6.2",
     "typescript": "~5.9.3"
