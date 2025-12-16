@@ -5,6 +5,7 @@ import { useAuthStore } from '../../stores/auth-store'
 import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
 import useDialogState from '../../hooks/use-dialog-state'
+import { useNotifications } from '../../hooks/use-notifications'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
@@ -14,12 +15,28 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { SignOutDialog } from '../sign-out-dialog'
+import { NotificationsDropdown } from '../notifications-dropdown'
 
 type TopBarProps = {
   title?: string
+  showNotifications?: boolean
 }
 
-export function TopBar({ title }: TopBarProps) {
+// Separate component to isolate the useNotifications hook
+function TopBarNotifications() {
+  const { notifications, markAsRead, markAllAsRead } = useNotifications()
+
+  return (
+    <NotificationsDropdown
+      notifications={notifications}
+      notificationsUrl="/notifications/"
+      onNotificationClick={(n) => markAsRead(n.id)}
+      onMarkAllAsRead={markAllAsRead}
+    />
+  )
+}
+
+export function TopBar({ title, showNotifications = true }: TopBarProps) {
   const [offset, setOffset] = useState(0)
   const [open, setOpen] = useDialogState()
   const { theme } = useTheme()
@@ -73,6 +90,9 @@ export function TopBar({ title }: TopBarProps) {
           )}
 
           <div className="flex-1" />
+
+          {/* Notifications */}
+          {showNotifications && <TopBarNotifications />}
 
           {/* User Menu */}
           <DropdownMenu>

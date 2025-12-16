@@ -12,12 +12,14 @@ type AuthenticatedLayoutProps = {
   children?: React.ReactNode
   title: string
   sidebarData?: SidebarData
+  showNotifications?: boolean
 }
 
 export function AuthenticatedLayout({
   children,
   title,
   sidebarData,
+  showNotifications = true,
 }: AuthenticatedLayoutProps) {
   const defaultOpen = getCookie('sidebar_state') !== 'false'
   const hasSidebar = sidebarData && sidebarData.navGroups.length > 0
@@ -26,7 +28,7 @@ export function AuthenticatedLayout({
     <SearchProvider>
       <LayoutProvider>
         <div className="flex h-svh flex-col">
-          <TopBar title={title} />
+          <TopBar title={title} showNotifications={showNotifications} />
           {hasSidebar ? (
             <SidebarProvider defaultOpen={defaultOpen} className="flex-1 overflow-hidden">
               <AppSidebar data={sidebarData} />
