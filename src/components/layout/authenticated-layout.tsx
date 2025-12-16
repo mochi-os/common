@@ -30,7 +30,7 @@ export function AuthenticatedLayout({
         <div className="flex h-svh flex-col">
           <TopBar title={title} showNotifications={showNotifications} />
           {hasSidebar ? (
-            <SidebarProvider defaultOpen={defaultOpen} className="flex-1 overflow-hidden">
+            <SidebarProvider defaultOpen={defaultOpen} className="flex-1 overflow-hidden min-h-0">
               <AppSidebar data={sidebarData} />
               <SidebarInset
                 className={cn(
