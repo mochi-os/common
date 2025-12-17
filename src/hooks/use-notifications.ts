@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestHelpers } from '../lib/request'
 import type { Notification } from '../components/notifications-dropdown'
@@ -77,84 +77,117 @@ export function useMarkAllAsReadMutation() {
   })
 }
 
-// WebSocket hook for real-time updates
+// WebSocket singleton for real-time updates
+// Module-level state ensures only one WebSocket connection per browser tab
 const RECONNECT_DELAY = 3000
+
+interface WebSocketState {
+  instance: WebSocket | null
+  reconnectTimer: ReturnType<typeof setTimeout> | null
+  subscriberCount: number
+  queryClientRef: ReturnType<typeof useQueryClient> | null
+}
+
+const wsState: WebSocketState = {
+  instance: null,
+  reconnectTimer: null,
+  subscriberCount: 0,
+  queryClientRef: null,
+}
 
 function getWebSocketUrl(): string {
   const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
-  return `${protocol}//${window.location.host}/websocket?key=notifications`
+  return `${protocol}//${window.location.host}/_/websocket?key=notifications`
+}
+
+function handleWebSocketMessage(event: MessageEvent) {
+  if (!wsState.queryClientRef) return
+  
+  try {
+    const data = JSON.parse(event.data)
+
+    switch (data.type) {
+      case 'new':
+      case 'read':
+        wsState.queryClientRef.invalidateQueries({ queryKey: notificationKeys.list() })
+        wsState.queryClientRef.invalidateQueries({ queryKey: notificationKeys.count() })
+        break
+
+      case 'read_all':
+      case 'clear_all':
+      case 'clear_app':
+      case 'clear_object':
+        wsState.queryClientRef.invalidateQueries({ queryKey: notificationKeys.all() })
+        break
+    }
+  } catch {
+    // Ignore parse errors
+  }
+}
+
+function connectWebSocket() {
+  if (wsState.instance?.readyState === WebSocket.OPEN) return
+  if (wsState.instance?.readyState === WebSocket.CONNECTING) return
+  
+  try {
+    const ws = new WebSocket(getWebSocketUrl())
+    wsState.instance = ws
+
+    ws.onmessage = handleWebSocketMessage
+
+    ws.onclose = () => {
+      wsState.instance = null
+      // Only reconnect if there are still subscribers
+      if (wsState.subscriberCount > 0) {
+        wsState.reconnectTimer = setTimeout(connectWebSocket, RECONNECT_DELAY)
+      }
+    }
+
+    ws.onerror = () => {
+      // Error will trigger onclose
+    }
+  } catch {
+    // Connection failed, retry if subscribers exist
+    if (wsState.subscriberCount > 0) {
+      wsState.reconnectTimer = setTimeout(connectWebSocket, RECONNECT_DELAY)
+    }
+  }
+}
+
+function disconnectWebSocket() {
+  if (wsState.reconnectTimer) {
+    clearTimeout(wsState.reconnectTimer)
+    wsState.reconnectTimer = null
+  }
+  if (wsState.instance) {
+    wsState.instance.close()
+    wsState.instance = null
+  }
 }
 
 export function useNotificationWebSocket() {
   const queryClient = useQueryClient()
-  const wsRef = useRef<WebSocket | null>(null)
-  const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const mountedRef = useRef(true)
 
-  const connect = useCallback(() => {
-    if (!mountedRef.current) return
-    if (wsRef.current?.readyState === WebSocket.OPEN) return
+  useEffect(() => {
+    // Store queryClient reference for message handling
+    wsState.queryClientRef = queryClient
+    wsState.subscriberCount++
 
-    try {
-      const ws = new WebSocket(getWebSocketUrl())
-      wsRef.current = ws
+    // Connect if this is the first subscriber
+    if (wsState.subscriberCount === 1) {
+      connectWebSocket()
+    }
 
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data)
+    return () => {
+      wsState.subscriberCount--
 
-          switch (data.type) {
-            case 'new':
-            case 'read':
-              queryClient.invalidateQueries({ queryKey: notificationKeys.list() })
-              queryClient.invalidateQueries({ queryKey: notificationKeys.count() })
-              break
-
-            case 'read_all':
-            case 'clear_all':
-            case 'clear_app':
-            case 'clear_object':
-              queryClient.invalidateQueries({ queryKey: notificationKeys.all() })
-              break
-          }
-        } catch {
-          // Ignore parse errors
-        }
-      }
-
-      ws.onclose = () => {
-        wsRef.current = null
-        if (mountedRef.current) {
-          reconnectTimerRef.current = setTimeout(connect, RECONNECT_DELAY)
-        }
-      }
-
-      ws.onerror = () => {
-        // Error will trigger onclose
-      }
-    } catch {
-      // Connection failed, retry
-      if (mountedRef.current) {
-        reconnectTimerRef.current = setTimeout(connect, RECONNECT_DELAY)
+      // Disconnect if no more subscribers
+      if (wsState.subscriberCount === 0) {
+        disconnectWebSocket()
+        wsState.queryClientRef = null
       }
     }
   }, [queryClient])
-
-  useEffect(() => {
-    mountedRef.current = true
-    connect()
-
-    return () => {
-      mountedRef.current = false
-      if (reconnectTimerRef.current) {
-        clearTimeout(reconnectTimerRef.current)
-      }
-      if (wsRef.current) {
-        wsRef.current.close()
-        wsRef.current = null
-      }
-    }
-  }, [connect])
 }
 
 // Combined hook for easy consumption
