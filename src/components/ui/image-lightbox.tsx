@@ -2,24 +2,28 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { ChevronLeft, ChevronRight, Download, ImageOff, Loader2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, FileWarning, ImageOff, Loader2, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
-export type LightboxImage = {
+export type LightboxMedia = {
   id: string
   name: string
   url: string
+  type: 'image' | 'video'
 }
 
+// Legacy type alias for backwards compatibility
+export type LightboxImage = LightboxMedia
+
 type ImageLightboxProps = {
-  images: LightboxImage[]
+  images: LightboxMedia[]
   currentIndex: number
   open: boolean
   onOpenChange: (open: boolean) => void
   onIndexChange: (index: number) => void
 }
 
-// Displays images in a full-screen lightbox with navigation controls
+// Displays images and videos in a full-screen lightbox with navigation controls
 export function ImageLightbox({
   images,
   currentIndex,
@@ -28,17 +32,42 @@ export function ImageLightbox({
   onIndexChange,
 }: ImageLightboxProps) {
   const hasMultiple = images.length > 1
-  const currentImage = images[currentIndex]
+  const currentMedia = images[currentIndex]
+  const isVideo = currentMedia?.type === 'video'
 
-  // Track image loading and error state
+  // Track media loading and error state
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
 
-  // Reset loading/error state when image changes
+  // Reset loading/error state and pause video when media changes
   useEffect(() => {
     setIsLoading(true)
     setHasError(false)
+    // Pause any playing video when navigating away
+    if (videoRef.current) {
+      videoRef.current.pause()
+    }
   }, [currentIndex])
+
+  // Preload adjacent images for smoother navigation (skip videos)
+  useEffect(() => {
+    if (!open || images.length <= 1) return
+
+    const preload = (index: number) => {
+      const media = images[index]
+      if (media.type === 'image') {
+        const img = new Image()
+        img.src = media.url
+      }
+    }
+
+    const prevIndex = currentIndex > 0 ? currentIndex - 1 : images.length - 1
+    const nextIndex = currentIndex < images.length - 1 ? currentIndex + 1 : 0
+
+    preload(prevIndex)
+    preload(nextIndex)
+  }, [open, currentIndex, images])
 
   const goToPrevious = useCallback(() => {
     onIndexChange(currentIndex > 0 ? currentIndex - 1 : images.length - 1)
@@ -135,7 +164,7 @@ export function ImageLightbox({
     [goToPrevious, goToNext]
   )
 
-  if (!currentImage) return null
+  if (!currentMedia) return null
 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
@@ -146,10 +175,10 @@ export function ImageLightbox({
           aria-describedby={undefined}
         >
           <DialogPrimitive.Title className='sr-only'>
-            Image viewer: {currentImage.name}
+            {isVideo ? 'Video' : 'Image'} viewer: {currentMedia.name}
           </DialogPrimitive.Title>
 
-          {/* Full-screen image area */}
+          {/* Full-screen media area */}
           <div
             className='flex h-full w-full items-center justify-center'
             onTouchStart={hasMultiple ? handleTouchStart : undefined}
@@ -160,13 +189,29 @@ export function ImageLightbox({
             )}
             {hasError ? (
               <div className='flex flex-col items-center gap-3 text-white/70'>
-                <ImageOff className='size-12' />
-                <span className='text-sm'>Failed to load image</span>
+                {isVideo ? <FileWarning className='size-12' /> : <ImageOff className='size-12' />}
+                <span className='text-sm'>Failed to load {isVideo ? 'video' : 'image'}</span>
               </div>
+            ) : isVideo ? (
+              <video
+                ref={videoRef}
+                src={currentMedia.url}
+                controls
+                autoPlay
+                className={cn(
+                  'max-h-full max-w-full transition-opacity duration-200',
+                  isLoading ? 'opacity-0' : 'opacity-100'
+                )}
+                onLoadedData={() => setIsLoading(false)}
+                onError={() => {
+                  setIsLoading(false)
+                  setHasError(true)
+                }}
+              />
             ) : (
               <img
-                src={currentImage.url}
-                alt={currentImage.name}
+                src={currentMedia.url}
+                alt={currentMedia.name}
                 className={cn(
                   'max-h-full max-w-full object-contain transition-opacity duration-200',
                   isLoading ? 'opacity-0' : 'opacity-100'
@@ -193,12 +238,12 @@ export function ImageLightbox({
               </span>
             )}
             <span className='min-w-0 truncate text-sm text-white/70'>
-              {currentImage.name}
+              {currentMedia.name}
             </span>
             <div className='flex shrink-0 items-center gap-1 text-white/70'>
               <a
-                href={currentImage.url}
-                download={currentImage.name}
+                href={currentMedia.url}
+                download={currentMedia.name}
                 className='rounded-full p-2 transition-colors hover:bg-white/20 hover:text-white'
                 title='Download'
               >
