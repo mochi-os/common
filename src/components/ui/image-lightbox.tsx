@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { ChevronLeft, ChevronRight, Download, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, Loader2, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 export type LightboxImage = {
@@ -29,6 +29,14 @@ export function ImageLightbox({
 }: ImageLightboxProps) {
   const hasMultiple = images.length > 1
   const currentImage = images[currentIndex]
+
+  // Track image loading state
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Reset loading state when image changes
+  useEffect(() => {
+    setIsLoading(true)
+  }, [currentIndex])
 
   const goToPrevious = useCallback(() => {
     onIndexChange(currentIndex > 0 ? currentIndex - 1 : images.length - 1)
@@ -145,10 +153,17 @@ export function ImageLightbox({
             onTouchStart={hasMultiple ? handleTouchStart : undefined}
             onTouchEnd={hasMultiple ? handleTouchEnd : undefined}
           >
+            {isLoading && (
+              <Loader2 className='absolute size-8 animate-spin text-white/70' />
+            )}
             <img
               src={currentImage.url}
               alt={currentImage.name}
-              className='max-h-full max-w-full object-contain'
+              className={cn(
+                'max-h-full max-w-full object-contain transition-opacity duration-200',
+                isLoading ? 'opacity-0' : 'opacity-100'
+              )}
+              onLoad={() => setIsLoading(false)}
             />
           </div>
 
