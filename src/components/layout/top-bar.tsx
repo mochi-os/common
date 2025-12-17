@@ -64,7 +64,7 @@ export function TopBar({ title, showNotifications = true }: TopBarProps) {
     <>
       <header
         className={cn(
-          'sticky top-0 z-50 h-16 w-full shadow-sm',
+          'sticky top-0 z-50 h-12 w-full shadow-sm',
           offset > 10 && 'shadow'
         )}
       >
