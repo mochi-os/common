@@ -5,11 +5,13 @@
 // Routes that are class-level (not entity-specific)
 // These include common route segments that should not be treated as entity IDs
 const CLASS_ROUTES = [
-  'new', 'create', 'list', 'info', 'assets', 'images',
+  'new', 'create', 'list', 'info', 'assets', 'images', 'search',
   // Settings app routes
   'user', 'system', 'domains', 'errors',
   // Friends app routes
   'invitations',
+  // Wiki app routes
+  'join', 'tags', 'changes', 'redirects', 'settings',
 ]
 
 // Check if a string looks like an entity ID (50-51 chars of base58)
