@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
 import { ChevronLeft, ChevronRight, Download, FileWarning, ImageOff, Loader2, X } from 'lucide-react'
+import { TransformWrapper, TransformComponent, type ReactZoomPanPinchRef } from 'react-zoom-pan-pinch'
 import { cn } from '../../lib/utils'
 
 export type LightboxMedia = {
@@ -39,11 +40,18 @@ export function ImageLightbox({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const transformRef = useRef<ReactZoomPanPinchRef>(null)
+  const [currentScale, setCurrentScale] = useState(1)
 
-  // Reset loading/error state and pause video when media changes
+  // Reset loading/error state, zoom, and pause video when media changes
   useEffect(() => {
     setIsLoading(true)
     setHasError(false)
+    setCurrentScale(1)
+    // Reset zoom to default
+    if (transformRef.current) {
+      transformRef.current.resetTransform()
+    }
     // Pause any playing video when navigating away
     if (videoRef.current) {
       videoRef.current.pause()
@@ -146,6 +154,13 @@ export function ImageLightbox({
     (e: React.TouchEvent) => {
       if (touchStartX.current === null || touchStartY.current === null) return
 
+      // Don't navigate when zoomed in - allow panning instead
+      if (currentScale > 1) {
+        touchStartX.current = null
+        touchStartY.current = null
+        return
+      }
+
       const deltaX = e.changedTouches[0].clientX - touchStartX.current
       const deltaY = e.changedTouches[0].clientY - touchStartY.current
 
@@ -161,7 +176,7 @@ export function ImageLightbox({
       touchStartX.current = null
       touchStartY.current = null
     },
-    [goToPrevious, goToNext]
+    [goToPrevious, goToNext, currentScale]
   )
 
   if (!currentMedia) return null
@@ -209,19 +224,34 @@ export function ImageLightbox({
                 }}
               />
             ) : (
-              <img
-                src={currentMedia.url}
-                alt={currentMedia.name}
-                className={cn(
-                  'max-h-full max-w-full object-contain transition-opacity duration-200',
-                  isLoading ? 'opacity-0' : 'opacity-100'
-                )}
-                onLoad={() => setIsLoading(false)}
-                onError={() => {
-                  setIsLoading(false)
-                  setHasError(true)
-                }}
-              />
+              <TransformWrapper
+                ref={transformRef}
+                initialScale={1}
+                minScale={1}
+                maxScale={4}
+                centerOnInit
+                doubleClick={{ mode: 'toggle', step: 2 }}
+                onTransformed={(_, state) => setCurrentScale(state.scale)}
+              >
+                <TransformComponent
+                  wrapperStyle={{ width: '100%', height: '100%' }}
+                  contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <img
+                    src={currentMedia.url}
+                    alt={currentMedia.name}
+                    className={cn(
+                      'max-h-full max-w-full object-contain transition-opacity duration-200',
+                      isLoading ? 'opacity-0' : 'opacity-100'
+                    )}
+                    onLoad={() => setIsLoading(false)}
+                    onError={() => {
+                      setIsLoading(false)
+                      setHasError(true)
+                    }}
+                  />
+                </TransformComponent>
+              </TransformWrapper>
             )}
           </div>
 
