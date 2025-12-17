@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import * as DialogPrimitive from '@radix-ui/react-dialog'
-import { ChevronLeft, ChevronRight, Download, Loader2, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Download, ImageOff, Loader2, X } from 'lucide-react'
 import { cn } from '../../lib/utils'
 
 export type LightboxImage = {
@@ -30,12 +30,14 @@ export function ImageLightbox({
   const hasMultiple = images.length > 1
   const currentImage = images[currentIndex]
 
-  // Track image loading state
+  // Track image loading and error state
   const [isLoading, setIsLoading] = useState(true)
+  const [hasError, setHasError] = useState(false)
 
-  // Reset loading state when image changes
+  // Reset loading/error state when image changes
   useEffect(() => {
     setIsLoading(true)
+    setHasError(false)
   }, [currentIndex])
 
   const goToPrevious = useCallback(() => {
@@ -153,18 +155,29 @@ export function ImageLightbox({
             onTouchStart={hasMultiple ? handleTouchStart : undefined}
             onTouchEnd={hasMultiple ? handleTouchEnd : undefined}
           >
-            {isLoading && (
+            {isLoading && !hasError && (
               <Loader2 className='absolute size-8 animate-spin text-white/70' />
             )}
-            <img
-              src={currentImage.url}
-              alt={currentImage.name}
-              className={cn(
-                'max-h-full max-w-full object-contain transition-opacity duration-200',
-                isLoading ? 'opacity-0' : 'opacity-100'
-              )}
-              onLoad={() => setIsLoading(false)}
-            />
+            {hasError ? (
+              <div className='flex flex-col items-center gap-3 text-white/70'>
+                <ImageOff className='size-12' />
+                <span className='text-sm'>Failed to load image</span>
+              </div>
+            ) : (
+              <img
+                src={currentImage.url}
+                alt={currentImage.name}
+                className={cn(
+                  'max-h-full max-w-full object-contain transition-opacity duration-200',
+                  isLoading ? 'opacity-0' : 'opacity-100'
+                )}
+                onLoad={() => setIsLoading(false)}
+                onError={() => {
+                  setIsLoading(false)
+                  setHasError(true)
+                }}
+              />
+            )}
           </div>
 
           {/* Top bar overlay with filename, counter, and controls */}
