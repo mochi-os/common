@@ -262,12 +262,8 @@ export function ImageLightbox({
               controlsVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
             )}
           >
-            {hasMultiple && (
-              <span className='shrink-0 text-sm text-white/70'>
-                {currentIndex + 1}/{images.length}
-              </span>
-            )}
             <span className='min-w-0 truncate text-sm text-white/70'>
+              {hasMultiple && <>{currentIndex + 1}/{images.length} · </>}
               {currentMedia.name}
             </span>
             <div className='flex shrink-0 items-center gap-1 text-white/70'>
