@@ -34,6 +34,18 @@
   --sidebar-ring: oklch(0 0 0);
   --highlight: #FFFBF8;
 
+  /* Text selection colors */
+  --selection: oklch(0.75 0.15 250);
+  --selection-foreground: oklch(1 0 0);
+}
+
+/* Global text selection styling */
+::selection {
+  background-color: var(--selection);
+  color: var(--selection-foreground);
+}
+
+:root {
   /* --- Twitter-inspired "TweekCN" tweaks --- */
   --font-sans: 'Open Sans', 'Geist', sans-serif;
   --font-serif: Georgia, serif;
@@ -102,6 +114,10 @@
   --sidebar-border: oklch(0.32 0 0);
   --sidebar-ring: oklch(0.72 0 0);
   --highlight: #2A2520;
+
+  /* Text selection colors (dark mode) */
+  --selection: oklch(0.55 0.15 250);
+  --selection-foreground: oklch(1 0 0);
 
   /* Fonts and rounded look stay the same */
   --font-sans: 'Open Sans', 'Geist', sans-serif;
