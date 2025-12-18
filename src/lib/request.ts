@@ -83,6 +83,29 @@ const logRequestError = (
   )
 }
 
+// Raw request that returns the full response without unwrapping the data envelope
+export async function requestRaw<TResponse>(
+  config: AxiosRequestConfig
+): Promise<TResponse> {
+  const requestConfig: AxiosRequestConfig = {
+    ...config,
+  }
+
+  try {
+    const response: AxiosResponse<TResponse> =
+      await apiClient.request<TResponse>(requestConfig)
+    return response.data
+  } catch (unknownError) {
+    const apiError = buildApiError(
+      unknownError,
+      'Unexpected API error',
+      requestConfig
+    )
+    logRequestError(apiError, requestConfig)
+    throw apiError
+  }
+}
+
 export async function request<TResponse>(
   config: AxiosRequestConfig
 ): Promise<TResponse> {
@@ -149,6 +172,15 @@ export const requestHelpers = {
     config?: Omit<AxiosRequestConfig, 'url' | 'method'>
   ): Promise<TResponse> =>
     request<TResponse>({
+      method: 'GET',
+      url,
+      ...config,
+    }),
+  getRaw: <TResponse>(
+    url: string,
+    config?: Omit<AxiosRequestConfig, 'url' | 'method'>
+  ): Promise<TResponse> =>
+    requestRaw<TResponse>({
       method: 'GET',
       url,
       ...config,

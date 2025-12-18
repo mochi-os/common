@@ -8,22 +8,22 @@ export interface NotificationCount {
   total: number
 }
 
+interface NotificationsListResponse {
+  data: Notification[]
+  count: number
+  total: number
+}
+
 // Query keys for notifications
 export const notificationKeys = {
   all: () => ['notifications'] as const,
   list: () => [...notificationKeys.all(), 'list'] as const,
-  count: () => [...notificationKeys.all(), 'count'] as const,
 }
 
 // API functions
-async function fetchNotifications(): Promise<Notification[]> {
-  const response = await requestHelpers.get<Notification[]>('/notifications/list')
-  return response ?? []
-}
-
-async function fetchNotificationCount(): Promise<NotificationCount> {
-  const response = await requestHelpers.get<NotificationCount>('/notifications/count')
-  return response ?? { count: 0, total: 0 }
+async function fetchNotifications(): Promise<NotificationsListResponse> {
+  const response = await requestHelpers.getRaw<NotificationsListResponse>('/notifications/list')
+  return response ?? { data: [], count: 0, total: 0 }
 }
 
 async function markAsRead(id: string): Promise<void> {
@@ -43,16 +43,9 @@ async function markAllAsRead(): Promise<void> {
 
 // Query hooks
 export function useNotificationsQuery() {
-  return useQuery<Notification[]>({
+  return useQuery<NotificationsListResponse>({
     queryKey: notificationKeys.list(),
     queryFn: fetchNotifications,
-  })
-}
-
-export function useNotificationCountQuery() {
-  return useQuery<NotificationCount>({
-    queryKey: notificationKeys.count(),
-    queryFn: fetchNotificationCount,
   })
 }
 
@@ -102,22 +95,18 @@ function getWebSocketUrl(): string {
 
 function handleWebSocketMessage(event: MessageEvent) {
   if (!wsState.queryClientRef) return
-  
+
   try {
     const data = JSON.parse(event.data)
 
     switch (data.type) {
       case 'new':
       case 'read':
-        wsState.queryClientRef.invalidateQueries({ queryKey: notificationKeys.list() })
-        wsState.queryClientRef.invalidateQueries({ queryKey: notificationKeys.count() })
-        break
-
       case 'read_all':
       case 'clear_all':
       case 'clear_app':
       case 'clear_object':
-        wsState.queryClientRef.invalidateQueries({ queryKey: notificationKeys.all() })
+        wsState.queryClientRef.invalidateQueries({ queryKey: notificationKeys.list() })
         break
     }
   } catch {
@@ -192,17 +181,19 @@ export function useNotificationWebSocket() {
 
 // Combined hook for easy consumption
 export function useNotifications() {
-  const { data: notifications = [], isLoading, isError } = useNotificationsQuery()
-  const { data: count } = useNotificationCountQuery()
+  const { data, isLoading, isError } = useNotificationsQuery()
   const markAsReadMutation = useMarkAsReadMutation()
   const markAllAsReadMutation = useMarkAllAsReadMutation()
 
   // Connect WebSocket for real-time updates
   useNotificationWebSocket()
 
+  const notifications = data?.data ?? []
+  const count = data ? { count: data.count, total: data.total } : { count: 0, total: 0 }
+
   return {
     notifications,
-    count: count ?? { count: 0, total: 0 },
+    count,
     isLoading,
     isError,
     unreadCount: notifications.filter((n: Notification) => n.read === 0).length,

@@ -4,6 +4,7 @@ import { cn } from '../../lib/utils'
 import { useAuthStore } from '../../stores/auth-store'
 import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
+import { useLayout } from '../../context/layout-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import { useNotifications } from '../../hooks/use-notifications'
 import { Button } from '../ui/button'
@@ -40,6 +41,10 @@ export function TopBar({ title, showNotifications = true }: TopBarProps) {
   const [offset, setOffset] = useState(0)
   const [open, setOpen] = useDialogState()
   const { theme } = useTheme()
+  const { topBarTitle } = useLayout()
+
+  // Use context title if set, otherwise fall back to prop
+  const displayTitle = topBarTitle ?? title
 
   const email = useAuthStore((state) => state.email)
   const profile = readProfileCookie()
@@ -85,8 +90,8 @@ export function TopBar({ title, showNotifications = true }: TopBarProps) {
           </a>
 
           {/* Title */}
-          {title && (
-            <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-light tracking-tight" style={{ fontFamily: 'Nunito, sans-serif' }}>{title}</h1>
+          {displayTitle && (
+            <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-light tracking-tight" style={{ fontFamily: 'Nunito, sans-serif' }}>{displayTitle}</h1>
           )}
 
           <div className="flex-1" />

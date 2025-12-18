@@ -38,7 +38,7 @@ export function NavGroup({ title, items }: NavGroupProps) {
   const pathname = useLocation({ select: (location) => location.pathname })
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>{title || 'Group'}</SidebarGroupLabel>
+      {title && <SidebarGroupLabel>{title}</SidebarGroupLabel>}
       <SidebarMenu>
         {items.map((item) => {
           const key = `${item.title}-${item.url}`
