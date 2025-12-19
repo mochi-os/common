@@ -40,14 +40,17 @@ export function ImageLightbox({
   const [isLoading, setIsLoading] = useState(true)
   const [hasError, setHasError] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
   const transformRef = useRef<ReactZoomPanPinchRef>(null)
   const [currentScale, setCurrentScale] = useState(1)
+  const [naturalSize, setNaturalSize] = useState<{ width: number; height: number } | null>(null)
 
   // Reset loading/error state, zoom, and pause video when media changes
   useEffect(() => {
     setIsLoading(true)
     setHasError(false)
     setCurrentScale(1)
+    setNaturalSize(null)
     // Reset zoom to default
     if (transformRef.current) {
       transformRef.current.resetTransform()
@@ -57,6 +60,29 @@ export function ImageLightbox({
       videoRef.current.pause()
     }
   }, [currentIndex])
+
+  // Handle double-click to toggle between fit-to-screen and 1:1 pixel scale
+  const handleDoubleClick = useCallback(() => {
+    if (!transformRef.current || !imgRef.current || !naturalSize) return
+
+    const img = imgRef.current
+    const displayedWidth = img.clientWidth
+    const displayedHeight = img.clientHeight
+
+    // Calculate scale needed to show image at 1:1 (1 image pixel = 1 screen pixel)
+    const scaleForWidth = naturalSize.width / displayedWidth
+    const scaleForHeight = naturalSize.height / displayedHeight
+    const oneToOneScale = Math.max(scaleForWidth, scaleForHeight)
+
+    // Toggle between 1x and 1:1 scale
+    if (currentScale < oneToOneScale - 0.1) {
+      // Zoom to 1:1
+      transformRef.current.centerView(oneToOneScale, 300)
+    } else {
+      // Reset to fit
+      transformRef.current.resetTransform(300)
+    }
+  }, [naturalSize, currentScale])
 
   // Preload adjacent images for smoother navigation (skip videos)
   useEffect(() => {
@@ -224,34 +250,41 @@ export function ImageLightbox({
                 }}
               />
             ) : (
-              <TransformWrapper
-                ref={transformRef}
-                initialScale={1}
-                minScale={1}
-                maxScale={4}
-                centerOnInit
-                doubleClick={{ mode: 'toggle', step: 2 }}
-                onTransformed={(_, state) => setCurrentScale(state.scale)}
-              >
-                <TransformComponent
-                  wrapperStyle={{ width: '100%', height: '100%' }}
-                  contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              <div onDoubleClick={handleDoubleClick} className='h-full w-full'>
+                <TransformWrapper
+                  ref={transformRef}
+                  initialScale={1}
+                  minScale={1}
+                  maxScale={8}
+                  centerOnInit
+                  doubleClick={{ disabled: true }}
+                  onTransformed={(_, state) => setCurrentScale(state.scale)}
                 >
-                  <img
-                    src={currentMedia.url}
-                    alt={currentMedia.name}
-                    className={cn(
-                      'max-h-full max-w-full object-contain transition-opacity duration-200',
-                      isLoading ? 'opacity-0' : 'opacity-100'
-                    )}
-                    onLoad={() => setIsLoading(false)}
-                    onError={() => {
-                      setIsLoading(false)
-                      setHasError(true)
-                    }}
-                  />
-                </TransformComponent>
-              </TransformWrapper>
+                  <TransformComponent
+                    wrapperStyle={{ width: '100%', height: '100%' }}
+                    contentStyle={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <img
+                      ref={imgRef}
+                      src={currentMedia.url}
+                      alt={currentMedia.name}
+                      className={cn(
+                        'max-h-full max-w-full object-contain transition-opacity duration-200',
+                        isLoading ? 'opacity-0' : 'opacity-100'
+                      )}
+                      onLoad={(e) => {
+                        const img = e.currentTarget
+                        setNaturalSize({ width: img.naturalWidth, height: img.naturalHeight })
+                        setIsLoading(false)
+                      }}
+                      onError={() => {
+                        setIsLoading(false)
+                        setHasError(true)
+                      }}
+                    />
+                  </TransformComponent>
+                </TransformWrapper>
+              </div>
             )}
           </div>
 
