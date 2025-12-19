@@ -53,6 +53,7 @@ export * from './components/data-table'
 // Shared Components
 export * from './components/coming-soon'
 export * from './components/command-menu'
+export * from './components/load-more-trigger'
 export * from './components/config-drawer'
 export * from './components/confirm-dialog'
 export * from './components/date-picker'
