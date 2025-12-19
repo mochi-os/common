@@ -65,7 +65,7 @@ export function NavGroup({ title, items }: NavGroupProps) {
 }
 
 function NavBadge({ children }: { children: ReactNode }) {
-  return <Badge className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
+  return <Badge variant='destructive' className='rounded-full px-1 py-0 text-xs'>{children}</Badge>
 }
 
 function SidebarMenuLink({

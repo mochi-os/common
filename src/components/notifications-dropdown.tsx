@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { Bell, Check, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { Button } from './ui/button'
+import { NotificationBadge } from './ui/notification-badge'
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { ScrollArea } from './ui/scroll-area'
 import { Switch } from './ui/switch'
@@ -118,9 +119,9 @@ export function NotificationsDropdown({
         >
           <Bell className="size-5" />
           {unreadCount > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-destructive text-[10px] font-medium text-destructive-foreground">
+            <NotificationBadge className="absolute -right-0.5 -top-0.5 size-4">
               {unreadCount > 9 ? '9+' : unreadCount}
-            </span>
+            </NotificationBadge>
           )}
         </Button>
       </PopoverTrigger>
