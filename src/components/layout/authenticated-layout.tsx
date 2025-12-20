@@ -3,21 +3,40 @@ import { cn } from '../../lib/utils'
 import { getCookie } from '../../lib/cookies'
 import { LayoutProvider } from '../../context/layout-provider'
 import { SearchProvider } from '../../context/search-provider'
-import { SidebarInset, SidebarProvider } from '../ui/sidebar'
+import { SidebarInset, SidebarProvider, useSidebar } from '../ui/sidebar'
 import { TopBar } from './top-bar'
 import { AppSidebar } from './app-sidebar'
 import type { SidebarData } from './types'
 
+// Full-height rail that covers both TopBar and Sidebar
+function FullHeightRail() {
+  const { toggleSidebar, state } = useSidebar()
+
+  return (
+    <button
+      type="button"
+      aria-label="Toggle Sidebar"
+      tabIndex={-1}
+      onClick={toggleSidebar}
+      title="Toggle Sidebar"
+      className={cn(
+        'absolute inset-y-0 -right-2 z-20 hidden w-4 sm:block',
+        'after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] after:-translate-x-1/2',
+        'after:bg-sidebar-border hover:after:bg-sidebar-foreground/30',
+        state === 'collapsed' ? 'cursor-e-resize' : 'cursor-w-resize'
+      )}
+    />
+  )
+}
+
 type AuthenticatedLayoutProps = {
   children?: React.ReactNode
-  title: string
   sidebarData?: SidebarData
   showNotifications?: boolean
 }
 
 export function AuthenticatedLayout({
   children,
-  title,
   sidebarData,
   showNotifications = true,
 }: AuthenticatedLayoutProps) {
@@ -27,26 +46,43 @@ export function AuthenticatedLayout({
   return (
     <SearchProvider>
       <LayoutProvider>
-        <div className="flex h-svh flex-col">
-          <TopBar title={title} showNotifications={showNotifications} />
-          {hasSidebar ? (
-            <SidebarProvider defaultOpen={defaultOpen} className="flex-1 overflow-hidden min-h-0">
-              <AppSidebar data={sidebarData} />
-              <SidebarInset
-                className={cn(
-                  '@container/content',
-                  'overflow-auto'
-                )}
-              >
-                {children ?? <Outlet />}
-              </SidebarInset>
-            </SidebarProvider>
-          ) : (
-            <div className={cn('@container/content', 'flex-1 overflow-auto')}>
-              {children ?? <Outlet />}
-            </div>
-          )}
-        </div>
+        <SidebarProvider defaultOpen={defaultOpen}>
+          <div className="flex h-svh w-full">
+            {hasSidebar ? (
+              <>
+                {/* Left column: TopBar + Sidebar */}
+                <div
+                  className={cn(
+                    'relative flex h-full flex-col flex-shrink-0 overflow-visible',
+                    'w-(--sidebar-width) has-data-[state=collapsed]:w-(--sidebar-width-icon)',
+                    'transition-[width] duration-200 ease-linear'
+                  )}
+                >
+                  <TopBar showNotifications={showNotifications} />
+                  <AppSidebar data={sidebarData} />
+                  <FullHeightRail />
+                </div>
+
+                {/* Content area */}
+                <SidebarInset className={cn('@container/content', 'overflow-auto')}>
+                  {children ?? <Outlet />}
+                </SidebarInset>
+              </>
+            ) : (
+              <>
+                {/* Minimal TopBar for apps without sidebar */}
+                <div className="flex flex-col flex-shrink-0">
+                  <TopBar showNotifications={showNotifications} vertical />
+                </div>
+
+                {/* Content area fills the rest */}
+                <div className={cn('@container/content', 'flex-1 overflow-auto')}>
+                  {children ?? <Outlet />}
+                </div>
+              </>
+            )}
+          </div>
+        </SidebarProvider>
       </LayoutProvider>
     </SearchProvider>
   )

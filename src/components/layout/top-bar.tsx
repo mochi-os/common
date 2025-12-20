@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { CircleUser, LogOut } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuthStore } from '../../stores/auth-store'
 import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
-import { useLayout } from '../../context/layout-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import { useNotifications } from '../../hooks/use-notifications'
+import { useSidebar } from '../ui/sidebar'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
@@ -19,12 +19,12 @@ import { SignOutDialog } from '../sign-out-dialog'
 import { NotificationsDropdown } from '../notifications-dropdown'
 
 type TopBarProps = {
-  title?: string
   showNotifications?: boolean
+  vertical?: boolean
 }
 
 // Separate component to isolate the useNotifications hook
-function TopBarNotifications() {
+function TopBarNotifications({ buttonClassName }: { buttonClassName?: string }) {
   const { notifications, markAsRead, markAllAsRead } = useNotifications()
 
   return (
@@ -33,18 +33,16 @@ function TopBarNotifications() {
       notificationsUrl="/notifications/"
       onNotificationClick={(n) => markAsRead(n.id)}
       onMarkAllAsRead={markAllAsRead}
+      buttonClassName={buttonClassName}
     />
   )
 }
 
-export function TopBar({ title, showNotifications = true }: TopBarProps) {
-  const [offset, setOffset] = useState(0)
+export function TopBar({ showNotifications = true, vertical = false }: TopBarProps) {
   const [open, setOpen] = useDialogState()
   const { theme } = useTheme()
-  const { topBarTitle } = useLayout()
-
-  // Use context title if set, otherwise fall back to prop
-  const displayTitle = topBarTitle ?? title
+  const { state } = useSidebar()
+  const isVertical = vertical || state === 'collapsed'
 
   const email = useAuthStore((state) => state.email)
   const profile = readProfileCookie()
@@ -52,76 +50,65 @@ export function TopBar({ title, showNotifications = true }: TopBarProps) {
   const displayEmail = email || 'user@example.com'
 
   useEffect(() => {
-    const onScroll = () => {
-      setOffset(document.body.scrollTop || document.documentElement.scrollTop)
-    }
-    document.addEventListener('scroll', onScroll, { passive: true })
-    return () => document.removeEventListener('scroll', onScroll)
-  }, [])
-
-  useEffect(() => {
     const themeColor = theme === 'dark' ? '#020817' : '#fff'
     const metaThemeColor = document.querySelector("meta[name='theme-color']")
     if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
   }, [theme])
 
+  // Use size-8 to match sidebar icons when collapsed, size-9 when expanded
+  const iconButtonClass = isVertical ? 'size-8' : 'size-9'
+
   return (
     <>
       <header
         className={cn(
-          'sticky top-0 z-50 h-12 w-full shadow-sm',
-          offset > 10 && 'shadow'
+          'z-50 flex items-center',
+          !vertical && 'mt-2',
+          isVertical
+            ? 'h-auto flex-col gap-1 px-2 py-2'
+            : 'h-12 flex-row gap-1 px-2'
         )}
       >
-        <div
+        {/* Logo - sized to match sidebar menu buttons */}
+        <a
+          href="/"
           className={cn(
-            'relative flex h-full items-center gap-4 px-4 sm:px-6',
-            offset > 10 &&
-              'after:bg-background/80 after:absolute after:inset-0 after:-z-10 after:backdrop-blur-lg'
+            'flex items-center justify-center rounded-md',
+            isVertical ? 'size-8' : 'size-9'
           )}
         >
-          {/* Logo */}
-          <a href="/" className="flex items-center">
-            <img
-              src="./images/logo-header.svg"
-              alt="Mochi"
-              className="h-8 w-8"
-            />
-          </a>
+          <img
+            src="./images/logo-header.svg"
+            alt="Mochi"
+            className="h-6 w-6"
+          />
+        </a>
 
-          {/* Title */}
-          {displayTitle && (
-            <h1 className="absolute left-1/2 -translate-x-1/2 text-xl font-light tracking-tight" style={{ fontFamily: 'Nunito, sans-serif' }}>{displayTitle}</h1>
-          )}
+        {/* User Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className={iconButtonClass}>
+              <CircleUser className="size-5" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="min-w-56" align="start">
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
+                <span className="font-semibold">{displayName}</span>
+                <span className="text-xs text-muted-foreground">
+                  {displayEmail}
+                </span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <LogOut className="size-4" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
-          <div className="flex-1" />
-
-          {/* Notifications */}
-          {showNotifications && <TopBarNotifications />}
-
-          {/* User Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon">
-                <CircleUser className="size-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-56" align="end">
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
-                  <span className="font-semibold">{displayName}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {displayEmail}
-                  </span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setOpen(true)}>
-                <LogOut className="size-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+        {/* Notifications */}
+        {showNotifications && <TopBarNotifications buttonClassName={iconButtonClass} />}
       </header>
 
       <SignOutDialog open={!!open} onOpenChange={setOpen} />

@@ -73,6 +73,7 @@ type NotificationsDropdownProps = {
   notificationsUrl?: string
   onMarkAllAsRead?: () => void
   onNotificationClick?: (notification: Notification) => void
+  buttonClassName?: string
 }
 
 const STORAGE_KEY = 'notifications-show-all'
@@ -82,6 +83,7 @@ export function NotificationsDropdown({
   notificationsUrl,
   onMarkAllAsRead,
   onNotificationClick,
+  buttonClassName,
 }: NotificationsDropdownProps) {
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(() => {
@@ -114,7 +116,7 @@ export function NotificationsDropdown({
         <Button
           variant="ghost"
           size="icon"
-          className="relative"
+          className={cn('relative', buttonClassName)}
           aria-label="Notifications"
         >
           <Bell className="size-5" />
