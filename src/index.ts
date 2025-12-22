@@ -45,7 +45,7 @@ export * from './components/layout/top-nav'
 export { AppSidebar } from './components/layout/app-sidebar'
 export { NavGroup } from './components/layout/nav-group'
 export { NavUser } from './components/layout/nav-user'
-export type { SidebarData, NavGroup as NavGroupType, NavItem, NavCollapsible, NavLink, NavAction } from './components/layout/types'
+export type { SidebarData, NavGroup as NavGroupType, NavItem, NavCollapsible, NavSubItem, NavLink, NavAction } from './components/layout/types'
 
 // Data Table Components
 export * from './components/data-table'
