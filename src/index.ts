@@ -50,6 +50,11 @@ export type { SidebarData, NavGroup as NavGroupType, NavItem, NavCollapsible, Na
 // Data Table Components
 export * from './components/data-table'
 
+// Location Components
+export * from './components/map-view'
+export * from './components/place-picker'
+export * from './components/travelling-picker'
+
 // Shared Components
 export * from './components/coming-soon'
 export * from './components/command-menu'
@@ -96,6 +101,7 @@ export * from './hooks/use-logout'
 export * from './hooks/use-require-auth'
 export * from './hooks/use-table-url-state'
 export * from './hooks/use-video-thumbnail'
+export * from './hooks/use-place-search'
 
 // Lib utilities
 export * from './lib/api-client'
@@ -107,6 +113,10 @@ export * from './lib/profile-cookie'
 export * from './lib/request'
 export * from './lib/show-submitted-data'
 export * from './lib/utils'
+export * from './lib/places-api'
+
+// Types
+export type { PlaceData, PostData, TravellingData, PhotonPlace } from './types/places'
 
 // Error pages
 export * from './features/errors/forbidden'
