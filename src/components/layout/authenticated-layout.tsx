@@ -1,3 +1,4 @@
+import { useEffect } from 'react'
 import { Outlet } from '@tanstack/react-router'
 import { cn } from '../../lib/utils'
 import { getCookie } from '../../lib/cookies'
@@ -33,13 +34,21 @@ type AuthenticatedLayoutProps = {
   children?: React.ReactNode
   sidebarData?: SidebarData
   showNotifications?: boolean
+  title?: string
 }
 
 export function AuthenticatedLayout({
   children,
   sidebarData,
   showNotifications = true,
+  title,
 }: AuthenticatedLayoutProps) {
+  useEffect(() => {
+    if (title) {
+      document.title = title
+    }
+  }, [title])
+
   const defaultOpen = getCookie('sidebar_state') !== 'false'
   const hasSidebar = sidebarData && sidebarData.navGroups.length > 0
 
