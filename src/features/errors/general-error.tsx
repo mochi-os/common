@@ -1,4 +1,4 @@
-import { useNavigate, useRouter } from '@tanstack/react-router'
+import { useRouter } from '@tanstack/react-router'
 import { cn } from '../../lib/utils'
 import { Button } from '../../components/ui/button'
 import { ApiError } from '../../lib/request'
@@ -14,7 +14,6 @@ export function GeneralError({
   minimal = false,
   error,
 }: GeneralErrorProps) {
-  const navigate = useNavigate()
   const { history } = useRouter()
 
   // Extract error details directly from the error object
@@ -45,9 +44,8 @@ export function GeneralError({
         {!minimal && (
           <div className='mt-6 flex gap-4'>
             <Button variant='outline' onClick={() => history.go(-1)}>
-              Go Back
+              Go back
             </Button>
-            <Button onClick={() => navigate({ to: '/' })}>Back to Home</Button>
           </div>
         )}
       </div>

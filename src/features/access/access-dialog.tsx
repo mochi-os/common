@@ -1,0 +1,309 @@
+import { useState, useEffect } from 'react'
+import { User, UsersRound, Search, Globe, Users } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../../components/ui/dialog'
+import { Button } from '../../components/ui/button'
+import { Input } from '../../components/ui/input'
+import { Label } from '../../components/ui/label'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
+import { Card, CardContent } from '../../components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select'
+import type { AccessLevel, UserSearchResult, Group } from './types'
+import { SPECIAL_SUBJECTS } from './types'
+
+export interface AccessDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  onAdd: (subject: string, subjectName: string, level: string) => Promise<void>
+  levels: AccessLevel[]
+  defaultLevel: string
+  // Data fetching
+  userSearchResults?: UserSearchResult[]
+  userSearchLoading?: boolean
+  onUserSearch?: (query: string) => void
+  groups?: Group[]
+}
+
+export function AccessDialog({
+  open,
+  onOpenChange,
+  onAdd,
+  levels,
+  defaultLevel,
+  userSearchResults = [],
+  userSearchLoading = false,
+  onUserSearch,
+  groups = [],
+}: AccessDialogProps) {
+  const [userSearch, setUserSearch] = useState('')
+  const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null)
+  const [selectedGroup, setSelectedGroup] = useState<Group | null>(null)
+  const [selectedSpecial, setSelectedSpecial] = useState<{ id: string; name: string } | null>(null)
+  const [level, setLevel] = useState(defaultLevel)
+  const [activeTab, setActiveTab] = useState<'user' | 'group' | 'special'>('user')
+  const [isAdding, setIsAdding] = useState(false)
+
+  // Reset level when dialog opens
+  useEffect(() => {
+    if (open) {
+      setLevel(defaultLevel)
+    }
+  }, [open, defaultLevel])
+
+  // Trigger user search
+  useEffect(() => {
+    if (userSearch.length >= 1 && onUserSearch) {
+      onUserSearch(userSearch)
+    }
+  }, [userSearch, onUserSearch])
+
+  // Reset selections when tab changes
+  useEffect(() => {
+    setSelectedUser(null)
+    setSelectedGroup(null)
+    setSelectedSpecial(null)
+  }, [activeTab])
+
+  const handleAdd = async () => {
+    let subject: string
+    let subjectName: string
+
+    if (activeTab === 'user' && selectedUser) {
+      subject = selectedUser.id
+      subjectName = selectedUser.name
+    } else if (activeTab === 'group' && selectedGroup) {
+      subject = `@${selectedGroup.id}`
+      subjectName = selectedGroup.name
+    } else if (activeTab === 'special' && selectedSpecial) {
+      subject = selectedSpecial.id
+      subjectName = selectedSpecial.name
+    } else {
+      return
+    }
+
+    setIsAdding(true)
+    try {
+      await onAdd(subject, subjectName, level)
+      resetAndClose()
+    } finally {
+      setIsAdding(false)
+    }
+  }
+
+  const resetAndClose = () => {
+    setUserSearch('')
+    setSelectedUser(null)
+    setSelectedGroup(null)
+    setSelectedSpecial(null)
+    setLevel(defaultLevel)
+    onOpenChange(false)
+  }
+
+  const canAdd =
+    (activeTab === 'user' && selectedUser) ||
+    (activeTab === 'group' && selectedGroup) ||
+    (activeTab === 'special' && selectedSpecial)
+
+  const getSelectedName = () => {
+    if (activeTab === 'user' && selectedUser) return selectedUser.name
+    if (activeTab === 'group' && selectedGroup) return selectedGroup.name
+    if (activeTab === 'special' && selectedSpecial) return selectedSpecial.name
+    return null
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={resetAndClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>Add access</DialogTitle>
+          <DialogDescription>
+            Select a user, group, or other rule to grant access.
+          </DialogDescription>
+        </DialogHeader>
+
+        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="user">
+              <User className="mr-2 h-4 w-4" />
+              User
+            </TabsTrigger>
+            <TabsTrigger value="group">
+              <UsersRound className="mr-2 h-4 w-4" />
+              Group
+            </TabsTrigger>
+            <TabsTrigger value="special">
+              <Globe className="mr-2 h-4 w-4" />
+              Other
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="user" className="mt-4">
+            <div className="space-y-4">
+              <div className="grid gap-2">
+                <Label htmlFor="user-search">Search users</Label>
+                <div className="relative">
+                  <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2" />
+                  <Input
+                    id="user-search"
+                    value={userSearch}
+                    onChange={(e) => {
+                      setUserSearch(e.target.value)
+                      setSelectedUser(null)
+                    }}
+                    placeholder="Type to search..."
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
+              {userSearch.length < 1 ? (
+                <p className="text-muted-foreground text-center text-sm">
+                  Type to search users
+                </p>
+              ) : userSearchLoading ? (
+                <p className="text-muted-foreground text-center text-sm">
+                  Searching...
+                </p>
+              ) : !userSearchResults.length ? (
+                <p className="text-muted-foreground text-center text-sm">
+                  No users found
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {userSearchResults.map((user) => (
+                    <Card
+                      key={user.id}
+                      className={`cursor-pointer transition-colors ${
+                        selectedUser?.id === user.id
+                          ? 'border-primary'
+                          : 'hover:bg-muted'
+                      }`}
+                      onClick={() => setSelectedUser(user)}
+                    >
+                      <CardContent className="flex items-center gap-2 p-3">
+                        <User className="h-4 w-4" />
+                        <span className="font-medium">{user.name}</span>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="group" className="mt-4">
+            <div className="space-y-4">
+              <Label>Select group</Label>
+              {groups.length === 0 ? (
+                <p className="text-muted-foreground text-center text-sm">
+                  No groups available
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {groups.map((group) => (
+                    <Card
+                      key={group.id}
+                      className={`cursor-pointer transition-colors ${
+                        selectedGroup?.id === group.id
+                          ? 'border-primary'
+                          : 'hover:bg-muted'
+                      }`}
+                      onClick={() => setSelectedGroup(group)}
+                    >
+                      <CardContent className="flex items-center gap-2 p-3">
+                        <UsersRound className="h-4 w-4" />
+                        <div>
+                          <span className="font-medium">{group.name}</span>
+                          {group.description && (
+                            <p className="text-muted-foreground text-xs">
+                              {group.description}
+                            </p>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="special" className="mt-4">
+            <div className="space-y-4">
+              <Label>Select access rule</Label>
+              <div className="space-y-2">
+                {SPECIAL_SUBJECTS.map((special) => (
+                  <Card
+                    key={special.id}
+                    className={`cursor-pointer transition-colors ${
+                      selectedSpecial?.id === special.id
+                        ? 'border-primary'
+                        : 'hover:bg-muted'
+                    }`}
+                    onClick={() => setSelectedSpecial(special)}
+                  >
+                    <CardContent className="flex items-center gap-2 p-3">
+                      {special.id === '*' ? (
+                        <Globe className="h-4 w-4" />
+                      ) : (
+                        <Users className="h-4 w-4" />
+                      )}
+                      <div>
+                        <span className="font-medium">{special.name}</span>
+                        <p className="text-muted-foreground text-xs">
+                          {special.description}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Access level selector - shown when something is selected */}
+        {canAdd && (
+          <div className="mt-4 space-y-3 border-t pt-4">
+            <p className="text-sm">
+              Selected: <span className="font-medium">{getSelectedName()}</span>
+            </p>
+            <Select value={level} onValueChange={setLevel}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {levels.map((lvl) => (
+                  <SelectItem key={lvl.value} value={lvl.value}>
+                    {lvl.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="outline" onClick={resetAndClose}>
+            Cancel
+          </Button>
+          <Button onClick={handleAdd} disabled={!canAdd || isAdding}>
+            {isAdding ? 'Adding...' : 'Add'}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  )
+}

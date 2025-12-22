@@ -51,13 +51,30 @@ export function CommandMenu({ sidebarData }: CommandMenuProps) {
           {sidebarData.navGroups.map((group) => (
             <CommandGroup key={group.title} heading={group.title}>
               {group.items.map((navItem, i) => {
-                if (navItem.url)
+                // Handle action items (onClick)
+                if ('onClick' in navItem && navItem.onClick) {
+                  return (
+                    <CommandItem
+                      key={`action-${navItem.title}-${i}`}
+                      value={navItem.title}
+                      onSelect={() => runCommand(() => navItem.onClick())}
+                    >
+                      <div className='flex size-4 items-center justify-center'>
+                        <ArrowRight className='text-muted-foreground/80 size-2' />
+                      </div>
+                      {navItem.title}
+                    </CommandItem>
+                  )
+                }
+
+                // Handle link items (url)
+                if ('url' in navItem && navItem.url)
                   return (
                     <CommandItem
                       key={`${navItem.url}-${i}`}
                       value={navItem.title}
                       onSelect={() =>
-                        navigateTo(navItem.url as string, navItem.external)
+                        navigateTo(navItem.url as string, 'external' in navItem ? navItem.external : undefined)
                       }
                     >
                       <div className='flex size-4 items-center justify-center'>
@@ -67,7 +84,8 @@ export function CommandMenu({ sidebarData }: CommandMenuProps) {
                     </CommandItem>
                   )
 
-                return navItem.items?.map((subItem, i) => (
+                // Handle collapsible items (items array)
+                return ('items' in navItem ? navItem.items : [])?.map((subItem, i) => (
                   <CommandItem
                     key={`${navItem.title}-${subItem.url}-${i}`}
                     value={`${navItem.title}-${subItem.url}`}

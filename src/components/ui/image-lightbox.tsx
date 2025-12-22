@@ -308,7 +308,7 @@ export function ImageLightbox({
               >
                 <Download className='size-5' />
               </a>
-              <DialogPrimitive.Close className='rounded-full p-2 transition-colors hover:bg-white/20 hover:text-white'>
+              <DialogPrimitive.Close className='rounded-full p-2 outline-none transition-colors hover:bg-white/20 hover:text-white'>
                 <X className='size-5' />
                 <span className='sr-only'>Close</span>
               </DialogPrimitive.Close>
