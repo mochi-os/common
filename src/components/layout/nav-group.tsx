@@ -242,6 +242,7 @@ function SidebarMenuCollapsible({
                 return (
                   <SidebarMenuSubItem key={subItem.title}>
                     <SidebarMenuSubButton
+                      className='cursor-pointer'
                       onClick={() => {
                         setOpenMobile(false)
                         subItem.onClick()
@@ -341,6 +342,7 @@ function SidebarMenuSubCollapsible({
                 return (
                   <SidebarMenuSubItem key={subSubItem.title}>
                     <SidebarMenuSubButton
+                      className='cursor-pointer'
                       onClick={() => {
                         setOpenMobile(false)
                         subSubItem.onClick()

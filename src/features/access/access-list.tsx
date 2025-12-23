@@ -28,7 +28,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '../../components/ui/alert-dialog'
-import type { AccessLevel, AccessOwner, AccessRule } from './types'
+import type { AccessLevel, AccessRule } from './types'
 
 // Subject display labels for special subjects
 const SUBJECT_LABELS: Record<string, string> = {
@@ -45,8 +45,6 @@ export interface AccessListProps {
   error?: Error | null
   /** Width for the level select dropdown (default: 250px) */
   selectWidth?: number
-  /** The owner of the resource (displayed at top with full access) */
-  owner?: AccessOwner | null
 }
 
 function formatSubject(subject: string, name?: string): string {
@@ -79,8 +77,9 @@ function getSubjectIcon(subject: string) {
   return <User className="h-4 w-4 shrink-0" />
 }
 
-// Sort subjects: users first, then groups, then +, then *
-function subjectPriority(subject: string): number {
+// Sort subjects: owners first, then users, then groups, then +, then *
+function subjectPriority(subject: string, isOwner?: boolean): number {
+  if (isOwner) return -1
   if (subject === '*') return 3
   if (subject === '+') return 2
   if (subject.startsWith('@') || subject.startsWith('#')) return 1
@@ -95,7 +94,6 @@ export function AccessList({
   isLoading = false,
   error = null,
   selectWidth = 250,
-  owner = null,
 }: AccessListProps) {
   const [updatingSubject, setUpdatingSubject] = useState<string | null>(null)
 
@@ -151,7 +149,7 @@ export function AccessList({
     )
   }
 
-  if (!rules.length && !owner) {
+  if (!rules.length) {
     return (
       <p className="text-muted-foreground text-sm">
         No access rules configured. Add rules to control who can access this resource.
@@ -162,7 +160,7 @@ export function AccessList({
   // Group rules by subject
   // For hierarchical model, there's one rule per subject
   // For permission model, there might be multiple rules per subject
-  const subjectData = new Map<string, { rules: AccessRule[]; name?: string }>()
+  const subjectData = new Map<string, { rules: AccessRule[]; name?: string; isOwner?: boolean }>()
   for (const rule of rules) {
     const existing = subjectData.get(rule.subject)
     if (existing) {
@@ -171,13 +169,14 @@ export function AccessList({
       subjectData.set(rule.subject, {
         rules: [rule],
         name: rule.name,
+        isOwner: rule.isOwner,
       })
     }
   }
 
-  // Sort by priority (users first, then groups, +, *)
+  // Sort by priority (owners first, then users, then groups, +, *)
   const sortedSubjects = [...subjectData.entries()].sort(
-    ([a], [b]) => subjectPriority(a) - subjectPriority(b)
+    ([a, aData], [b, bData]) => subjectPriority(a, aData.isOwner) - subjectPriority(b, bData.isOwner)
   )
 
   return (
@@ -190,31 +189,13 @@ export function AccessList({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {/* Owner row (always first, not editable) */}
-        {owner && (
-          <TableRow>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                <User className="h-4 w-4 shrink-0" />
-                <span className="font-medium">
-                  {owner.name || owner.id}
-                  <span className="ml-2 font-normal">(owner)</span>
-                </span>
-              </div>
-            </TableCell>
-            <TableCell>
-              <span className="text-sm">Full access</span>
-            </TableCell>
-            <TableCell />
-          </TableRow>
-        )}
-        {/* Access rules */}
         {sortedSubjects.map(([subject, data]) => {
           // For hierarchical model, use the first (and only) rule
           // For permission model, this would need different handling
           const rule = data.rules[0]
           const currentLevel = getRuleLevel(rule)
           const isUpdating = updatingSubject === subject
+          const isOwner = data.isOwner
 
           return (
             <TableRow key={subject}>
@@ -227,49 +208,55 @@ export function AccessList({
                 </div>
               </TableCell>
               <TableCell>
-                <Select
-                  value={currentLevel}
-                  onValueChange={(newLevel) => void handleLevelChange(subject, newLevel)}
-                  disabled={isUpdating}
-                >
-                  <SelectTrigger style={{ width: selectWidth }} className="h-8 -ml-3">
-                    <SelectValue>{getLevelLabel(currentLevel)}</SelectValue>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {levels.map((level) => (
-                      <SelectItem key={level.value} value={level.value}>
-                        {level.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {isOwner ? (
+                  <span className="text-sm">Owner</span>
+                ) : (
+                  <Select
+                    value={currentLevel}
+                    onValueChange={(newLevel) => void handleLevelChange(subject, newLevel)}
+                    disabled={isUpdating}
+                  >
+                    <SelectTrigger style={{ width: selectWidth }} className="h-8 -ml-3">
+                      <SelectValue>{getLevelLabel(currentLevel)}</SelectValue>
+                    </SelectTrigger>
+                    <SelectContent>
+                      {levels.map((level) => (
+                        <SelectItem key={level.value} value={level.value}>
+                          {level.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </TableCell>
               <TableCell>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      disabled={isUpdating}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Remove access?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        This will remove all access for "{formatSubject(subject, data.name)}".
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction onClick={() => void handleRevoke(subject)}>
-                        Remove
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                {!isOwner && (
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        disabled={isUpdating}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Remove access?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          This will remove all access for "{formatSubject(subject, data.name)}".
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                        <AlertDialogAction onClick={() => void handleRevoke(subject)}>
+                          Remove
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                )}
               </TableCell>
             </TableRow>
           )
