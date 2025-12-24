@@ -173,21 +173,23 @@ export function NotificationsDropdown({
 
         {/* List */}
         <ScrollArea className="max-h-80">
-          {displayedNotifications.length === 0 ? (
-            <div className="py-8 text-center text-sm text-muted-foreground">
-              {showAll ? 'No notifications' : 'No unread notifications'}
-            </div>
-          ) : (
-            <div className="divide-y">
-              {displayedNotifications.map((notification) => (
-                <NotificationItem
-                  key={notification.id}
-                  notification={notification}
-                  onClick={handleNotificationClick}
-                />
-              ))}
-            </div>
-          )}
+          <div className="bg-popover">
+            {displayedNotifications.length === 0 ? (
+              <div className="py-8 text-center text-sm text-muted-foreground">
+                {showAll ? 'No notifications' : 'No unread notifications'}
+              </div>
+            ) : (
+              <div className="divide-y">
+                {displayedNotifications.map((notification) => (
+                  <NotificationItem
+                    key={notification.id}
+                    notification={notification}
+                    onClick={handleNotificationClick}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </ScrollArea>
 
       </PopoverContent>
