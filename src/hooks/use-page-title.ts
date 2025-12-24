@@ -1,16 +1,8 @@
 import { useEffect } from 'react'
 
-// Sets document.title, resets to default on unmount
-export function usePageTitle(title: string | null | undefined, defaultTitle = 'Mochi') {
+// Sets document.title to "title - Mochi"
+export function usePageTitle(title: string) {
   useEffect(() => {
-    if (title) {
-      document.title = title
-    } else {
-      document.title = defaultTitle
-    }
-
-    return () => {
-      document.title = defaultTitle
-    }
-  }, [title, defaultTitle])
+    document.title = `${title} - Mochi`
+  }, [title])
 }
