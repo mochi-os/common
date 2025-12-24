@@ -7,6 +7,7 @@ const TOKEN_COOKIE = 'token'
 interface AuthState {
   token: string
   email: string
+  name: string
   isLoading: boolean
   isInitialized: boolean
 
@@ -22,10 +23,12 @@ export const useAuthStore = create<AuthState>()((set, get) => {
   const initialToken = getCookie(TOKEN_COOKIE) || ''
   const profile = readProfileCookie()
   const initialEmail = profile.email || ''
+  const initialName = profile.name || ''
 
   return {
     token: initialToken,
     email: initialEmail,
+    name: initialName,
     isLoading: false,
     isInitialized: false,
     isAuthenticated: Boolean(initialToken),
@@ -38,13 +41,16 @@ export const useAuthStore = create<AuthState>()((set, get) => {
       const cookieToken = getCookie(TOKEN_COOKIE) || ''
       const profile = readProfileCookie()
       const cookieEmail = profile.email || ''
+      const cookieName = profile.name || ''
       const storeToken = get().token
       const storeEmail = get().email
+      const storeName = get().name
 
-      if (cookieToken !== storeToken || cookieEmail !== storeEmail) {
+      if (cookieToken !== storeToken || cookieEmail !== storeEmail || cookieName !== storeName) {
         set({
           token: cookieToken,
           email: cookieEmail,
+          name: cookieName,
           isAuthenticated: Boolean(cookieToken),
           isInitialized: true,
         })
@@ -60,6 +66,7 @@ export const useAuthStore = create<AuthState>()((set, get) => {
       set({
         token: '',
         email: '',
+        name: '',
         isAuthenticated: false,
         isLoading: false,
         isInitialized: true,
