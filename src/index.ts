@@ -102,6 +102,7 @@ export * from './hooks/use-require-auth'
 export * from './hooks/use-table-url-state'
 export * from './hooks/use-video-thumbnail'
 export * from './hooks/use-place-search'
+export * from './hooks/use-lightbox-hash'
 
 // Lib utilities
 export * from './lib/api-client'
