@@ -101,7 +101,11 @@ apiClient.interceptors.response.use(
             error.config?.url?.includes('/auth') ||
             error.config?.url?.includes('/verify')
 
-          if (!isAuthEndpoint) {
+          // Only redirect if user had a session that expired
+          // Don't redirect if user was never authenticated (anonymous access)
+          const hadSession = getCookie('token') || useAuthStore.getState().token
+
+          if (!isAuthEndpoint && hadSession) {
             removeCookie('token')
             removeCookie('mochi_me')
 
