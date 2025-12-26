@@ -24,16 +24,50 @@ let cachedAppPath: string | null = null
 let cachedRouterBasepath: string | null = null
 let cachedApiBasepath: string | null = null
 
+// Known app paths - if the first path segment isn't one of these and isn't an entity ID,
+// we're likely on a subdomain with entity routing
+const KNOWN_APPS = [
+  'wikis', 'wiki', 'forums', 'forum', 'feeds', 'feed', 'chat', 'files',
+  'login', 'home', 'notifications', 'people', 'friends', 'settings', 'publisher',
+  'apps', 'app-market-server',
+]
+
+// Check if we're on a subdomain with entity routing
+// Returns true if hostname is a subdomain (has 3+ parts) and first path segment isn't a known app or entity
+function isSubdomainEntityRouting(): boolean {
+  const hostname = window.location.hostname
+  const parts = hostname.split('.')
+  // Need at least 3 parts for a subdomain (e.g., docs.mochi-os.org)
+  if (parts.length < 3) return false
+  // Skip if it's www
+  if (parts[0] === 'www') return false
+
+  const pathname = window.location.pathname
+  const match = pathname.match(/^\/([^/]*)/)
+  const firstSegment = match ? match[1] : ''
+
+  // If first segment is a known app or entity ID, it's not subdomain entity routing
+  if (KNOWN_APPS.includes(firstSegment)) return false
+  if (isEntityId(firstSegment)) return false
+
+  return true
+}
+
 // Get the app path (first URL segment, e.g., /wiki)
-// For direct entity routing (/<entity>/), returns empty string
+// For direct entity routing (/<entity>/) or subdomain entity routing, returns empty string
 export function getAppPath(): string {
   if (cachedAppPath === null) {
-    const pathname = window.location.pathname
-    const match = pathname.match(/^\/([^/]+)/)
-    if (match && !isEntityId(match[1])) {
-      cachedAppPath = '/' + match[1]
-    } else {
+    // Subdomain entity routing: no app path
+    if (isSubdomainEntityRouting()) {
       cachedAppPath = ''
+    } else {
+      const pathname = window.location.pathname
+      const match = pathname.match(/^\/([^/]+)/)
+      if (match && !isEntityId(match[1])) {
+        cachedAppPath = '/' + match[1]
+      } else {
+        cachedAppPath = ''
+      }
     }
   }
   return cachedAppPath
@@ -43,20 +77,26 @@ export function getAppPath(): string {
 // Class context: /<app>/ (e.g., /wiki/)
 // Entity context: /<app>/<entity-id>/ (e.g., /wiki/abc123/)
 // Direct entity: /<entity-id>/ (e.g., /abc123/)
+// Subdomain entity: / (e.g., docs.mochi-os.org/)
 export function getRouterBasepath(): string {
   if (cachedRouterBasepath === null) {
-    const pathname = window.location.pathname
-    // Check for direct entity routing: /<entity>/
-    const directMatch = pathname.match(/^\/([^/]+)/)
-    if (directMatch && isEntityId(directMatch[1])) {
-      cachedRouterBasepath = `/${directMatch[1]}/`
+    // Subdomain entity routing: basepath is just /
+    if (isSubdomainEntityRouting()) {
+      cachedRouterBasepath = '/'
     } else {
-      // Check for /<app>/<entity>/ pattern
-      const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
-      if (match && !CLASS_ROUTES.includes(match[2])) {
-        cachedRouterBasepath = `${match[1]}/${match[2]}/`
+      const pathname = window.location.pathname
+      // Check for direct entity routing: /<entity>/
+      const directMatch = pathname.match(/^\/([^/]+)/)
+      if (directMatch && isEntityId(directMatch[1])) {
+        cachedRouterBasepath = `/${directMatch[1]}/`
       } else {
-        cachedRouterBasepath = getAppPath() + '/'
+        // Check for /<app>/<entity>/ pattern
+        const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
+        if (match && !CLASS_ROUTES.includes(match[2])) {
+          cachedRouterBasepath = `${match[1]}/${match[2]}/`
+        } else {
+          cachedRouterBasepath = getAppPath() + '/'
+        }
       }
     }
   }
@@ -67,20 +107,26 @@ export function getRouterBasepath(): string {
 // Class context: /<app>/ (e.g., /wiki/)
 // Entity context: /<app>/<entity-id>/-/ (e.g., /wiki/abc123/-/)
 // Direct entity: /<entity-id>/-/ (e.g., /abc123/-/)
+// Subdomain entity: /-/ (e.g., docs.mochi-os.org/-/)
 export function getApiBasepath(): string {
   if (cachedApiBasepath === null) {
-    const pathname = window.location.pathname
-    // Check for direct entity routing: /<entity>/
-    const directMatch = pathname.match(/^\/([^/]+)/)
-    if (directMatch && isEntityId(directMatch[1])) {
-      cachedApiBasepath = `/${directMatch[1]}/-/`
+    // Subdomain entity routing: API calls go to /-/
+    if (isSubdomainEntityRouting()) {
+      cachedApiBasepath = '/-/'
     } else {
-      // Check for /<app>/<entity>/ pattern
-      const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
-      if (match && !CLASS_ROUTES.includes(match[2])) {
-        cachedApiBasepath = `${match[1]}/${match[2]}/-/`
+      const pathname = window.location.pathname
+      // Check for direct entity routing: /<entity>/
+      const directMatch = pathname.match(/^\/([^/]+)/)
+      if (directMatch && isEntityId(directMatch[1])) {
+        cachedApiBasepath = `/${directMatch[1]}/-/`
       } else {
-        cachedApiBasepath = getAppPath() + '/'
+        // Check for /<app>/<entity>/ pattern
+        const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
+        if (match && !CLASS_ROUTES.includes(match[2])) {
+          cachedApiBasepath = `${match[1]}/${match[2]}/-/`
+        } else {
+          cachedApiBasepath = getAppPath() + '/'
+        }
       }
     }
   }
