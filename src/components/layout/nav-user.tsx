@@ -11,7 +11,6 @@ import {
 import { useAuthStore } from '../../stores/auth-store'
 import { readProfileCookie } from '../../lib/profile-cookie'
 import { cn } from '../../lib/utils'
-import { isDomainEntityRouting } from '../../lib/app-path'
 import { useTheme } from '../../context/theme-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import {
@@ -40,7 +39,6 @@ export function NavUser() {
 
   // Use email from auth store (Template mirrors core auth cookie shape)
   const email = useAuthStore((state) => state.email)
-  const isLoggedIn = !!email
   // Get name from mochi_me cookie
   const profile = readProfileCookie()
   const displayName = profile.name || 'User'
@@ -52,30 +50,6 @@ export function NavUser() {
     const metaThemeColor = document.querySelector("meta[name='theme-color']")
     if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
   }, [theme])
-
-  // If not logged in, show a login link (but not on domain-routed entities)
-  if (!isLoggedIn) {
-    // On domain-routed entities (e.g., acunningham.org), there's no login app
-    if (isDomainEntityRouting()) {
-      return null
-    }
-    return (
-      <SidebarMenu>
-        <SidebarMenuItem>
-          <SidebarMenuButton
-            size='lg'
-            className='group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2'
-            asChild
-          >
-            <a href='/login'>
-              <CircleUser className='size-4' />
-              <span className='group-data-[collapsible=icon]:hidden'>Log in</span>
-            </a>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    )
-  }
 
   return (
     <>
