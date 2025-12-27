@@ -2,6 +2,8 @@ import { useEffect } from 'react'
 import { Outlet } from '@tanstack/react-router'
 import { cn } from '../../lib/utils'
 import { getCookie } from '../../lib/cookies'
+import { isDomainEntityRouting } from '../../lib/app-path'
+import { useAuthStore } from '../../stores/auth-store'
 import { LayoutProvider } from '../../context/layout-provider'
 import { SearchProvider } from '../../context/search-provider'
 import { SidebarInset, SidebarProvider, useSidebar } from '../ui/sidebar'
@@ -49,8 +51,35 @@ export function AuthenticatedLayout({
     }
   }, [title])
 
+  const email = useAuthStore((state) => state.email)
+  const isLoggedIn = !!email
   const defaultOpen = getCookie('sidebar_state') !== 'false'
   const hasSidebar = sidebarData && sidebarData.navGroups.length > 0
+
+  // Anonymous users: minimal layout
+  if (!isLoggedIn) {
+    const isDomainRouted = isDomainEntityRouting()
+    return (
+      <SearchProvider>
+        <LayoutProvider>
+          <SidebarProvider defaultOpen={defaultOpen}>
+            <div className="relative h-svh w-full">
+              {/* Floating TopBar - only on main site, not domain-routed entities */}
+              {!isDomainRouted && (
+                <div className="absolute top-0 left-0 z-50">
+                  <TopBar showNotifications={false} />
+                </div>
+              )}
+              {/* Content fills the entire viewport */}
+              <div className={cn('@container/content', 'h-full overflow-auto')}>
+                {children ?? <Outlet />}
+              </div>
+            </div>
+          </SidebarProvider>
+        </LayoutProvider>
+      </SearchProvider>
+    )
+  }
 
   return (
     <SearchProvider>
