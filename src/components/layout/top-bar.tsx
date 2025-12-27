@@ -45,9 +45,10 @@ export function TopBar({ showNotifications = true, vertical = false }: TopBarPro
   const isVertical = vertical || state === 'collapsed'
 
   const email = useAuthStore((state) => state.email)
+  const isLoggedIn = !!email
   const profile = readProfileCookie()
   const displayName = profile.name || 'User'
-  const displayEmail = email || 'user@example.com'
+  const displayEmail = email || ''
 
   useEffect(() => {
     const themeColor = theme === 'dark' ? '#020817' : '#fff'
@@ -85,27 +86,35 @@ export function TopBar({ showNotifications = true, vertical = false }: TopBarPro
         </a>
 
         {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className={iconButtonClass}>
+        {isLoggedIn ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className={iconButtonClass}>
+                <CircleUser className="size-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="min-w-56" align="start">
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
+                  <span className="font-semibold">{displayName}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {displayEmail}
+                  </span>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => setOpen(true)}>
+                <LogOut className="size-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button variant="ghost" size="icon" className={iconButtonClass} asChild>
+            <a href="/login">
               <CircleUser className="size-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="min-w-56" align="start">
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
-                <span className="font-semibold">{displayName}</span>
-                <span className="text-xs text-muted-foreground">
-                  {displayEmail}
-                </span>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => setOpen(true)}>
-              <LogOut className="size-4" />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+            </a>
+          </Button>
+        )}
 
         {/* Notifications */}
         {showNotifications && <TopBarNotifications buttonClassName={iconButtonClass} />}
