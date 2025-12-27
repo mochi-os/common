@@ -11,6 +11,7 @@ import {
 import { useAuthStore } from '../../stores/auth-store'
 import { readProfileCookie } from '../../lib/profile-cookie'
 import { cn } from '../../lib/utils'
+import { isDomainEntityRouting } from '../../lib/app-path'
 import { useTheme } from '../../context/theme-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import {
@@ -52,8 +53,12 @@ export function NavUser() {
     if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
   }, [theme])
 
-  // If not logged in, show a simple login link
+  // If not logged in, show a login link (but not on domain-routed entities)
   if (!isLoggedIn) {
+    // On domain-routed entities (e.g., acunningham.org), there's no login app
+    if (isDomainEntityRouting()) {
+      return null
+    }
     return (
       <SidebarMenu>
         <SidebarMenuItem>

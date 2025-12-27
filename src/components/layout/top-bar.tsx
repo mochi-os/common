@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { CircleUser, LogOut } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
 import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
@@ -109,11 +110,14 @@ export function TopBar({ showNotifications = true, vertical = false }: TopBarPro
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button variant="ghost" size="icon" className={iconButtonClass} asChild>
-            <a href="/login">
-              <CircleUser className="size-5" />
-            </a>
-          </Button>
+          // Don't show login link on domain-routed entities (no login app there)
+          !isDomainEntityRouting() && (
+            <Button variant="ghost" size="icon" className={iconButtonClass} asChild>
+              <a href="/login">
+                <CircleUser className="size-5" />
+              </a>
+            </Button>
+          )
         )}
 
         {/* Notifications */}
