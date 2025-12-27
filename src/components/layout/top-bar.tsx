@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { CircleUser, LogOut } from 'lucide-react'
+import { CircleUser, LogIn, LogOut } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -60,6 +60,45 @@ export function TopBar({ showNotifications = true, vertical = false }: TopBarPro
   // Use size-8 to match sidebar icons when collapsed, size-9 when expanded
   const iconButtonClass = isVertical ? 'size-8' : 'size-9'
 
+  // Non-logged-in: minimal header with just Mochi icon
+  if (!isLoggedIn) {
+    const isDomainRouted = isDomainEntityRouting()
+    return (
+      <header className="z-50 flex h-12 items-center px-4">
+        {isDomainRouted ? (
+          // Domain-routed: just the icon, no dropdown
+          <img
+            src="./images/logo-header.svg"
+            alt="Mochi"
+            className="h-6 w-6"
+          />
+        ) : (
+          // Main site: icon with dropdown containing login
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="size-9">
+                <img
+                  src="./images/logo-header.svg"
+                  alt="Mochi"
+                  className="h-6 w-6"
+                />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              <DropdownMenuItem asChild>
+                <a href="/login">
+                  <LogIn className="size-4" />
+                  Log in
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+      </header>
+    )
+  }
+
+  // Logged-in: full header with logo, user menu, notifications
   return (
     <>
       <header
@@ -87,38 +126,27 @@ export function TopBar({ showNotifications = true, vertical = false }: TopBarPro
         </a>
 
         {/* User Menu */}
-        {isLoggedIn ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className={iconButtonClass}>
-                <CircleUser className="size-5" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-56" align="start">
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
-                  <span className="font-semibold">{displayName}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {displayEmail}
-                  </span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuItem onClick={() => setOpen(true)}>
-                <LogOut className="size-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
-          // Don't show login link on domain-routed entities (no login app there)
-          !isDomainEntityRouting() && (
-            <Button variant="ghost" size="icon" className={iconButtonClass} asChild>
-              <a href="/login">
-                <CircleUser className="size-5" />
-              </a>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className={iconButtonClass}>
+              <CircleUser className="size-5" />
             </Button>
-          )
-        )}
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="min-w-56" align="start">
+            <DropdownMenuLabel className="p-0 font-normal">
+              <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
+                <span className="font-semibold">{displayName}</span>
+                <span className="text-xs text-muted-foreground">
+                  {displayEmail}
+                </span>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={() => setOpen(true)}>
+              <LogOut className="size-4" />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Notifications */}
         {showNotifications && <TopBarNotifications buttonClassName={iconButtonClass} />}

@@ -3,6 +3,7 @@ import { Slot } from '@radix-ui/react-slot'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'
 import { cn } from '../../lib/utils'
+import { useAuthStore } from '../../stores/auth-store'
 import { useIsMobile } from '../../hooks/use-mobile'
 import { Button } from './button'
 import { Input } from './input'
@@ -161,6 +162,13 @@ function Sidebar({
   collapsible?: 'offcanvas' | 'icon' | 'none'
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
+  const email = useAuthStore((state) => state.email)
+  const isLoggedIn = !!email
+
+  // Hide sidebar when not logged in
+  if (!isLoggedIn) {
+    return null
+  }
 
   if (collapsible === 'none') {
     return (
