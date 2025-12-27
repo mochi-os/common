@@ -106,7 +106,7 @@ export * from './hooks/use-lightbox-hash'
 
 // Lib utilities
 export * from './lib/api-client'
-export * from './lib/app-path'
+export { getAppPath, getRouterBasepath, getApiBasepath, getAuthLoginUrl, isDomainEntityRouting } from './lib/app-path'
 export * from './lib/auth-endpoints'
 export * from './lib/cookies'
 export * from './lib/handle-server-error'

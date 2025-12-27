@@ -32,24 +32,20 @@ const KNOWN_APPS = [
   'apps', 'app-market-server',
 ]
 
-// Check if we're on a subdomain with entity routing
-// Returns true if hostname is a subdomain (has 3+ parts) and first path segment isn't a known app or entity
-function isSubdomainEntityRouting(): boolean {
-  const hostname = window.location.hostname
-  const parts = hostname.split('.')
-  // Need at least 3 parts for a subdomain (e.g., docs.mochi-os.org)
-  if (parts.length < 3) return false
-  // Skip if it's www
-  if (parts[0] === 'www') return false
-
+// Check if we're on a domain with entity routing (subdomain or custom domain)
+// Returns true if first path segment isn't a known app or entity ID
+// This handles both subdomains (docs.mochi-os.org) and custom domains (acunningham.org)
+export function isDomainEntityRouting(): boolean {
   const pathname = window.location.pathname
   const match = pathname.match(/^\/([^/]*)/)
   const firstSegment = match ? match[1] : ''
 
-  // If first segment is a known app or entity ID, it's not subdomain entity routing
+  // If first segment is a known app, it's app routing
   if (KNOWN_APPS.includes(firstSegment)) return false
+  // If first segment is an entity ID, it's direct entity routing (handled elsewhere)
   if (isEntityId(firstSegment)) return false
 
+  // Otherwise, we're on a domain-routed entity
   return true
 }
 
@@ -57,8 +53,8 @@ function isSubdomainEntityRouting(): boolean {
 // For direct entity routing (/<entity>/) or subdomain entity routing, returns empty string
 export function getAppPath(): string {
   if (cachedAppPath === null) {
-    // Subdomain entity routing: no app path
-    if (isSubdomainEntityRouting()) {
+    // Domain entity routing: no app path
+    if (isDomainEntityRouting()) {
       cachedAppPath = ''
     } else {
       const pathname = window.location.pathname
@@ -80,8 +76,8 @@ export function getAppPath(): string {
 // Subdomain entity: / (e.g., docs.mochi-os.org/)
 export function getRouterBasepath(): string {
   if (cachedRouterBasepath === null) {
-    // Subdomain entity routing: basepath is just /
-    if (isSubdomainEntityRouting()) {
+    // Domain entity routing: basepath is just /
+    if (isDomainEntityRouting()) {
       cachedRouterBasepath = '/'
     } else {
       const pathname = window.location.pathname
@@ -110,8 +106,8 @@ export function getRouterBasepath(): string {
 // Subdomain entity: /-/ (e.g., docs.mochi-os.org/-/)
 export function getApiBasepath(): string {
   if (cachedApiBasepath === null) {
-    // Subdomain entity routing: API calls go to /-/
-    if (isSubdomainEntityRouting()) {
+    // Domain entity routing: API calls go to /-/
+    if (isDomainEntityRouting()) {
       cachedApiBasepath = '/-/'
     } else {
       const pathname = window.location.pathname
