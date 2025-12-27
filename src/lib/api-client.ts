@@ -1,5 +1,5 @@
 import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
-import { toast } from 'sonner'
+import { toast } from './toast-utils'
 import { useAuthStore } from '../stores/auth-store'
 import { getCookie, removeCookie } from './cookies'
 import { getApiBasepath, getAuthLoginUrl } from './app-path'

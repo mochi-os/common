@@ -1,12 +1,16 @@
 import { Toaster as Sonner, type ToasterProps } from 'sonner'
 import { useTheme } from '../../context/theme-provider'
 
-export function Toaster({ ...props }: ToasterProps) {
+// Default durations (in ms): success/info 6s, error 10s
+const DEFAULT_DURATION = 6000
+
+export function Toaster({ duration = DEFAULT_DURATION, ...props }: ToasterProps) {
   const { theme = 'system' } = useTheme()
 
   return (
     <Sonner
       theme={theme as ToasterProps['theme']}
+      duration={duration}
       className='toaster group [&_div[data-content]]:w-full'
       style={
         {

@@ -1,5 +1,5 @@
 import { AxiosError } from 'axios'
-import { toast } from 'sonner'
+import { toast } from './toast-utils'
 
 export function handleServerError(error: unknown) {
   let errMsg = 'Something went wrong!'

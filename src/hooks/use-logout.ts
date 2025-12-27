@@ -1,5 +1,5 @@
 import { useCallback } from 'react'
-import { toast } from 'sonner'
+import { toast } from '../lib/toast-utils'
 import { authEndpoints } from '../lib/auth-endpoints'
 import { removeCookie } from '../lib/cookies'
 import { requestHelpers } from '../lib/request'
