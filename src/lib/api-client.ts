@@ -135,8 +135,13 @@ apiClient.interceptors.response.use(
       }
 
       case 500: {
-        // Don't toast here - let the component's onError handler show the specific error
         logDevError('[API] Server error', error)
+        // Extract error message from backend response
+        const responseData = error.response?.data as { error?: string; message?: string } | undefined
+        const errorMessage = responseData?.error ?? responseData?.message ?? 'An unexpected error occurred'
+        toast.error('Server error', {
+          description: errorMessage,
+        })
         if (import.meta.env.DEV) {
           devConsole?.error?.(
             `[API] 500 Error for ${error.config?.method?.toUpperCase()} ${error.config?.baseURL}${error.config?.url}`

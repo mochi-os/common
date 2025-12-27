@@ -37,10 +37,12 @@ const buildApiError = (
   requestConfig: AxiosRequestConfig
 ): ApiError => {
   if (isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ message?: string }>
+    const axiosError = error as AxiosError<{ message?: string; error?: string }>
     const status = axiosError.response?.status
     const responseData = axiosError.response?.data
+    // Backend may return either {"message": "..."} or {"error": "..."}
     const message =
+      responseData?.error ??
       responseData?.message ??
       axiosError.message ??
       `${requestConfig.method ?? 'request'} ${requestConfig.url} failed`
