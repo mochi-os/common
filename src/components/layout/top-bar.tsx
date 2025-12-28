@@ -7,7 +7,7 @@ import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import { useNotifications } from '../../hooks/use-notifications'
-import { useSidebar } from '../ui/sidebar'
+import { SidebarTrigger, useSidebar } from '../ui/sidebar'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
@@ -21,6 +21,7 @@ import { NotificationsDropdown } from '../notifications-dropdown'
 
 type TopBarProps = {
   showNotifications?: boolean
+  showSidebarTrigger?: boolean
   vertical?: boolean
 }
 
@@ -39,7 +40,11 @@ function TopBarNotifications({ buttonClassName }: { buttonClassName?: string }) 
   )
 }
 
-export function TopBar({ showNotifications = true, vertical = false }: TopBarProps) {
+export function TopBar({
+  showNotifications = true,
+  showSidebarTrigger = false,
+  vertical = false,
+}: TopBarProps) {
   const [open, setOpen] = useDialogState()
   const { theme } = useTheme()
   const { state } = useSidebar()
@@ -150,6 +155,9 @@ export function TopBar({ showNotifications = true, vertical = false }: TopBarPro
 
         {/* Notifications */}
         {showNotifications && <TopBarNotifications buttonClassName={iconButtonClass} />}
+
+        {/* Sidebar trigger (mobile) */}
+        {showSidebarTrigger && <SidebarTrigger className={iconButtonClass} />}
       </header>
 
       <SignOutDialog open={!!open} onOpenChange={setOpen} />

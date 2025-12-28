@@ -85,13 +85,18 @@ export function AuthenticatedLayout({
     <SearchProvider>
       <LayoutProvider>
         <SidebarProvider defaultOpen={defaultOpen}>
-          <div className="flex h-svh w-full">
+          <div className="flex h-svh w-full flex-col md:flex-row">
             {hasSidebar ? (
               <>
-                {/* Left column: TopBar + Sidebar */}
+                {/* Mobile header bar */}
+                <div className="flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden">
+                  <TopBar showNotifications={showNotifications} showSidebarTrigger />
+                </div>
+
+                {/* Left column: TopBar + Sidebar (desktop only) */}
                 <div
                   className={cn(
-                    'relative flex h-full flex-col flex-shrink-0 overflow-visible',
+                    'relative hidden h-full flex-col flex-shrink-0 overflow-visible md:flex',
                     'w-(--sidebar-width) has-data-[state=collapsed]:w-(--sidebar-width-icon)',
                     'transition-[width] duration-200 ease-linear'
                   )}
@@ -102,7 +107,7 @@ export function AuthenticatedLayout({
                 </div>
 
                 {/* Content area */}
-                <SidebarInset className={cn('@container/content', 'overflow-auto')}>
+                <SidebarInset className={cn('@container/content', 'overflow-auto flex-1')}>
                   {children ?? <Outlet />}
                 </SidebarInset>
               </>

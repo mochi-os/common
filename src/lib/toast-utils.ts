@@ -1,4 +1,6 @@
+import { createElement } from 'react'
 import { toast as sonnerToast, type ExternalToast } from 'sonner'
+import { Copy } from 'lucide-react'
 
 // Error toasts stay longer (10s vs default 6s)
 const ERROR_DURATION = 10000
@@ -24,13 +26,17 @@ export const toast = {
       ...data,
       action: textToCopy
         ? {
-            label: '📋',
+            label: createElement(Copy, { className: 'h-4 w-4' }),
             onClick: () => {
               navigator.clipboard.writeText(textToCopy)
               sonnerToast.success('Copied')
             },
           }
         : undefined,
+      classNames: {
+        actionButton: '!bg-transparent !text-current !p-1',
+        ...data?.classNames,
+      },
     })
   },
 }

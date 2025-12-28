@@ -89,6 +89,7 @@ export * from './context/search-provider'
 
 // Stores
 export * from './stores/auth-store'
+export * from './stores/domain-context-store'
 
 // Hooks
 export { default as useDialogState } from './hooks/use-dialog-state'
