@@ -95,30 +95,28 @@ apiClient.interceptors.response.use(
       case 401: {
         logDevError('[API] 401 Unauthorized', error)
 
-        if (import.meta.env.PROD) {
-          const isAuthEndpoint =
-            error.config?.url?.includes('/login') ||
-            error.config?.url?.includes('/auth') ||
-            error.config?.url?.includes('/verify')
+        const isAuthEndpoint =
+          error.config?.url?.includes('/login') ||
+          error.config?.url?.includes('/auth') ||
+          error.config?.url?.includes('/verify')
 
-          // Only redirect if user had a session that expired
-          // Don't redirect if user was never authenticated (anonymous access)
-          const hadSession = getCookie('token') || useAuthStore.getState().token
+        // Only redirect if user had a session that expired
+        // Don't redirect if user was never authenticated (anonymous access)
+        const hadSession = getCookie('token') || useAuthStore.getState().token
 
-          if (!isAuthEndpoint && hadSession) {
-            removeCookie('token')
-            removeCookie('mochi_me')
+        if (!isAuthEndpoint && hadSession) {
+          removeCookie('token')
+          removeCookie('mochi_me')
 
-            useAuthStore.getState().clearAuth()
+          useAuthStore.getState().clearAuth()
 
-            toast.error('Session expired', {
-              description: 'Please log in again to continue.',
-            })
+          toast.error('Session expired', {
+            description: 'Please log in again to continue.',
+          })
 
-            const currentUrl = window.location.href
-            const authLoginUrl = getAuthLoginUrl()
-            window.location.href = `${authLoginUrl}?redirect=${encodeURIComponent(currentUrl)}`
-          }
+          const currentUrl = window.location.href
+          const authLoginUrl = getAuthLoginUrl()
+          window.location.href = `${authLoginUrl}?reauth=1&redirect=${encodeURIComponent(currentUrl)}`
         }
         break
       }
