@@ -32,7 +32,7 @@
   --sidebar-accent-foreground: oklch(0 0 0);
   --sidebar-border: oklch(0.94 0 0);
   --sidebar-ring: oklch(0 0 0);
-  --highlight: #FFFBF8;
+  --highlight: #ebebeb;
   --notification: oklch(0.577 0.245 27.325);
   --notification-foreground: oklch(1 0 0);
 
@@ -115,7 +115,7 @@
   --sidebar-accent-foreground: oklch(1 0 0);
   --sidebar-border: oklch(0.32 0 0);
   --sidebar-ring: oklch(0.72 0 0);
-  --highlight: #2A2520;
+  --highlight: #2a2520;
   --notification: oklch(0.577 0.245 27.325);
   --notification-foreground: oklch(1 0 0);
 
