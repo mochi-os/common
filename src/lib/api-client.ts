@@ -160,10 +160,15 @@ apiClient.interceptors.response.use(
 
       default: {
         if (!error.response) {
-          logDevError('[API] Network error', error)
-          toast.error('Network error', {
-            description: 'Please check your internet connection and try again.',
-          })
+          // Don't show network error for canceled requests (e.g., page refresh/navigation)
+          if (axios.isCancel(error) || error.code === 'ERR_CANCELED') {
+            logDevError('[API] Request canceled', error)
+          } else {
+            logDevError('[API] Network error', error)
+            toast.error('Network error', {
+              description: 'Please check your internet connection and try again.',
+            })
+          }
         } else {
           logDevError('[API] Response error', error)
         }

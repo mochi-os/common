@@ -5,7 +5,7 @@
 // Routes that are class-level (not entity-specific)
 // These include common route segments that should not be treated as entity IDs
 const CLASS_ROUTES = [
-  'new', 'create', 'list', 'info', 'assets', 'images', 'search',
+  'new', 'create', 'list', 'info', 'assets', 'images', 'search', 'app',
   // Settings app routes
   'user', 'system', 'domains', 'errors',
   // Friends app routes
@@ -29,7 +29,7 @@ let cachedApiBasepath: string | null = null
 const KNOWN_APPS = [
   'wikis', 'wiki', 'forums', 'forum', 'feeds', 'feed', 'chat', 'files',
   'login', 'home', 'notifications', 'people', 'friends', 'settings', 'publisher',
-  'apps', 'app-market',
+  'apps', 'app-market', 'repositories',
 ]
 
 // Check if we're on a domain with entity routing (subdomain or custom domain)
