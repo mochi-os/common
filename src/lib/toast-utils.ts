@@ -27,9 +27,13 @@ export const toast = {
       action: textToCopy
         ? {
             label: createElement(Copy, { className: 'h-4 w-4' }),
-            onClick: () => {
-              navigator.clipboard.writeText(textToCopy)
-              sonnerToast.success('Copied')
+            onClick: async () => {
+              try {
+                await navigator.clipboard.writeText(textToCopy)
+                sonnerToast.success('Copied')
+              } catch {
+                sonnerToast.error('Failed to copy')
+              }
             },
           }
         : undefined,

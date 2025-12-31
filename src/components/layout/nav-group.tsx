@@ -445,6 +445,12 @@ function checkIsActive(pathname: string, item: NavItem, mainNav = false) {
     return true
   }
 
+  // Check for prefix match (e.g., /abc123/settings matches /abc123)
+  // But not for root URL to avoid matching everything
+  if (normalizedItemUrl !== '/' && normalizedPathname.startsWith(normalizedItemUrl + '/')) {
+    return true
+  }
+
   // Check if any child nav item is active
   if (item?.items?.length) {
     const hasActiveChild = item.items.some((i) => {
