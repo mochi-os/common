@@ -37,6 +37,7 @@ type AuthenticatedLayoutProps = {
   sidebarData?: SidebarData
   showNotifications?: boolean
   title?: string
+  mobileTitle?: React.ReactNode
 }
 
 export function AuthenticatedLayout({
@@ -44,6 +45,7 @@ export function AuthenticatedLayout({
   sidebarData,
   showNotifications = true,
   title,
+  mobileTitle,
 }: AuthenticatedLayoutProps) {
   useEffect(() => {
     if (title) {
@@ -116,6 +118,12 @@ export function AuthenticatedLayout({
                 {/* Mobile header bar */}
                 <div className="flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden">
                   <TopBar showNotifications={showNotifications} />
+                  {mobileTitle && (
+                    <>
+                      <div className="flex-1" />
+                      <div className="pr-2">{mobileTitle}</div>
+                    </>
+                  )}
                 </div>
 
                 {/* Desktop vertical TopBar */}
