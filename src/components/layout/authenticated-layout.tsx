@@ -113,8 +113,13 @@ export function AuthenticatedLayout({
               </>
             ) : (
               <>
-                {/* Minimal TopBar for apps without sidebar */}
-                <div className="flex flex-col flex-shrink-0">
+                {/* Mobile header bar */}
+                <div className="flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden">
+                  <TopBar showNotifications={showNotifications} />
+                </div>
+
+                {/* Desktop vertical TopBar */}
+                <div className="hidden flex-col flex-shrink-0 md:flex">
                   <TopBar showNotifications={showNotifications} vertical />
                 </div>
 
