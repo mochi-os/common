@@ -8,6 +8,10 @@ const ERROR_DURATION = 10000
 // Toast wrapper that adds copy functionality to error toasts
 export const toast = {
   ...sonnerToast,
+  success: sonnerToast.success,
+  info: sonnerToast.info,
+  warning: sonnerToast.warning,
+  message: sonnerToast.message,
 
   // Override error to add copy action and longer duration
   error: (message: string | React.ReactNode, data?: ExternalToast) => {
