@@ -12,11 +12,16 @@ const CLASS_ROUTES = [
   'invitations',
   // Wiki app routes
   'join', 'tags', 'changes', 'redirects', 'settings',
+  // Apps app routes
+  'routing',
+  // Generic nested routes (prevent treating second segment as entity)
+  'classes', 'services', 'paths',
 ]
 
 // Check if a string looks like an entity ID (50-51 chars of base58)
+// or an entity fingerprint (9 chars of base58, e.g., MVSp6bRv9)
 function isEntityId(s: string): boolean {
-  return /^[1-9A-HJ-NP-Za-km-z]{50,51}$/.test(s)
+  return /^[1-9A-HJ-NP-Za-km-z]{9}$/.test(s) || /^[1-9A-HJ-NP-Za-km-z]{50,51}$/.test(s)
 }
 
 // Cached values (computed once at startup)
@@ -100,26 +105,28 @@ export function getRouterBasepath(): string {
 }
 
 // Get the API basepath
+// This returns the base path for API calls, without the /-/ prefix
+// (endpoints include the -/ prefix themselves)
 // Class context: /<app>/ (e.g., /wiki/)
-// Entity context: /<app>/<entity-id>/-/ (e.g., /wiki/abc123/-/)
-// Direct entity: /<entity-id>/-/ (e.g., /abc123/-/)
-// Subdomain entity: /-/ (e.g., docs.mochi-os.org/-/)
+// Entity context: /<app>/<entity-id>/ (e.g., /wiki/abc123/)
+// Direct entity: /<entity-id>/ (e.g., /abc123/)
+// Subdomain entity: / (e.g., docs.mochi-os.org/)
 export function getApiBasepath(): string {
   if (cachedApiBasepath === null) {
-    // Domain entity routing: API calls go to /-/
+    // Domain entity routing: API calls go to /
     if (isDomainEntityRouting()) {
-      cachedApiBasepath = '/-/'
+      cachedApiBasepath = '/'
     } else {
       const pathname = window.location.pathname
       // Check for direct entity routing: /<entity>/
       const directMatch = pathname.match(/^\/([^/]+)/)
       if (directMatch && isEntityId(directMatch[1])) {
-        cachedApiBasepath = `/${directMatch[1]}/-/`
+        cachedApiBasepath = `/${directMatch[1]}/`
       } else {
         // Check for /<app>/<entity>/ pattern
         const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
         if (match && !CLASS_ROUTES.includes(match[2])) {
-          cachedApiBasepath = `${match[1]}/${match[2]}/-/`
+          cachedApiBasepath = `${match[1]}/${match[2]}/`
         } else {
           cachedApiBasepath = getAppPath() + '/'
         }
