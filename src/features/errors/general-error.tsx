@@ -1,6 +1,4 @@
-import { useRouter } from '@tanstack/react-router'
 import { cn } from '../../lib/utils'
-import { Button } from '../../components/ui/button'
 import { ApiError } from '../../lib/request'
 
 type GeneralErrorProps = React.HTMLAttributes<HTMLDivElement> & {
@@ -14,7 +12,6 @@ export function GeneralError({
   minimal = false,
   error,
 }: GeneralErrorProps) {
-  const { history } = useRouter()
 
   // Extract error details directly from the error object
   let statusCode = 500
@@ -47,22 +44,22 @@ export function GeneralError({
     message = objError.error || objError.message || 'Unknown error'
   }
 
+  // Use the error message as the heading if it's descriptive
+  const isDescriptiveMessage = message !== 'Unknown error' &&
+    !message.includes('status code') &&
+    !message.includes('Request failed')
+  const heading = isDescriptiveMessage ? message : statusCode.toString()
+
   return (
     <div className={cn('h-svh w-full', className)}>
       <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
         {!minimal && (
-          <h1 className='text-[7rem] leading-tight font-bold'>{statusCode}</h1>
+          <h1 className='text-4xl leading-tight font-bold text-center'>{heading}</h1>
         )}
-        <span className='font-medium'>Error</span>
-        <p className='text-muted-foreground text-center'>
-          {message}
-        </p>
-        {!minimal && (
-          <div className='mt-6 flex gap-4'>
-            <Button variant='outline' onClick={() => history.go(-1)}>
-              Go back
-            </Button>
-          </div>
+        {!isDescriptiveMessage && (
+          <p className='text-muted-foreground text-center'>
+            {message}
+          </p>
         )}
       </div>
     </div>
