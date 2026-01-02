@@ -181,22 +181,20 @@ export function AccessDialog({
                   No users found
                 </p>
               ) : (
-                <div className="space-y-2">
+                <div className="max-h-48 overflow-y-auto rounded-md border">
                   {userSearchResults.map((user) => (
-                    <Card
+                    <div
                       key={user.id}
-                      className={`cursor-pointer transition-colors ${
+                      className={`flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors ${
                         selectedUser?.id === user.id
-                          ? 'border-primary'
+                          ? 'bg-accent text-accent-foreground'
                           : 'hover:bg-muted'
                       }`}
                       onClick={() => setSelectedUser(user)}
                     >
-                      <CardContent className="flex items-center gap-2 p-3">
-                        <User className="h-4 w-4" />
-                        <span className="font-medium">{user.name}</span>
-                      </CardContent>
-                    </Card>
+                      <User className="h-4 w-4 shrink-0" />
+                      <span className="truncate text-sm">{user.name}</span>
+                    </div>
                   ))}
                 </div>
               )}
@@ -211,29 +209,27 @@ export function AccessDialog({
                   No groups available
                 </p>
               ) : (
-                <div className="space-y-2">
+                <div className="max-h-48 overflow-y-auto rounded-md border">
                   {groups.map((group) => (
-                    <Card
+                    <div
                       key={group.id}
-                      className={`cursor-pointer transition-colors ${
+                      className={`flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors ${
                         selectedGroup?.id === group.id
-                          ? 'border-primary'
+                          ? 'bg-accent text-accent-foreground'
                           : 'hover:bg-muted'
                       }`}
                       onClick={() => setSelectedGroup(group)}
                     >
-                      <CardContent className="flex items-center gap-2 p-3">
-                        <UsersRound className="h-4 w-4" />
-                        <div>
-                          <span className="font-medium">{group.name}</span>
-                          {group.description && (
-                            <p className="text-muted-foreground text-xs">
-                              {group.description}
-                            </p>
-                          )}
-                        </div>
-                      </CardContent>
-                    </Card>
+                      <UsersRound className="h-4 w-4 shrink-0" />
+                      <div className="min-w-0">
+                        <span className="truncate text-sm">{group.name}</span>
+                        {group.description && (
+                          <p className="text-muted-foreground truncate text-xs">
+                            {group.description}
+                          </p>
+                        )}
+                      </div>
+                    </div>
                   ))}
                 </div>
               )}
@@ -247,21 +243,21 @@ export function AccessDialog({
                 {SPECIAL_SUBJECTS.map((special) => (
                   <Card
                     key={special.id}
-                    className={`cursor-pointer transition-colors ${
+                    className={`cursor-pointer py-0 transition-colors ${
                       selectedSpecial?.id === special.id
                         ? 'border-primary'
                         : 'hover:bg-muted'
                     }`}
                     onClick={() => setSelectedSpecial(special)}
                   >
-                    <CardContent className="flex items-center gap-2 p-3">
+                    <CardContent className="flex items-center gap-2 px-3 py-2">
                       {special.id === '*' ? (
-                        <Globe className="h-4 w-4" />
+                        <Globe className="h-4 w-4 shrink-0" />
                       ) : (
-                        <Users className="h-4 w-4" />
+                        <Users className="h-4 w-4 shrink-0" />
                       )}
-                      <div>
-                        <span className="font-medium">{special.name}</span>
+                      <div className="min-w-0">
+                        <span className="text-sm font-medium">{special.name}</span>
                         <p className="text-muted-foreground text-xs">
                           {special.description}
                         </p>
