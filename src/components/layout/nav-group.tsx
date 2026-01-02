@@ -120,9 +120,11 @@ function SidebarMenuLink({
 }) {
   const { setOpenMobile } = useSidebar()
   if (item.external) {
+    // Use explicit isActive prop if provided, otherwise check pathname
+    const isActive = item.isActive ?? checkIsActive(pathname, item)
     return (
       <SidebarMenuItem>
-        <SidebarMenuButton asChild isActive={false} tooltip={item.title}>
+        <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
           <a href={item.url as string} onClick={() => setOpenMobile(false)}>
             {item.icon && <item.icon />}
             <span>{item.title}</span>

@@ -10,6 +10,7 @@ type NavLink = BaseNavItem & {
   url: LinkProps['to'] | (string & {})
   items?: never
   external?: boolean // For cross-app navigation
+  isActive?: boolean // Override active state for external links
   onClick?: never
 }
 

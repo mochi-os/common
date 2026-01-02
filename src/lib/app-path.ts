@@ -105,28 +105,26 @@ export function getRouterBasepath(): string {
 }
 
 // Get the API basepath
-// This returns the base path for API calls, without the /-/ prefix
-// (endpoints include the -/ prefix themselves)
 // Class context: /<app>/ (e.g., /wiki/)
-// Entity context: /<app>/<entity-id>/ (e.g., /wiki/abc123/)
-// Direct entity: /<entity-id>/ (e.g., /abc123/)
-// Subdomain entity: / (e.g., docs.mochi-os.org/)
+// Entity context: /<app>/<entity-id>/-/ (e.g., /wiki/abc123/-/)
+// Direct entity: /<entity-id>/-/ (e.g., /abc123/-/)
+// Subdomain entity: /-/ (e.g., docs.mochi-os.org/-/)
 export function getApiBasepath(): string {
   if (cachedApiBasepath === null) {
-    // Domain entity routing: API calls go to /
+    // Domain entity routing: API calls go to /-/
     if (isDomainEntityRouting()) {
-      cachedApiBasepath = '/'
+      cachedApiBasepath = '/-/'
     } else {
       const pathname = window.location.pathname
       // Check for direct entity routing: /<entity>/
       const directMatch = pathname.match(/^\/([^/]+)/)
       if (directMatch && isEntityId(directMatch[1])) {
-        cachedApiBasepath = `/${directMatch[1]}/`
+        cachedApiBasepath = `/${directMatch[1]}/-/`
       } else {
         // Check for /<app>/<entity>/ pattern
         const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
         if (match && !CLASS_ROUTES.includes(match[2])) {
-          cachedApiBasepath = `${match[1]}/${match[2]}/`
+          cachedApiBasepath = `${match[1]}/${match[2]}/-/`
         } else {
           cachedApiBasepath = getAppPath() + '/'
         }
