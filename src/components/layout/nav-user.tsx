@@ -59,7 +59,7 @@ export function NavUser() {
             <DropdownMenuTrigger asChild>
               <SidebarMenuButton
                 size='lg'
-                className='data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2'
+                className='data-[state=open]:bg-hover data-[state=open]:text-hover-foreground group-data-[collapsible=icon]:!size-8 group-data-[collapsible=icon]:!p-2'
               >
                 <CircleUser className='hidden size-4 group-data-[collapsible=icon]:block' />
                 <div className='grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden'>

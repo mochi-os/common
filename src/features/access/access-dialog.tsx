@@ -187,7 +187,7 @@ export function AccessDialog({
                       key={user.id}
                       className={`flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors ${
                         selectedUser?.id === user.id
-                          ? 'bg-accent text-accent-foreground'
+                          ? 'bg-hover text-hover-foreground'
                           : 'hover:bg-muted'
                       }`}
                       onClick={() => setSelectedUser(user)}
@@ -215,7 +215,7 @@ export function AccessDialog({
                       key={group.id}
                       className={`flex cursor-pointer items-center gap-2 px-3 py-2 transition-colors ${
                         selectedGroup?.id === group.id
-                          ? 'bg-accent text-accent-foreground'
+                          ? 'bg-hover text-hover-foreground'
                           : 'hover:bg-muted'
                       }`}
                       onClick={() => setSelectedGroup(group)}

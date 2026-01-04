@@ -46,8 +46,8 @@ function NotificationItem({ notification, onClick }: NotificationItemProps) {
       type="button"
       onClick={() => onClick?.(notification)}
       className={cn(
-        'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-accent',
-        isUnread && 'bg-accent/40'
+        'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-hover',
+        isUnread && 'bg-hover/40'
       )}
     >
       {isUnread && (

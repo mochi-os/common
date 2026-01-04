@@ -220,7 +220,7 @@ function SidebarMenuCollapsible({
           <CollapsibleTrigger asChild>
             <button
               type='button'
-              className='p-1.5 hover:bg-sidebar-accent rounded-md transition-colors'
+              className='p-1.5 hover:bg-hover rounded-md transition-colors'
             >
               <ChevronRight className='size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
             </button>
@@ -330,7 +330,7 @@ function SidebarMenuSubCollapsible({
           <CollapsibleTrigger asChild>
             <button
               type='button'
-              className='p-1 hover:bg-sidebar-accent rounded-md transition-colors'
+              className='p-1 hover:bg-hover rounded-md transition-colors'
             >
               <ChevronRight className='size-3 transition-transform duration-200 group-data-[state=open]/subcollapsible:rotate-90 rtl:rotate-180' />
             </button>
