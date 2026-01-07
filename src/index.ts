@@ -56,6 +56,7 @@ export * from './components/place-picker'
 export * from './components/travelling-picker'
 
 // Shared Components
+export * from './components/permission-prompt'
 export * from './components/coming-soon'
 export * from './components/command-menu'
 export * from './components/load-more-trigger'
@@ -120,6 +121,7 @@ export * from './lib/utils'
 export * from './lib/places-api'
 export * from './lib/attachment-utils'
 export * from './lib/toast-utils'
+export * from './lib/permission-utils'
 export * as push from './lib/push'
 
 // Types

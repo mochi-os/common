@@ -1,0 +1,72 @@
+// Permission error handling utilities
+
+export interface PermissionError {
+  permission: string
+  restricted: boolean
+}
+
+// Check if an error response is a permission error
+// Backend returns: { error: "permission_required", permission: string, restricted: boolean }
+export function isPermissionError(responseData: unknown): PermissionError | null {
+  if (
+    responseData &&
+    typeof responseData === 'object' &&
+    'error' in responseData
+  ) {
+    const data = responseData as { error?: string; permission?: string; restricted?: boolean }
+    if (data.error === 'permission_required' && data.permission) {
+      return {
+        permission: data.permission,
+        restricted: data.restricted ?? false,
+      }
+    }
+  }
+  return null
+}
+
+// Get the current app ID from the URL (e.g., "feeds" from "/feeds/something")
+export function getCurrentAppId(): string {
+  const path = window.location.pathname
+  const match = path.match(/^\/([^/]+)/)
+  return match ? match[1] : ''
+}
+
+// Redirect to the permission request page in the Apps app
+// Only works for standard permissions - restricted permissions must be enabled in settings
+export function redirectToPermissionRequest(
+  appId: string,
+  permission: string,
+  returnUrl?: string
+): void {
+  const currentUrl = returnUrl || window.location.href
+  // Always redirect to the Apps app's permission request page
+  const requestUrl = `/apps/permissions/request?app=${encodeURIComponent(appId)}&permission=${encodeURIComponent(permission)}&return=${encodeURIComponent(currentUrl)}`
+  window.location.href = requestUrl
+}
+
+// Handle a permission error by redirecting to the request page (standard) or showing an error (restricted)
+// Returns true if the error was handled, false otherwise
+export function handlePermissionError(
+  responseData: unknown,
+  appId: string,
+  options?: {
+    returnUrl?: string
+    onRestricted?: (permission: string) => void
+  }
+): boolean {
+  const permError = isPermissionError(responseData)
+  if (!permError) {
+    return false
+  }
+
+  if (!permError.restricted) {
+    redirectToPermissionRequest(appId, permError.permission, options?.returnUrl)
+    return true
+  }
+
+  // Restricted permission - call the callback if provided
+  if (options?.onRestricted) {
+    options.onRestricted(permError.permission)
+  }
+  return true
+}

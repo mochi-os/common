@@ -122,7 +122,7 @@ apiClient.interceptors.response.use(
       }
 
       case 403: {
-        // Don't toast here - let the component's onError handler show the specific error
+        // Permission errors are handled by components using isPermissionError()
         logDevError('[API] 403 Forbidden', error)
         break
       }
