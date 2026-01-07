@@ -103,8 +103,7 @@ export function AuthenticatedLayout({
                     'transition-[width] duration-200 ease-linear'
                   )}
                 >
-                  <TopBar showNotifications={showNotifications} />
-                  <AppSidebar data={sidebarData} />
+                  <AppSidebar data={sidebarData} showNotifications={showNotifications} />
                   <FullHeightRail />
                 </div>
 

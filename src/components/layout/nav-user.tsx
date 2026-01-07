@@ -51,6 +51,59 @@ export function NavUser() {
     if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
   }, [theme])
 
+  const renderDropdownContent = () => (
+    <>
+      <DropdownMenuLabel className='p-0 font-normal'>
+        <div className='grid px-2 py-1.5 text-start text-sm leading-tight'>
+          <span className='truncate font-semibold'>{displayName}</span>
+          <span className='truncate text-xs text-muted-foreground'>{displayEmail}</span>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuSub>
+        <DropdownMenuSubTrigger>
+          <Sun /> Theme
+        </DropdownMenuSubTrigger>
+        <DropdownMenuSubContent>
+          <DropdownMenuItem onClick={() => setTheme('light')}>
+            <Sun />
+            Light
+            <Check
+              size={14}
+              className={cn('ms-auto', theme !== 'light' && 'hidden')}
+            />
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme('dark')}>
+            <Moon />
+            Dark
+            <Check
+              size={14}
+              className={cn('ms-auto', theme !== 'dark' && 'hidden')}
+            />
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme('system')}>
+            <Monitor />
+            System
+            <Check
+              size={14}
+              className={cn('ms-auto', theme !== 'system' && 'hidden')}
+            />
+          </DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuSub>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        onClick={() => setOpen(true)}
+        variant='destructive'
+        className='hover:bg-destructive/10 hover:text-destructive [&_svg]:hover:text-destructive'
+      >
+        <LogOut />
+        Log out
+      </DropdownMenuItem>
+      <SignOutDialog open={!!open} onOpenChange={setOpen} />
+    </>
+  )
+
   return (
     <>
       <SidebarMenu>
@@ -75,58 +128,73 @@ export function NavUser() {
               align='end'
               sideOffset={4}
             >
-              <DropdownMenuLabel className='p-0 font-normal'>
-                <div className='grid px-1 py-1.5 text-start text-sm leading-tight'>
-                  <span className='truncate font-semibold'>{displayName}</span>
-                  <span className='truncate text-xs'>{displayEmail}</span>
-                </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger>
-                  <Sun /> Theme
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={() => setTheme('light')}>
-                    <Sun />
-                    Light
-                    <Check
-                      size={14}
-                      className={cn('ms-auto', theme !== 'light' && 'hidden')}
-                    />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme('dark')}>
-                    <Moon />
-                    Dark
-                    <Check
-                      size={14}
-                      className={cn('ms-auto', theme !== 'dark' && 'hidden')}
-                    />
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setTheme('system')}>
-                    <Monitor />
-                    System
-                    <Check
-                      size={14}
-                      className={cn('ms-auto', theme !== 'system' && 'hidden')}
-                    />
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() => setOpen(true)}
-                variant='destructive'
-                className='hover:bg-destructive/10 hover:text-destructive [&_svg]:hover:text-destructive'
-              >
-                <LogOut />
-                Log out
-              </DropdownMenuItem>
+              {renderDropdownContent()}
             </DropdownMenuContent>
           </DropdownMenu>
         </SidebarMenuItem>
       </SidebarMenu>
+    </>
+  )
+}
 
+export function NavUserDropdownContent() {
+  const [open, setOpen] = useDialogState()
+  const { theme, setTheme } = useTheme()
+
+  const email = useAuthStore((state) => state.email)
+  const profile = readProfileCookie()
+  const displayName = profile.name || 'User'
+  const displayEmail = email || ''
+
+  return (
+    <>
+      <DropdownMenuLabel className='p-0 font-normal'>
+        <div className='grid px-2 py-1.5 text-start text-sm leading-tight'>
+          <span className='truncate font-semibold'>{displayName}</span>
+          <span className='truncate text-xs text-muted-foreground'>{displayEmail}</span>
+        </div>
+      </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuSub>
+        <DropdownMenuSubTrigger>
+          <Sun /> Theme
+        </DropdownMenuSubTrigger>
+        <DropdownMenuSubContent>
+          <DropdownMenuItem onClick={() => setTheme('light')}>
+            <Sun />
+            Light
+            <Check
+              size={14}
+              className={cn('ms-auto', theme !== 'light' && 'hidden')}
+            />
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme('dark')}>
+            <Moon />
+            Dark
+            <Check
+              size={14}
+              className={cn('ms-auto', theme !== 'dark' && 'hidden')}
+            />
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setTheme('system')}>
+            <Monitor />
+            System
+            <Check
+              size={14}
+              className={cn('ms-auto', theme !== 'system' && 'hidden')}
+            />
+          </DropdownMenuItem>
+        </DropdownMenuSubContent>
+      </DropdownMenuSub>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        onClick={() => setOpen(true)}
+        variant='destructive'
+        className='hover:bg-destructive/10 hover:text-destructive [&_svg]:hover:text-destructive'
+      >
+        <LogOut />
+        Log out
+      </DropdownMenuItem>
       <SignOutDialog open={!!open} onOpenChange={setOpen} />
     </>
   )

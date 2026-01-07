@@ -34,6 +34,7 @@ export function Header({ className, fixed, compact, children, ...props }: Header
         compact ? 'h-14' : 'h-20',
         fixed && 'header-fixed peer/header sticky top-0 w-[inherit]',
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
+        'border-b bg-background',
         className
       )}
       {...props}
