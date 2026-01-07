@@ -186,7 +186,7 @@ export function TopBar({
         {/* Left section: Sidebar trigger + Logo + Mochi text */}
         <div className={cn('flex items-center gap-2', isVertical && 'flex-col')}>
           {/* Sidebar trigger (mobile/when requested) */}
-          {showSidebarTrigger && <SidebarTrigger className={iconButtonClass} />}
+          {showSidebarTrigger && <SidebarTrigger className={cn(iconButtonClass, 'md:hidden')} />}
 
           {/* Logo + Mochi branding */}
           <a
