@@ -6,7 +6,7 @@ import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
 import { LayoutProvider } from '../../context/layout-provider'
 import { SearchProvider } from '../../context/search-provider'
-import { SidebarInset, SidebarProvider, useSidebar } from '../ui/sidebar'
+import { SidebarInset, SidebarProvider } from '../ui/sidebar'
 import { TopBar } from './top-bar'
 import { AppSidebar } from './app-sidebar'
 import {
@@ -19,26 +19,7 @@ import {
 } from './right-panel'
 import type { SidebarData } from './types'
 
-// Full-height rail that covers both TopBar and Sidebar
-function FullHeightRail() {
-  const { toggleSidebar, state } = useSidebar()
-
-  return (
-    <button
-      type='button'
-      aria-label='Toggle Sidebar'
-      tabIndex={-1}
-      onClick={toggleSidebar}
-      title='Toggle Sidebar'
-      className={cn(
-        'absolute inset-y-0 -right-2 z-20 hidden w-4 sm:block',
-        'after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] after:-translate-x-1/2',
-        'after:bg-sidebar-border hover:after:bg-sidebar-foreground/30',
-        state === 'collapsed' ? 'cursor-e-resize' : 'cursor-w-resize'
-      )}
-    />
-  )
-}
+// Removed FullHeightRail component - no longer needed without collapse button
 
 type RightPanelConfig = {
   header?: React.ReactNode
@@ -140,7 +121,6 @@ export function AuthenticatedLayout({
                 showNotifications={showNotifications}
                 sidebarFooter={sidebarFooter}
               />
-              <FullHeightRail />
             </div>
 
             {/* Main Content Area - independently scrollable */}

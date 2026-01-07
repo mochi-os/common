@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { CircleUser, LogIn, LogOut, Search, Grid3X3 } from 'lucide-react'
+import { CircleUser, LogIn, LogOut, Search, Grid3X3, Moon, Sun } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -78,6 +78,31 @@ function AppSwitcher({ buttonClassName }: { buttonClassName?: string }) {
   )
 }
 
+// Theme toggle component
+function ThemeToggle() {
+  const { theme, setTheme } = useTheme()
+  
+  const toggleTheme = () => {
+    setTheme(theme === 'dark' ? 'light' : 'dark')
+  }
+
+  return (
+    <DropdownMenuItem onClick={toggleTheme}>
+      {theme === 'dark' ? (
+        <>
+          <Sun className="size-4" />
+          Light mode
+        </>
+      ) : (
+        <>
+          <Moon className="size-4" />
+          Dark mode
+        </>
+      )}
+    </DropdownMenuItem>
+  )
+}
+
 export function TopBar({
   showNotifications = true,
   showSidebarTrigger = false,
@@ -113,21 +138,25 @@ export function TopBar({
       <header className={cn("z-50 flex h-12 items-center px-4", className)}>
         {isDomainRouted ? (
           // Domain-routed: just the icon, no dropdown
-          <img
-            src="./images/logo-header.svg"
-            alt="Mochi"
-            className="h-6 w-6"
-          />
+          <div className="flex items-center gap-2">
+            <img
+              src="./images/logo-header.svg"
+              alt="Mochi"
+              className="h-6 w-6"
+            />
+            <span className="text-lg font-semibold">Mochi</span>
+          </div>
         ) : (
           // Main site: icon with dropdown containing login
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-9">
+              <Button variant="ghost" className="h-9 gap-2 px-3">
                 <img
                   src="./images/logo-header.svg"
                   alt="Mochi"
                   className="h-6 w-6"
                 />
+                <span className="text-lg font-semibold">Mochi</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start">
@@ -149,29 +178,27 @@ export function TopBar({
     <>
       <header
         className={cn(
-          'z-50 flex h-full w-full items-center gap-1 px-2',
+          'z-50 flex h-full w-full items-center gap-2 px-2',
           isVertical ? 'flex-col py-2' : 'flex-row',
           className
         )}
       >
-        {/* Left section: Sidebar trigger + Logo */}
-        <div className={cn('flex items-center gap-1', isVertical && 'flex-col')}>
+        {/* Left section: Sidebar trigger + Logo + Mochi text */}
+        <div className={cn('flex items-center gap-2', isVertical && 'flex-col')}>
           {/* Sidebar trigger (mobile/when requested) */}
           {showSidebarTrigger && <SidebarTrigger className={iconButtonClass} />}
 
-          {/* Logo - sized to match sidebar menu buttons */}
+          {/* Logo + Mochi branding */}
           <a
             href="/"
-            className={cn(
-              'flex items-center justify-center rounded-md',
-              iconButtonClass
-            )}
+            className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-accent"
           >
             <img
               src="./images/logo-header.svg"
               alt="Mochi"
               className="h-6 w-6"
             />
+            <span className="text-lg font-semibold">Mochi</span>
           </a>
         </div>
 
@@ -194,11 +221,12 @@ export function TopBar({
           {/* App Switcher */}
           {showAppSwitcher && <AppSwitcher buttonClassName={iconButtonClass} />}
 
-          {/* User Menu */}
+          {/* User Menu with Name Display */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="icon" className={iconButtonClass}>
+              <Button variant="ghost" className="h-9 gap-2 px-3">
                 <CircleUser className="size-5" />
+                <span className="text-sm font-medium">{displayName}</span>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="min-w-56" align="end">
@@ -210,6 +238,8 @@ export function TopBar({
                   </span>
                 </div>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <ThemeToggle />
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => setOpen(true)}>
                 <LogOut className="size-4" />
