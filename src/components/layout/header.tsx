@@ -30,9 +30,9 @@ export function Header({ className, fixed, compact, children, ...props }: Header
   return (
     <header
       className={cn(
-        'z-50',
-        compact ? 'h-14' : 'h-20',
-        fixed && 'header-fixed peer/header sticky top-0 w-[inherit]',
+        'z-40',
+        compact ? 'h-14' : 'h-16',
+        fixed && 'header-fixed peer/header sticky top-0 w-full',
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
         'border-b bg-background',
         className

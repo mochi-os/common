@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Bell, Check, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
 import { Button } from './ui/button'
-import { NotificationBadge } from './ui/notification-badge'
+
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 import { ScrollArea } from './ui/scroll-area'
 import { Switch } from './ui/switch'
@@ -43,24 +43,36 @@ function NotificationItem({ notification, onClick }: NotificationItemProps) {
 
   return (
     <button
-      type="button"
+      type='button'
       onClick={() => onClick?.(notification)}
       className={cn(
-        'flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-hover',
-        isUnread && 'bg-hover/40'
+        'group flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-muted/50',
+        isUnread ? 'bg-muted/30' : 'bg-transparent'
       )}
     >
-      {isUnread && (
-        <span className="mt-1.5 size-2 shrink-0 rounded-full bg-primary" />
-      )}
-      <div className={cn('flex-1 min-w-0', !isUnread && 'ml-5')}>
-        <p className="text-sm leading-snug">
+      <div
+        className={cn(
+          'mt-1.5 size-2.5 shrink-0 rounded-full transition-colors',
+          isUnread
+            ? 'bg-primary'
+            : 'bg-transparent group-hover:bg-muted-foreground/20'
+        )}
+      />
+      <div className='flex-1 min-w-0 space-y-1'>
+        <p
+          className={cn(
+            'text-sm leading-snug',
+            isUnread ? 'font-medium text-foreground' : 'text-muted-foreground'
+          )}
+        >
           {notification.content}
           {notification.count > 1 && (
-            <span className="text-muted-foreground"> ({notification.count})</span>
+            <span className='ml-1 inline-flex items-center justify-center rounded-full bg-muted px-1.5 py-0.5 text-[10px] font-medium'>
+              {notification.count}
+            </span>
           )}
         </p>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+        <p className='text-[11px] text-muted-foreground/70'>
           {formatTimestamp(notification.created)}
         </p>
       </div>
@@ -114,72 +126,80 @@ export function NotificationsDropdown({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button
-          variant="ghost"
-          size="icon"
+          variant='ghost'
+          size='icon'
           className={cn('relative', buttonClassName)}
-          aria-label="Notifications"
+          aria-label='Notifications'
         >
-          <Bell className="size-5" />
+          <Bell className='size-5' />
           {unreadCount > 0 && (
-            <NotificationBadge className="absolute -right-0.5 -top-0.5 size-4">
-              {unreadCount > 9 ? '9+' : unreadCount}
-            </NotificationBadge>
+            <span className='absolute right-1.5 top-1.5 flex size-2.5'>
+              <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75'></span>
+              <span className='relative inline-flex size-2.5 rounded-full bg-red-500'></span>
+            </span>
           )}
         </Button>
       </PopoverTrigger>
-      <PopoverContent align="end" sideOffset={8} className="w-80 p-0">
+      <PopoverContent
+        align='end'
+        sideOffset={8}
+        className='w-80 p-0 overflow-hidden shadow-lg border-border sm:w-96'
+      >
         {/* Header */}
-        <div className="flex items-center justify-between border-b px-4 py-2.5">
-          {notificationsUrl ? (
-            <a
-              href={notificationsUrl}
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-1.5 font-medium hover:underline"
-            >
-              <ExternalLink className="size-3.5" />
-              Notifications
-            </a>
-          ) : (
-            <span className="font-medium">Notifications</span>
-          )}
-          <div className="flex items-center gap-2">
+        <div className='flex items-center justify-between border-b bg-muted/30 px-4 py-3'>
+          <div className='flex items-center gap-2'>
+            <span className='font-semibold text-sm'>Notifications</span>
             {unreadCount > 0 && (
-              <button
-                type="button"
-                onClick={() => onMarkAllAsRead?.()}
-                className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
+              <span className='rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'>
+                {unreadCount}
+              </span>
+            )}
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='flex items-center gap-2 pr-2 border-r mr-2'>
+              <Label
+                htmlFor='show-all'
+                className='text-[10px] uppercase font-medium text-muted-foreground tracking-wider cursor-pointer select-none'
               >
-                <Check className="size-3" />
-                Mark all read
-              </button>
+                All
+              </Label>
+              <Switch
+                id='show-all'
+                checked={showAll}
+                onCheckedChange={setShowAll}
+                className='scale-75 origin-right'
+              />
+            </div>
+            {notificationsUrl && (
+              <a
+                href={notificationsUrl}
+                onClick={() => setOpen(false)}
+                className='text-muted-foreground hover:text-foreground transition-colors'
+                title='View all'
+              >
+                <ExternalLink className='size-4' />
+              </a>
             )}
           </div>
         </div>
 
-        {/* Filter toggle */}
-        <div
-          className="flex items-center justify-between border-b px-4 py-2"
-          onClick={(e) => e.stopPropagation()}
-        >
-          <Label htmlFor="show-all" className="text-xs text-muted-foreground">
-            Show all
-          </Label>
-          <Switch
-            id="show-all"
-            checked={showAll}
-            onCheckedChange={setShowAll}
-          />
-        </div>
-
         {/* List */}
-        <ScrollArea className="max-h-80">
-          <div className="bg-popover">
+        <ScrollArea className='max-h-[min(500px,80vh)]'>
+          <div className='flex flex-col'>
             {displayedNotifications.length === 0 ? (
-              <div className="py-8 text-center text-sm text-muted-foreground">
-                {showAll ? 'No notifications' : 'No unread notifications'}
+              <div className='flex flex-col items-center justify-center py-12 text-center px-4'>
+                <Bell className='size-8 text-muted-foreground/20 mb-3' />
+                <p className='text-sm font-medium text-foreground'>
+                  {showAll ? 'No notifications yet' : "You're all caught up!"}
+                </p>
+                <p className='text-xs text-muted-foreground mt-1 max-w-[180px]'>
+                  {showAll
+                    ? "We'll notify you when something important happens."
+                    : 'Check "All" to see your past notifications.'}
+                </p>
               </div>
             ) : (
-              <div className="divide-y">
+              <div className='divide-y divide-border/40'>
                 {displayedNotifications.map((notification) => (
                   <NotificationItem
                     key={notification.id}
@@ -192,6 +212,19 @@ export function NotificationsDropdown({
           </div>
         </ScrollArea>
 
+        {/* Footer actions */}
+        {unreadCount > 0 && (
+          <div className='border-t bg-muted/30 p-2'>
+            <Button
+              variant='ghost'
+              className='w-full justify-center h-8 text-xs text-muted-foreground hover:text-primary'
+              onClick={() => onMarkAllAsRead?.()}
+            >
+              <Check className='mr-2 size-3' />
+              Mark all as read
+            </Button>
+          </div>
+        )}
       </PopoverContent>
     </Popover>
   )

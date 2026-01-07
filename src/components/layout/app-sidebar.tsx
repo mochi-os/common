@@ -6,7 +6,6 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarHeader,
-  SidebarRail,
   useSidebar,
 } from '../ui/sidebar'
 import { NavGroup } from './nav-group'
@@ -20,6 +19,7 @@ import type { SidebarData, NavGroup as NavGroupType } from './types'
 type AppSidebarProps = {
   data: SidebarData
   showNotifications?: boolean
+  sidebarFooter?: React.ReactNode
 }
 
 function CollapseBtn() {
@@ -30,7 +30,7 @@ function CollapseBtn() {
       variant='outline'
       size='icon'
       className={cn(
-        'absolute -right-3 top-6 z-50 h-6 w-6 rounded-full border bg-background shadow-md',
+        'absolute -right-3 top-1/2 -translate-y-1/2 z-50 h-6 w-6 rounded-full border bg-background shadow-md',
         'hover:bg-accent hover:text-accent-foreground',
         'hidden md:inline-flex'
       )}
@@ -79,6 +79,7 @@ function SidebarNotificationButton({
 export function AppSidebar({
   data,
   showNotifications = true,
+  sidebarFooter,
 }: AppSidebarProps) {
   const { collapsible } = useLayout()
   const { state } = useSidebar()
@@ -87,12 +88,13 @@ export function AppSidebar({
     <Sidebar collapsible={collapsible} variant='sidebar'>
       <SidebarHeader
         className={cn(
+          'p-2',
           state === 'collapsed'
             ? 'flex-col items-center'
             : 'flex-row items-center justify-between'
         )}
       >
-        <AppTitle title='mochi' subtitle='' />
+        <AppTitle title='mochi-os' subtitle='' />
         {state === 'expanded' && (
           <SidebarNotificationButton showNotifications={showNotifications} />
         )}
@@ -109,10 +111,10 @@ export function AppSidebar({
       </SidebarContent>
 
       <SidebarFooter>
+        {sidebarFooter}
         <NavUser />
       </SidebarFooter>
 
-      <SidebarRail />
       <CollapseBtn />
     </Sidebar>
   )

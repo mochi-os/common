@@ -1,4 +1,3 @@
-import { Link } from '@tanstack/react-router'
 import {
   SidebarMenu,
   SidebarMenuButton,
@@ -22,26 +21,24 @@ export function AppTitle({ title, subtitle = 'Mochi OS' }: AppTitleProps) {
           asChild
         >
           <div>
-            <Link
-              to='/'
+            <a
+              href='/'
               onClick={() => setOpenMobile(false)}
               className='flex flex-1 items-center gap-2 text-start text-sm leading-tight'
             >
               <img
-                src="./images/logo-header.svg"
-                alt="Mochi"
-                className="h-6 w-6 shrink-0"
+                src='./images/logo-header.svg'
+                alt='Mochi'
+                className='h-6 w-6 shrink-0'
               />
-              <div className="grid flex-1 text-start leading-tight">
+              <div className='grid flex-1 text-start leading-tight'>
                 <span className='truncate font-bold'>{title}</span>
                 <span className='truncate text-xs'>{subtitle}</span>
               </div>
-            </Link>
+            </a>
           </div>
         </SidebarMenuButton>
       </SidebarMenuItem>
     </SidebarMenu>
   )
 }
-
-

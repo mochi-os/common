@@ -17,11 +17,11 @@ function FullHeightRail() {
 
   return (
     <button
-      type="button"
-      aria-label="Toggle Sidebar"
+      type='button'
+      aria-label='Toggle Sidebar'
       tabIndex={-1}
       onClick={toggleSidebar}
-      title="Toggle Sidebar"
+      title='Toggle Sidebar'
       className={cn(
         'absolute inset-y-0 -right-2 z-20 hidden w-4 sm:block',
         'after:absolute after:inset-y-0 after:left-1/2 after:w-[2px] after:-translate-x-1/2',
@@ -38,6 +38,7 @@ type AuthenticatedLayoutProps = {
   showNotifications?: boolean
   title?: string
   mobileTitle?: React.ReactNode
+  sidebarFooter?: React.ReactNode
 }
 
 export function AuthenticatedLayout({
@@ -46,6 +47,7 @@ export function AuthenticatedLayout({
   showNotifications = true,
   title,
   mobileTitle,
+  sidebarFooter,
 }: AuthenticatedLayoutProps) {
   useEffect(() => {
     if (title) {
@@ -65,10 +67,10 @@ export function AuthenticatedLayout({
       <SearchProvider>
         <LayoutProvider>
           <SidebarProvider defaultOpen={defaultOpen}>
-            <div className="relative h-svh w-full">
+            <div className='relative h-svh w-full'>
               {/* Floating TopBar - only on main site, not domain-routed entities */}
               {!isDomainRouted && (
-                <div className="absolute top-0 left-0 z-50">
+                <div className='absolute top-0 left-0 z-50'>
                   <TopBar showNotifications={false} />
                 </div>
               )}
@@ -87,12 +89,15 @@ export function AuthenticatedLayout({
     <SearchProvider>
       <LayoutProvider>
         <SidebarProvider defaultOpen={defaultOpen}>
-          <div className="flex h-svh w-full flex-col md:flex-row">
+          <div className='flex h-svh w-full flex-col md:flex-row'>
             {hasSidebar ? (
               <>
                 {/* Mobile header bar */}
-                <div className="flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden">
-                  <TopBar showNotifications={showNotifications} showSidebarTrigger />
+                <div className='flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden'>
+                  <TopBar
+                    showNotifications={showNotifications}
+                    showSidebarTrigger
+                  />
                 </div>
 
                 {/* Left column: TopBar + Sidebar (desktop only) */}
@@ -103,35 +108,43 @@ export function AuthenticatedLayout({
                     'transition-[width] duration-200 ease-linear'
                   )}
                 >
-                  <AppSidebar data={sidebarData} showNotifications={showNotifications} />
+                  <AppSidebar
+                    data={sidebarData}
+                    showNotifications={showNotifications}
+                    sidebarFooter={sidebarFooter}
+                  />
                   <FullHeightRail />
                 </div>
 
                 {/* Content area */}
-                <SidebarInset className={cn('@container/content', 'overflow-auto flex-1')}>
+                <SidebarInset
+                  className={cn('@container/content', 'overflow-auto flex-1')}
+                >
                   {children ?? <Outlet />}
                 </SidebarInset>
               </>
             ) : (
               <>
                 {/* Mobile header bar */}
-                <div className="flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden">
+                <div className='flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden'>
                   <TopBar showNotifications={showNotifications} />
                   {mobileTitle && (
                     <>
-                      <div className="flex-1" />
-                      <div className="pr-2">{mobileTitle}</div>
+                      <div className='flex-1' />
+                      <div className='pr-2'>{mobileTitle}</div>
                     </>
                   )}
                 </div>
 
                 {/* Desktop vertical TopBar */}
-                <div className="hidden flex-col flex-shrink-0 md:flex">
+                <div className='hidden flex-col flex-shrink-0 md:flex'>
                   <TopBar showNotifications={showNotifications} vertical />
                 </div>
 
                 {/* Content area fills the rest */}
-                <div className={cn('@container/content', 'flex-1 overflow-auto')}>
+                <div
+                  className={cn('@container/content', 'flex-1 overflow-auto')}
+                >
                   {children ?? <Outlet />}
                 </div>
               </>
