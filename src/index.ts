@@ -46,6 +46,16 @@ export { AppSidebar } from './components/layout/app-sidebar'
 export { NavGroup } from './components/layout/nav-group'
 export { NavUser } from './components/layout/nav-user'
 export type { SidebarData, NavGroup as NavGroupType, NavItem, NavCollapsible, NavSubItem, NavLink, NavAction } from './components/layout/types'
+export {
+  RightPanel,
+  RightPanelProvider,
+  RightPanelHeader,
+  RightPanelContent,
+  RightPanelFooter,
+  RightPanelTrigger,
+  RightPanelCloseButton,
+  useRightPanel,
+} from './components/layout/right-panel'
 
 // Data Table Components
 export * from './components/data-table'

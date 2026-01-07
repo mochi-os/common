@@ -73,6 +73,15 @@
   --spacing: 0.25rem;
   --tracking-normal: 0em;
 
+  /* Layout spacing tokens */
+  --header-height: 3rem;
+  --content-spacing-xs: 0.5rem;
+  --content-spacing-sm: 1rem;
+  --content-spacing: 1.5rem;
+  --content-spacing-lg: 2rem;
+  --content-spacing-xl: 3rem;
+  --content-max-width: 48rem;
+
   /* Slightly softer transitions */
   --transition-fast: 150ms ease-in-out;
   --transition-medium: 250ms ease-in-out;

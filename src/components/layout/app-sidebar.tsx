@@ -1,5 +1,4 @@
 import { useLayout } from '../../context/layout-provider'
-import { useNotifications } from '../../hooks/use-notifications'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import {
   Sidebar,
@@ -11,7 +10,6 @@ import {
 import { NavGroup } from './nav-group'
 import { NavUser } from './nav-user'
 import { AppTitle } from './app-title'
-import { NotificationsDropdown } from '../notifications-dropdown'
 import { Button } from '../ui/button'
 import { cn } from '../../lib/utils'
 import type { SidebarData, NavGroup as NavGroupType } from './types'
@@ -46,36 +44,6 @@ function CollapseBtn() {
   )
 }
 
-function SidebarNotificationButton({
-  showNotifications,
-}: {
-  showNotifications: boolean
-}) {
-  const { notifications, markAsRead, markAllAsRead } = useNotifications()
-  const { state } = useSidebar()
-
-  if (!showNotifications) return null
-
-  return (
-    <div
-      className={cn(
-        'flex items-center justify-center px-2',
-        state === 'collapsed' ? 'mt-2' : ''
-      )}
-    >
-      <NotificationsDropdown
-        notifications={notifications}
-        notificationsUrl='/notifications/'
-        onNotificationClick={(n) => markAsRead(n.id)}
-        onMarkAllAsRead={markAllAsRead}
-        buttonClassName={cn(
-          state === 'collapsed' ? 'h-8 w-8 p-0' : 'h-8 w-8 p-0'
-        )}
-      />
-    </div>
-  )
-}
-
 export function AppSidebar({
   data,
   showNotifications = true,
@@ -83,6 +51,10 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const { collapsible } = useLayout()
   const { state } = useSidebar()
+
+  // showNotifications prop is kept for API compatibility but notifications
+  // are now shown in the fixed header TopBar component
+  void showNotifications
 
   return (
     <Sidebar collapsible={collapsible} variant='sidebar'>
@@ -95,16 +67,10 @@ export function AppSidebar({
         )}
       >
         <AppTitle title='mochi-os' subtitle='' />
-        {state === 'expanded' && (
-          <SidebarNotificationButton showNotifications={showNotifications} />
-        )}
       </SidebarHeader>
 
-      {state === 'collapsed' && (
-        <SidebarNotificationButton showNotifications={showNotifications} />
-      )}
-
-      <SidebarContent>
+      {/* Scrollable navigation content */}
+      <SidebarContent className='overflow-y-auto'>
         {data.navGroups.map((props: NavGroupType) => (
           <NavGroup key={props.title} {...props} />
         ))}

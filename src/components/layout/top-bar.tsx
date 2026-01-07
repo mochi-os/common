@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { CircleUser, LogIn, LogOut } from 'lucide-react'
+import { CircleUser, LogIn, LogOut, Search, Bell, Grid3X3 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -14,6 +14,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { SignOutDialog } from '../sign-out-dialog'
@@ -22,7 +23,10 @@ import { NotificationsDropdown } from '../notifications-dropdown'
 type TopBarProps = {
   showNotifications?: boolean
   showSidebarTrigger?: boolean
+  showSearch?: boolean
+  showAppSwitcher?: boolean
   vertical?: boolean
+  className?: string
 }
 
 // Separate component to isolate the useNotifications hook
@@ -40,15 +44,58 @@ function TopBarNotifications({ buttonClassName }: { buttonClassName?: string }) 
   )
 }
 
+// App Switcher for global navigation between apps
+function AppSwitcher({ buttonClassName }: { buttonClassName?: string }) {
+  const apps = [
+    { name: 'Home', url: '/', icon: '🏠' },
+    { name: 'Chat', url: '/chat/', icon: '💬' },
+    { name: 'Feeds', url: '/feeds/', icon: '📰' },
+    { name: 'Forums', url: '/forums/', icon: '💭' },
+    { name: 'Friends', url: '/friends/', icon: '👥' },
+  ]
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="ghost" size="icon" className={buttonClassName}>
+          <Grid3X3 className="size-5" />
+          <span className="sr-only">Apps</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="min-w-48">
+        <DropdownMenuLabel>Apps</DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        {apps.map((app) => (
+          <DropdownMenuItem key={app.name} asChild>
+            <a href={app.url} className="flex items-center gap-2">
+              <span>{app.icon}</span>
+              {app.name}
+            </a>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 export function TopBar({
   showNotifications = true,
   showSidebarTrigger = false,
+  showSearch = false,
+  showAppSwitcher = false,
   vertical = false,
+  className,
 }: TopBarProps) {
   const [open, setOpen] = useDialogState()
   const { theme } = useTheme()
-  const { state } = useSidebar()
-  const isVertical = vertical || state === 'collapsed'
+  const sidebar = (() => {
+    try {
+      return useSidebar()
+    } catch {
+      return { state: 'expanded' }
+    }
+  })()
+  const isVertical = vertical || sidebar.state === 'collapsed'
 
   const email = useAuthStore((state) => state.email)
   const isLoggedIn = !!email
@@ -62,14 +109,14 @@ export function TopBar({
     if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
   }, [theme])
 
-  // Use size-8 to match sidebar icons when collapsed, size-9 when expanded
-  const iconButtonClass = isVertical ? 'size-8' : 'size-9'
+  // Button sizes
+  const iconButtonClass = 'size-9'
 
   // Non-logged-in: minimal header with just Mochi icon
   if (!isLoggedIn) {
     const isDomainRouted = isDomainEntityRouting()
     return (
-      <header className="z-50 flex h-12 items-center px-4">
+      <header className={cn("z-50 flex h-12 items-center px-4", className)}>
         {isDomainRouted ? (
           // Domain-routed: just the icon, no dropdown
           <img
@@ -103,61 +150,80 @@ export function TopBar({
     )
   }
 
-  // Logged-in: full header with logo, user menu, notifications
+  // Logged-in: full header spanning the viewport width
   return (
     <>
       <header
         className={cn(
-          'z-50 flex items-center',
-          !vertical && 'mt-2',
-          isVertical
-            ? 'h-auto flex-col gap-1 px-2 py-2'
-            : 'h-12 flex-row gap-1 px-2'
+          'z-50 flex h-full w-full items-center gap-1 px-2',
+          isVertical ? 'flex-col py-2' : 'flex-row',
+          className
         )}
       >
-        {/* Logo - sized to match sidebar menu buttons */}
-        <a
-          href="/"
-          className={cn(
-            'flex items-center justify-center rounded-md',
-            isVertical ? 'size-8' : 'size-9'
-          )}
-        >
-          <img
-            src="./images/logo-header.svg"
-            alt="Mochi"
-            className="h-6 w-6"
-          />
-        </a>
+        {/* Left section: Sidebar trigger + Logo */}
+        <div className={cn('flex items-center gap-1', isVertical && 'flex-col')}>
+          {/* Sidebar trigger (mobile/when requested) */}
+          {showSidebarTrigger && <SidebarTrigger className={iconButtonClass} />}
 
-        {/* User Menu */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
+          {/* Logo - sized to match sidebar menu buttons */}
+          <a
+            href="/"
+            className={cn(
+              'flex items-center justify-center rounded-md',
+              iconButtonClass
+            )}
+          >
+            <img
+              src="./images/logo-header.svg"
+              alt="Mochi"
+              className="h-6 w-6"
+            />
+          </a>
+        </div>
+
+        {/* Spacer - pushes actions to the right */}
+        <div className="flex-1" />
+
+        {/* Right section: Global actions */}
+        <div className={cn('flex items-center gap-1', isVertical && 'flex-col')}>
+          {/* Search */}
+          {showSearch && (
             <Button variant="ghost" size="icon" className={iconButtonClass}>
-              <CircleUser className="size-5" />
+              <Search className="size-5" />
+              <span className="sr-only">Search</span>
             </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="min-w-56" align="start">
-            <DropdownMenuLabel className="p-0 font-normal">
-              <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
-                <span className="font-semibold">{displayName}</span>
-                <span className="text-xs text-muted-foreground">
-                  {displayEmail}
-                </span>
-              </div>
-            </DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => setOpen(true)}>
-              <LogOut className="size-4" />
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+          )}
 
-        {/* Notifications */}
-        {showNotifications && <TopBarNotifications buttonClassName={iconButtonClass} />}
+          {/* Notifications */}
+          {showNotifications && <TopBarNotifications buttonClassName={iconButtonClass} />}
 
-        {/* Sidebar trigger (mobile) */}
-        {showSidebarTrigger && <SidebarTrigger className={iconButtonClass} />}
+          {/* App Switcher */}
+          {showAppSwitcher && <AppSwitcher buttonClassName={iconButtonClass} />}
+
+          {/* User Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className={iconButtonClass}>
+                <CircleUser className="size-5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="min-w-56" align="end">
+              <DropdownMenuLabel className="p-0 font-normal">
+                <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
+                  <span className="font-semibold">{displayName}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {displayEmail}
+                  </span>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setOpen(true)}>
+                <LogOut className="size-4" />
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </header>
 
       <SignOutDialog open={!!open} onOpenChange={setOpen} />

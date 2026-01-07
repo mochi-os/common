@@ -3,15 +3,32 @@ import { cn } from '../../lib/utils'
 type MainProps = React.HTMLAttributes<HTMLElement> & {
   fixed?: boolean
   fluid?: boolean
+  /** Use consistent vertical spacing tokens for content stacking */
+  spacingY?: 'xs' | 'sm' | 'default' | 'lg' | 'xl'
   ref?: React.Ref<HTMLElement>
 }
 
-export function Main({ fixed, className, fluid, ...props }: MainProps) {
+const spacingYClasses = {
+  xs: 'py-2',     // --content-spacing-xs
+  sm: 'py-4',     // --content-spacing-sm
+  default: 'py-6', // --content-spacing
+  lg: 'py-8',     // --content-spacing-lg
+  xl: 'py-12',    // --content-spacing-xl
+}
+
+export function Main({
+  fixed,
+  className,
+  fluid,
+  spacingY = 'default',
+  ...props
+}: MainProps) {
   return (
     <main
       data-layout={fixed ? 'fixed' : 'auto'}
       className={cn(
-        'px-4 py-6',
+        'px-4',
+        spacingYClasses[spacingY],
 
         // If layout is fixed, make the main container flex and grow
         fixed && 'flex grow flex-col overflow-hidden',
