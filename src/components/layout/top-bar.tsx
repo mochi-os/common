@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { CircleUser, LogIn, LogOut, Search, Bell, Grid3X3 } from 'lucide-react'
+import { CircleUser, LogIn, LogOut, Search, Grid3X3 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -7,7 +7,7 @@ import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import { useNotifications } from '../../hooks/use-notifications'
-import { SidebarTrigger, useSidebar } from '../ui/sidebar'
+import { SidebarTrigger } from '../ui/sidebar'
 import { Button } from '../ui/button'
 import {
   DropdownMenu,
@@ -88,14 +88,8 @@ export function TopBar({
 }: TopBarProps) {
   const [open, setOpen] = useDialogState()
   const { theme } = useTheme()
-  const sidebar = (() => {
-    try {
-      return useSidebar()
-    } catch {
-      return { state: 'expanded' }
-    }
-  })()
-  const isVertical = vertical || sidebar.state === 'collapsed'
+  // Only use vertical mode when explicitly requested
+  const isVertical = vertical
 
   const email = useAuthStore((state) => state.email)
   const isLoggedIn = !!email

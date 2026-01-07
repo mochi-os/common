@@ -68,7 +68,7 @@ export function AuthenticatedLayout({
   sidebarData,
   showNotifications = true,
   title,
-  mobileTitle,
+  mobileTitle: _mobileTitle,
   sidebarFooter,
   rightPanel,
   rightPanelDefaultOpen = true,
@@ -176,13 +176,7 @@ export function AuthenticatedLayout({
             )}
           </>
         ) : (
-          <>
-            {/* Desktop vertical TopBar when no sidebar */}
-            <div className='hidden flex-col flex-shrink-0 md:flex'>
-              <TopBar showNotifications={showNotifications} vertical />
-            </div>
-
-            {/* Content area fills the rest */}
+            /* Content area fills the rest when no sidebar */
             <div
               className={cn(
                 '@container/content',
@@ -191,7 +185,6 @@ export function AuthenticatedLayout({
             >
               {children ?? <Outlet />}
             </div>
-          </>
         )}
       </div>
     </div>
