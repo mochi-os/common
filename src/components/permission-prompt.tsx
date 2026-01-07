@@ -12,11 +12,7 @@ interface PermissionPromptProps {
 function getPermissionLabel(permission: string): string {
   const labels: Record<string, string> = {
     'group/manage': 'manage groups',
-    'access/allow': 'grant access',
-    'access/deny': 'deny access',
-    'access/revoke': 'revoke access',
     'user/read': 'read user information',
-    'entity/delete': 'delete data',
     'setting/write': 'modify settings',
     'permission/manage': 'manage permissions',
     'webpush/send': 'send notifications',
@@ -29,11 +25,6 @@ function getPermissionLabel(permission: string): string {
   if (permission.startsWith('url:')) {
     const domain = permission.slice(4)
     return `access ${domain}`
-  }
-
-  if (permission.startsWith('service:')) {
-    const service = permission.slice(8)
-    return `use the ${service} service`
   }
 
   return permission
