@@ -106,6 +106,7 @@ export * from './hooks/use-table-url-state'
 export * from './hooks/use-video-thumbnail'
 export * from './hooks/use-place-search'
 export * from './hooks/use-lightbox-hash'
+export * from './hooks/use-accounts'
 
 // Lib utilities
 export * from './lib/api-client'
@@ -136,6 +137,9 @@ export * from './features/errors/unauthorized-error'
 
 // Access control components
 export * from './features/access'
+
+// Connected accounts components
+export * from './features/accounts'
 
 // Custom icons
 export { IconDir } from './assets/custom/icon-dir'
