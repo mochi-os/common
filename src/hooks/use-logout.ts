@@ -14,7 +14,7 @@ export function useLogout() {
       setLoading(true)
 
       try {
-        await requestHelpers.get(authEndpoints.logout)
+        await requestHelpers.post(authEndpoints.logout)
       } catch (error) {
         if (import.meta.env.DEV) {
           console.error('[Logout] Backend logout failed:', error)
