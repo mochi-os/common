@@ -80,6 +80,7 @@ export function AccountVerify({
                 type="button"
                 variant="link"
                 size="sm"
+                className="text-muted-foreground"
                 onClick={handleResend}
                 disabled={isResending}
               >

@@ -1,12 +1,23 @@
 import { useEffect, useState } from 'react'
-import { useMutation, useQuery } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { requestHelpers } from '../lib/request'
 import * as push from '../lib/push'
 
-interface PushKeyResponse {
+interface VapidKeyResponse {
   data: {
     key: string
   }
+}
+
+interface Account {
+  id: number
+  type: string
+  identifier: string
+  verified: number
+}
+
+interface AccountsListResponse {
+  data: Account[]
 }
 
 interface PushState {
@@ -16,23 +27,26 @@ interface PushState {
 }
 
 export function usePush() {
+  const queryClient = useQueryClient()
   const [state, setState] = useState<PushState>({
     supported: false,
     permission: push.getPermission(),
     subscribed: false,
   })
 
+  // Fetch VAPID key from accounts endpoint
   const { data: vapidKey } = useQuery({
-    queryKey: ['push', 'vapid'],
+    queryKey: ['accounts', 'vapid'],
     queryFn: async () => {
-      const res = await requestHelpers.getRaw<PushKeyResponse>(
-        '/notifications/push/key'
+      const res = await requestHelpers.getRaw<VapidKeyResponse>(
+        '/notifications/-/accounts/vapid'
       )
       return res?.data?.key || ''
     },
     staleTime: Infinity,
   })
 
+  // Check if browser is subscribed by comparing local subscription with accounts
   useEffect(() => {
     push.isSupported().then((supported) => {
       setState((s) => ({ ...s, supported }))
@@ -56,12 +70,13 @@ export function usePush() {
 
       const subData = push.getSubscriptionData(subscription)
       const formData = new URLSearchParams()
+      formData.append('type', 'browser')
       formData.append('endpoint', subData.endpoint)
       formData.append('auth', subData.auth)
       formData.append('p256dh', subData.p256dh)
 
       await requestHelpers.post(
-        '/notifications/push/subscribe',
+        '/notifications/-/accounts/add',
         formData.toString(),
         {
           headers: {
@@ -70,8 +85,13 @@ export function usePush() {
         }
       )
     },
-    onSuccess: () =>
-      setState((s) => ({ ...s, permission: 'granted', subscribed: true })),
+    onSuccess: () => {
+      setState((s) => ({ ...s, permission: 'granted', subscribed: true }))
+      queryClient.invalidateQueries({ queryKey: ['accounts', 'list'] })
+    },
+    onError: (error) => {
+      console.error('Push subscribe error:', error)
+    },
   })
 
   const unsubscribeMutation = useMutation({
@@ -79,28 +99,43 @@ export function usePush() {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
       if (sub) {
-        const formData = new URLSearchParams()
-        formData.append('endpoint', sub.endpoint)
-
-        await requestHelpers.post(
-          '/notifications/push/unsubscribe',
-          formData.toString(),
-          {
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-          }
+        // Find the account by endpoint (stored as identifier for browser accounts)
+        const res = await requestHelpers.getRaw<AccountsListResponse>(
+          '/notifications/-/accounts/list?capability=notify'
         )
+        const accounts = res?.data || []
+        const account = accounts.find(
+          (a) => a.type === 'browser' && a.identifier === sub.endpoint
+        )
+
+        if (account) {
+          const formData = new URLSearchParams()
+          formData.append('id', String(account.id))
+
+          await requestHelpers.post(
+            '/notifications/-/accounts/remove',
+            formData.toString(),
+            {
+              headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+              },
+            }
+          )
+        }
+
         await sub.unsubscribe()
       }
     },
-    onSuccess: () => setState((s) => ({ ...s, subscribed: false })),
+    onSuccess: () => {
+      setState((s) => ({ ...s, subscribed: false }))
+      queryClient.invalidateQueries({ queryKey: ['accounts', 'list'] })
+    },
   })
 
   return {
     ...state,
-    subscribe: () => subscribeMutation.mutate(),
-    unsubscribe: () => unsubscribeMutation.mutate(),
+    subscribe: () => subscribeMutation.mutateAsync(),
+    unsubscribe: () => unsubscribeMutation.mutateAsync(),
     isSubscribing: subscribeMutation.isPending,
     isUnsubscribing: unsubscribeMutation.isPending,
   }

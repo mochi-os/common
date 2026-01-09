@@ -120,7 +120,7 @@ export function AccountAdd({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} autoComplete="off">
           <DialogHeader>
             <DialogTitle>Add account</DialogTitle>
             <DialogDescription>
@@ -192,7 +192,8 @@ export function AccountAdd({
                   </Label>
                   <Input
                     id={field.name}
-                    type={field.type === 'password' ? 'password' : 'text'}
+                    type="text"
+                    autoComplete="off"
                     value={fields[field.name] || ''}
                     onChange={(e) =>
                       handleFieldChange(field.name, e.target.value)
