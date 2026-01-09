@@ -184,7 +184,7 @@ export function NotificationsDropdown({
         </div>
 
         {/* List */}
-        <ScrollArea className='max-h-[min(500px,80vh)]'>
+        <ScrollArea className='max-h-[min(420px,80vh)] overflow-y-scroll'>
           <div className='flex flex-col'>
             {displayedNotifications.length === 0 ? (
               <div className='flex flex-col items-center justify-center py-12 text-center px-4'>
