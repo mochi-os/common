@@ -241,7 +241,10 @@ export function TopBar({
               <DropdownMenuSeparator />
               <ThemeToggle />
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => setOpen(true)}>
+              <DropdownMenuItem 
+                onClick={() => setOpen(true)}
+                className="hover:text-red-600 dark:hover:text-red-500 focus:text-red-600 dark:focus:text-red-500"
+              >
                 <LogOut className="size-4" />
                 Log out
               </DropdownMenuItem>
