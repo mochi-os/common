@@ -38,14 +38,13 @@ interface BaseProps {
 interface RootResponsiveDialogProps extends BaseProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
-  shouldCloseOnInteractOutside?: boolean
 }
 
 function ResponsiveDialog({
   children,
   shouldCloseOnInteractOutside = true,
   ...props
-}: RootResponsiveDialogProps) {
+}: RootResponsiveDialogProps & { shouldCloseOnInteractOutside?: boolean }) {
   const isDesktop = useMediaQuery(desktop)
   const ResponsiveDialogRoot = isDesktop ? Dialog : Drawer
 
