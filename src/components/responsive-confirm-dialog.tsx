@@ -45,7 +45,11 @@ export function ResponsiveConfirmDialog(props: ResponsiveConfirmDialogProps) {
   } = props
 
   return (
-    <ResponsiveDialog open={open} onOpenChange={onOpenChange}>
+    <ResponsiveDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      shouldCloseOnInteractOutside={false}
+    >
       <ResponsiveDialogContent className={cn(className)}>
         <ResponsiveDialogHeader className='text-start'>
           <ResponsiveDialogTitle>{title}</ResponsiveDialogTitle>

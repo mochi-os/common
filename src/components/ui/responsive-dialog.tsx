@@ -25,6 +25,12 @@ import {
 
 const desktop = '(min-width: 768px)'
 
+const ResponsiveDialogContext = React.createContext<{
+  shouldCloseOnInteractOutside: boolean
+}>({
+  shouldCloseOnInteractOutside: true,
+})
+
 interface BaseProps {
   children?: React.ReactNode
 }
@@ -32,13 +38,27 @@ interface BaseProps {
 interface RootResponsiveDialogProps extends BaseProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
+  shouldCloseOnInteractOutside?: boolean
 }
 
-function ResponsiveDialog({ children, ...props }: RootResponsiveDialogProps) {
+function ResponsiveDialog({
+  children,
+  shouldCloseOnInteractOutside = true,
+  ...props
+}: RootResponsiveDialogProps) {
   const isDesktop = useMediaQuery(desktop)
   const ResponsiveDialogRoot = isDesktop ? Dialog : Drawer
 
-  return <ResponsiveDialogRoot {...props}>{children}</ResponsiveDialogRoot>
+  return (
+    <ResponsiveDialogContext.Provider value={{ shouldCloseOnInteractOutside }}>
+      <ResponsiveDialogRoot
+        {...props}
+        {...(!isDesktop && { dismissible: shouldCloseOnInteractOutside })}
+      >
+        {children}
+      </ResponsiveDialogRoot>
+    </ResponsiveDialogContext.Provider>
+  )
 }
 
 function ResponsiveDialogTrigger({
@@ -77,14 +97,30 @@ function ResponsiveDialogContent({
   className,
   children,
   ...props
-}: BaseProps & { className?: string }) {
+}: BaseProps & { className?: string } & React.ComponentProps<
+    typeof DialogContent
+  >) {
   const isDesktop = useMediaQuery(desktop)
   const ResponsiveDialogContentComponent = isDesktop
     ? DialogContent
     : DrawerContent
+  const { shouldCloseOnInteractOutside } = React.useContext(
+    ResponsiveDialogContext
+  )
 
   return (
-    <ResponsiveDialogContentComponent className={className} {...props}>
+    <ResponsiveDialogContentComponent
+      className={className}
+      {...props}
+      {...(isDesktop && {
+        onInteractOutside: (e: any) => {
+          if (!shouldCloseOnInteractOutside) {
+            e.preventDefault()
+          }
+          props.onInteractOutside?.(e)
+        },
+      })}
+    >
       {children}
     </ResponsiveDialogContentComponent>
   )
