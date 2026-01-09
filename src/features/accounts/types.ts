@@ -26,6 +26,11 @@ export interface Provider {
   verify: boolean
 }
 
+export interface AccountTestResult {
+  success: boolean
+  message: string
+}
+
 export interface AccountsHookResult {
   providers: Provider[]
   accounts: Account[]
@@ -36,8 +41,10 @@ export interface AccountsHookResult {
   remove: (id: number) => Promise<boolean>
   update: (id: number, fields: Record<string, string>) => Promise<boolean>
   verify: (id: number, code?: string) => Promise<boolean>
+  test: (id: number) => Promise<AccountTestResult>
   refetch: () => void
   isAdding: boolean
   isRemoving: boolean
   isVerifying: boolean
+  isTesting: boolean
 }

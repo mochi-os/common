@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { requestHelpers } from '../lib/request'
 import type {
   Account,
+  AccountTestResult,
   Provider,
   AccountsHookResult,
 } from '../features/accounts/types'
@@ -154,6 +155,24 @@ export function useAccounts(
     },
   })
 
+  const testMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const formData = new URLSearchParams()
+      formData.append('id', String(id))
+
+      const res = await requestHelpers.post<AccountTestResult>(
+        `${appBase}/-/accounts/test`,
+        formData.toString(),
+        {
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+        }
+      )
+      return res
+    },
+  })
+
   return {
     providers,
     accounts,
@@ -174,9 +193,13 @@ export function useAccounts(
     verify: async (id: number, code?: string) => {
       return verifyMutation.mutateAsync({ id, code })
     },
+    test: async (id: number) => {
+      return testMutation.mutateAsync(id)
+    },
     refetch: () => refetch(),
     isAdding: addMutation.isPending,
     isRemoving: removeMutation.isPending,
     isVerifying: verifyMutation.isPending,
+    isTesting: testMutation.isPending,
   }
 }
