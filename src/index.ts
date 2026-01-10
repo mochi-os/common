@@ -107,6 +107,7 @@ export * from './hooks/use-video-thumbnail'
 export * from './hooks/use-place-search'
 export * from './hooks/use-lightbox-hash'
 export * from './hooks/use-accounts'
+export * from './hooks/use-destinations'
 
 // Lib utilities
 export * from './lib/api-client'
@@ -140,6 +141,9 @@ export * from './features/access'
 
 // Connected accounts components
 export * from './features/accounts'
+
+// Subscriptions components
+export * from './features/subscriptions'
 
 // Custom icons
 export { IconDir } from './assets/custom/icon-dir'
