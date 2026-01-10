@@ -1,5 +1,21 @@
 // Connected accounts types for shared components
 
+// Provider type to display label mapping
+export const PROVIDER_LABELS: Record<string, string> = {
+  browser: 'Browser notifications',
+  claude: 'Claude',
+  email: 'Email',
+  mcp: 'MCP server',
+  openai: 'OpenAI',
+  pushbullet: 'Pushbullet',
+  url: 'External URL',
+}
+
+// Get display label for a provider type
+export function getProviderLabel(type: string): string {
+  return PROVIDER_LABELS[type] || type
+}
+
 export interface Account {
   id: number
   type: string
@@ -19,7 +35,6 @@ export interface ProviderField {
 
 export interface Provider {
   type: string
-  label: string
   capabilities: string[]
   flow: 'form' | 'browser' | 'oauth'
   fields: ProviderField[]

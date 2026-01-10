@@ -9,7 +9,7 @@ import {
 } from '../../components/ui/select'
 import { useAccounts } from '../../hooks/use-accounts'
 import { AccountAdd } from './account-add'
-import type { Provider } from './types'
+import { getProviderLabel } from './types'
 
 interface AccountPickerProps {
   appBase: string
@@ -18,11 +18,6 @@ interface AccountPickerProps {
   onChange: (id: number | undefined) => void
   allowAdd?: boolean
   placeholder?: string
-}
-
-function getProviderLabel(providers: Provider[], type: string): string {
-  const provider = providers.find((p) => p.type === type)
-  return provider?.label || type
 }
 
 export function AccountPicker({
@@ -80,7 +75,7 @@ export function AccountPicker({
                   <span>
                     {account.label ||
                       account.identifier ||
-                      getProviderLabel(providers, account.type)}
+                      getProviderLabel(account.type)}
                   </span>
                   {needsVerification ? (
                     <Clock className="h-3 w-3 text-amber-600 dark:text-amber-400" />

@@ -26,7 +26,7 @@ import { toast } from '../../lib/toast-utils'
 import { useAccounts } from '../../hooks/use-accounts'
 import { AccountAdd } from './account-add'
 import { AccountVerify } from './account-verify'
-import type { Account, Provider } from './types'
+import { getProviderLabel, type Account, type Provider } from './types'
 
 interface AccountManagerProps {
   appBase: string
@@ -92,11 +92,6 @@ function getProviderIcon(type: string) {
   }
 }
 
-function getProviderLabel(providers: Provider[], type: string): string {
-  const provider = providers.find((p) => p.type === type)
-  return provider?.label || type
-}
-
 function AccountItem({
   account,
   providers,
@@ -123,7 +118,7 @@ function AccountItem({
         <div>
           <div className="flex items-center gap-2">
             <span className="font-medium">
-              {account.label || getProviderLabel(providers, account.type)}
+              {account.label || getProviderLabel(account.type)}
             </span>
             {needsVerification ? (
               <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
@@ -281,16 +276,26 @@ export function AccountManager({
             </div>
           ) : (
             <div>
-              {accounts.map((account) => (
-                <AccountItem
-                  key={account.id}
-                  account={account}
-                  providers={providers}
-                  onRemove={handleRemove}
-                  onVerify={setVerifyAccount}
-                  isRemoving={isRemoving}
-                />
-              ))}
+              {[...accounts]
+                .sort((a, b) => {
+                  const aName = a.label || getProviderLabel(a.type)
+                  const bName = b.label || getProviderLabel(b.type)
+                  const nameCompare = aName.localeCompare(bName)
+                  if (nameCompare !== 0) return nameCompare
+                  const aType = getProviderLabel(a.type)
+                  const bType = getProviderLabel(b.type)
+                  return aType.localeCompare(bType)
+                })
+                .map((account) => (
+                  <AccountItem
+                    key={account.id}
+                    account={account}
+                    providers={providers}
+                    onRemove={handleRemove}
+                    onVerify={setVerifyAccount}
+                    isRemoving={isRemoving}
+                  />
+                ))}
             </div>
           )}
         </CardContent>

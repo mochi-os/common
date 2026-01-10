@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
@@ -20,7 +19,7 @@ import {
 } from '../../components/ui/select'
 import { Switch } from '../../components/ui/switch'
 import * as push from '../../lib/push'
-import type { Provider } from './types'
+import { getProviderLabel, type Provider } from './types'
 
 interface AccountAddProps {
   open: boolean
@@ -123,9 +122,6 @@ export function AccountAdd({
         <form onSubmit={handleSubmit} autoComplete="off">
           <DialogHeader>
             <DialogTitle>Add account</DialogTitle>
-            <DialogDescription>
-              Connect an external account to enable notifications and services.
-            </DialogDescription>
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
@@ -133,13 +129,13 @@ export function AccountAdd({
               <div className="grid gap-2">
                 <Label htmlFor="type">Account type</Label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
-                  <SelectTrigger id="type">
+                  <SelectTrigger id="type" className="w-full">
                     <SelectValue placeholder="Select account type" />
                   </SelectTrigger>
                   <SelectContent>
                     {providers.map((provider) => (
                       <SelectItem key={provider.type} value={provider.type}>
-                        {provider.label}
+                        {getProviderLabel(provider.type)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -174,7 +170,6 @@ export function AccountAdd({
                     id="label"
                     value={fields.label || ''}
                     onChange={(e) => handleFieldChange('label', e.target.value)}
-                    placeholder="Work browser, Home laptop, etc."
                   />
                 </div>
               </div>
@@ -184,12 +179,7 @@ export function AccountAdd({
               selectedType !== 'browser' &&
               selectedProvider.fields.map((field) => (
                 <div key={field.name} className="grid gap-2">
-                  <Label htmlFor={field.name}>
-                    {field.label}
-                    {field.required && (
-                      <span className="text-destructive ml-1">*</span>
-                    )}
-                  </Label>
+                  <Label htmlFor={field.name}>{field.label}</Label>
                   <Input
                     id={field.name}
                     type="text"
@@ -198,7 +188,6 @@ export function AccountAdd({
                     onChange={(e) =>
                       handleFieldChange(field.name, e.target.value)
                     }
-                    placeholder={field.placeholder}
                     required={field.required}
                   />
                 </div>
@@ -214,7 +203,11 @@ export function AccountAdd({
               Cancel
             </Button>
             <Button type="submit" disabled={isAdding || !isFormValid()}>
-              {isAdding && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isAdding ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : selectedType !== 'browser' ? (
+                <Plus className="mr-2 h-4 w-4" />
+              ) : null}
               {selectedType === 'browser' ? 'Enable' : 'Add'}
             </Button>
           </DialogFooter>
