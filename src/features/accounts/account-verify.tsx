@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import {
   Dialog,
@@ -69,30 +69,10 @@ export function AccountVerify({
                 id="code"
                 value={code}
                 onChange={(e) => setCode(e.target.value)}
-                placeholder="Enter 10-character code"
                 autoComplete="one-time-code"
                 className="font-mono text-center text-lg tracking-wider"
                 maxLength={10}
               />
-            </div>
-            <div className="text-center">
-              <Button
-                type="button"
-                variant="link"
-                size="sm"
-                className="text-muted-foreground"
-                onClick={handleResend}
-                disabled={isResending}
-              >
-                {isResending ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Sending...
-                  </>
-                ) : (
-                  "Didn't receive it? Send again"
-                )}
-              </Button>
             </div>
           </div>
 
@@ -105,10 +85,23 @@ export function AccountVerify({
               Cancel
             </Button>
             <Button
+              type="button"
+              variant="outline"
+              onClick={handleResend}
+              disabled={isResending}
+            >
+              {isResending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Send again
+            </Button>
+            <Button
               type="submit"
               disabled={isVerifying || code.trim().length < 10}
             >
-              {isVerifying && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isVerifying ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Check className="mr-2 h-4 w-4" />
+              )}
               Verify
             </Button>
           </DialogFooter>
