@@ -23,6 +23,7 @@ export interface Account {
   identifier: string
   created: number
   verified: number
+  enabled: number
 }
 
 export interface ProviderField {
