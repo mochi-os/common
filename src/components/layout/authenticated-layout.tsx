@@ -35,6 +35,7 @@ function FullHeightRail() {
 type AuthenticatedLayoutProps = {
   children?: React.ReactNode
   sidebarData?: SidebarData
+  sidebarFooter?: React.ReactNode
   showNotifications?: boolean
   title?: string
   mobileTitle?: React.ReactNode
@@ -43,6 +44,7 @@ type AuthenticatedLayoutProps = {
 export function AuthenticatedLayout({
   children,
   sidebarData,
+  sidebarFooter,
   showNotifications = true,
   title,
   mobileTitle,
@@ -104,7 +106,7 @@ export function AuthenticatedLayout({
                   )}
                 >
                   <TopBar showNotifications={showNotifications} />
-                  <AppSidebar data={sidebarData} />
+                  <AppSidebar data={sidebarData} footer={sidebarFooter} />
                   <FullHeightRail />
                 </div>
 

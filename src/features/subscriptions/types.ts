@@ -42,6 +42,7 @@ export interface SubscribeDialogProps {
 
 export interface DestinationToggle {
   type: 'account' | 'rss'
+  accountType?: string  // 'browser', 'email', 'url' for accounts
   id: number | string
   label: string
   identifier?: string

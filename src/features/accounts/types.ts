@@ -9,6 +9,7 @@ export const PROVIDER_LABELS: Record<string, string> = {
   openai: 'OpenAI',
   pushbullet: 'Pushbullet',
   url: 'External URL',
+  web: 'Mochi web',
 }
 
 // Get display label for a provider type

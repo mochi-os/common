@@ -38,7 +38,8 @@ export function redirectToPermissionRequest(
   permission: string,
   returnUrl?: string
 ): void {
-  const currentUrl = returnUrl || window.location.href
+  // Use pathname + search to get a relative URL (getSafeReturnUrl only accepts relative paths)
+  const currentUrl = returnUrl || window.location.pathname + window.location.search
   // Always redirect to the Apps app's permission request page
   const requestUrl = `/apps/permissions/request?app=${encodeURIComponent(appId)}&permission=${encodeURIComponent(permission)}&return=${encodeURIComponent(currentUrl)}`
   window.location.href = requestUrl
