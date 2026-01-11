@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { Bell, Loader2, Mail, Rss, Webhook } from 'lucide-react'
+import { Bell, Loader2, Mail, Rss, Webhook, Globe, Check } from 'lucide-react'
+import { getBrowserName } from '../../lib/push'
 import {
   Dialog,
   DialogContent,
@@ -16,13 +17,17 @@ import { requestHelpers } from '../../lib/request'
 import { getErrorMessage } from '../../lib/handle-server-error'
 import { toast } from '../../lib/toast-utils'
 import { useDestinations } from '../../hooks/use-destinations'
+import { usePush } from '../../hooks/use-push'
 import type { SubscribeDialogProps, DestinationToggle } from './types'
 
 interface CreateResponse {
-  data: { id: number }
+  id: number
 }
 
 function getDestinationIcon(type: string, accountType?: string) {
+  if (type === 'web') {
+    return <Globe className="h-4 w-4" />
+  }
   if (type === 'rss') {
     return <Rss className="h-4 w-4" />
   }
@@ -49,14 +54,26 @@ export function SubscribeDialog({
   onResult,
 }: SubscribeDialogProps) {
   const { destinations, isLoading } = useDestinations(notificationsBase)
+  const push = usePush()
   const [toggles, setToggles] = useState<DestinationToggle[]>([])
+  const [enableWeb, setEnableWeb] = useState(true)
+  const [enableBrowserPush, setEnableBrowserPush] = useState(false)
+
+  // Ensure destinations is an array (could be undefined during redirect)
+  const destinationsList = Array.isArray(destinations) ? destinations : []
+
+  // Find existing browser destination if any
+  const browserDestination = destinationsList.find((d) => d.accountType === 'browser')
+  // Show browser push option if supported and not already configured
+  const showBrowserPushOption = push.supported && !browserDestination
 
   // Initialize toggles when destinations load
   useEffect(() => {
-    if (destinations.length > 0 && toggles.length === 0) {
+    if (!isLoading && toggles.length === 0) {
       setToggles(
-        destinations.map((d) => ({
+        destinationsList.map((d) => ({
           type: d.type,
+          accountType: d.accountType,
           id: d.id,
           label: d.label,
           identifier: d.identifier,
@@ -64,23 +81,67 @@ export function SubscribeDialog({
         }))
       )
     }
-  }, [destinations, toggles.length])
+  }, [destinationsList, isLoading, toggles.length])
 
   // Reset toggles when dialog closes
   useEffect(() => {
     if (!open) {
       setToggles([])
+      setEnableWeb(true)
+      setEnableBrowserPush(false)
     }
   }, [open])
 
   const createMutation = useMutation({
     mutationFn: async () => {
-      const enabledDestinations = toggles
+      // If browser push was enabled, subscribe first
+      let newBrowserAccountId: number | null = null
+      if (enableBrowserPush && !push.subscribed) {
+        try {
+          await push.subscribe()
+          // Fetch fresh accounts list to get the new browser account ID
+          const res = await fetch(`${notificationsBase}/-/accounts/list?capability=notify`, {
+            credentials: 'include',
+          })
+          if (res.ok) {
+            const data = await res.json()
+            const accounts = data?.data || []
+            const browserAccount = accounts.find((a: { type: string; id: number }) => a.type === 'browser')
+            if (browserAccount) {
+              newBrowserAccountId = browserAccount.id
+            }
+          }
+        } catch (error) {
+          // If push subscription fails, continue without it
+          console.error('Failed to enable browser push:', error)
+        }
+      }
+
+      // Build destinations list
+      const enabledDestinations: Array<{ type: string; target: string }> = []
+
+      // Add web destination if enabled
+      if (enableWeb) {
+        enabledDestinations.push({ type: 'web', target: 'default' })
+      }
+
+      // Add account/rss destinations
+      toggles
         .filter((t) => t.enabled)
-        .map((t) => ({
-          type: t.type,
-          target: String(t.id),
-        }))
+        .forEach((t) => {
+          enabledDestinations.push({
+            type: t.type,
+            target: String(t.id),
+          })
+        })
+
+      // Add newly created browser account if applicable
+      if (newBrowserAccountId !== null) {
+        enabledDestinations.push({
+          type: 'account',
+          target: String(newBrowserAccountId),
+        })
+      }
 
       const formData = new URLSearchParams()
       formData.append('app', app)
@@ -100,12 +161,12 @@ export function SubscribeDialog({
       )
     },
     onSuccess: (data) => {
-      toast.success('Subscription created')
-      onResult?.(data.data.id)
+      toast.success('Notifications enabled')
+      onResult?.(data.id)
       onOpenChange(false)
     },
     onError: (error) => {
-      toast.error(getErrorMessage(error, 'Failed to create subscription'))
+      toast.error(getErrorMessage(error, 'Failed to enable notifications'))
     },
   })
 
@@ -116,7 +177,7 @@ export function SubscribeDialog({
   }
 
   const handleAccept = () => {
-    const hasEnabled = toggles.some((t) => t.enabled)
+    const hasEnabled = enableWeb || enableBrowserPush || toggles.some((t) => t.enabled)
     if (!hasEnabled) {
       toast.error('Please select at least one destination')
       return
@@ -129,62 +190,113 @@ export function SubscribeDialog({
     onOpenChange(false)
   }
 
-  const hasDestinations = destinations.length > 0 || toggles.length > 0
+  // Build unified sorted list of all destination options
+  type UnifiedItem =
+    | { kind: 'web' }
+    | { kind: 'browser' }
+    | { kind: 'toggle'; toggle: DestinationToggle }
+
+  const sortedItems = useMemo((): UnifiedItem[] => {
+    const items: Array<{ label: string; item: UnifiedItem }> = []
+
+    // Add Mochi web
+    items.push({ label: 'Mochi web', item: { kind: 'web' } })
+
+    // Add browser destination option with detected browser name
+    if (showBrowserPushOption) {
+      items.push({ label: getBrowserName(), item: { kind: 'browser' } })
+    }
+
+    // Add all toggles (skip browser accounts as they're handled above or shown separately)
+    for (const toggle of toggles) {
+      if (toggle.accountType === 'browser' && showBrowserPushOption) {
+        continue
+      }
+      const displayLabel = toggle.accountType === 'email' && toggle.identifier
+        ? toggle.identifier
+        : toggle.label
+      items.push({ label: displayLabel, item: { kind: 'toggle', toggle } })
+    }
+
+    // Sort alphabetically by label
+    items.sort((a, b) => a.label.localeCompare(b.label))
+
+    return items.map((i) => i.item)
+  }, [toggles, showBrowserPushOption])
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Enable notifications</DialogTitle>
+          <DialogTitle>Allow notifications</DialogTitle>
           <DialogDescription>
-            <span className="font-medium">{app}</span> would like to send you
+            <span className="font-medium">{app.charAt(0).toUpperCase() + app.slice(1)}</span> would like to send you
             notifications for: {label}
           </DialogDescription>
         </DialogHeader>
 
         <div className="py-4">
           {isLoading ? (
-            <div className="space-y-3">
-              <Skeleton className="h-12 w-full" />
-              <Skeleton className="h-12 w-full" />
-            </div>
-          ) : !hasDestinations ? (
-            <div className="text-center py-4 text-muted-foreground">
-              <p>No notification destinations configured.</p>
-              <p className="text-sm mt-1">
-                Add destinations in Settings to receive notifications.
-              </p>
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
             </div>
           ) : (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground mb-3">
-                Choose where to receive these notifications:
-              </p>
-              {toggles.map((toggle) => (
-                <div
-                  key={`${toggle.type}-${toggle.id}`}
-                  className="flex items-center justify-between rounded-lg border p-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted">
-                      {getDestinationIcon(toggle.type, toggle.label)}
+            <div className="space-y-1">
+              {sortedItems.map((item) => {
+                if (item.kind === 'web') {
+                  return (
+                    <div key="web" className="flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        <Globe className="h-4 w-4 text-muted-foreground" />
+                        <span className="text-sm">Mochi web</span>
+                      </div>
+                      <Switch
+                        id="toggle-web"
+                        checked={enableWeb}
+                        onCheckedChange={setEnableWeb}
+                      />
                     </div>
-                    <div>
-                      <div className="font-medium text-sm">{toggle.label}</div>
-                      {toggle.identifier && (
-                        <div className="text-xs text-muted-foreground">
-                          {toggle.identifier}
-                        </div>
-                      )}
+                  )
+                }
+                if (item.kind === 'browser') {
+                  return (
+                    <div key="browser" className="flex items-center justify-between py-2">
+                      <div className="flex items-center gap-3">
+                        {getDestinationIcon('account', 'browser')}
+                        <span className="text-sm">{getBrowserName()}</span>
+                      </div>
+                      <Switch
+                        id="toggle-browser-push"
+                        checked={enableBrowserPush}
+                        onCheckedChange={setEnableBrowserPush}
+                      />
                     </div>
+                  )
+                }
+                const { toggle } = item
+                const displayLabel = toggle.accountType === 'email' && toggle.identifier
+                  ? toggle.identifier
+                  : toggle.label
+                return (
+                  <div
+                    key={`${toggle.type}-${toggle.id}`}
+                    className="flex items-center justify-between py-2"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-muted-foreground">
+                        {getDestinationIcon(toggle.type, toggle.accountType)}
+                      </span>
+                      <span className="text-sm">{displayLabel}</span>
+                    </div>
+                    <Switch
+                      id={`toggle-${toggle.type}-${toggle.id}`}
+                      checked={toggle.enabled}
+                      onCheckedChange={() => handleToggle(toggle.id)}
+                    />
                   </div>
-                  <Switch
-                    id={`toggle-${toggle.type}-${toggle.id}`}
-                    checked={toggle.enabled}
-                    onCheckedChange={() => handleToggle(toggle.id)}
-                  />
-                </div>
-              ))}
+                )
+              })}
             </div>
           )}
         </div>
@@ -195,10 +307,12 @@ export function SubscribeDialog({
           </Button>
           <Button
             onClick={handleAccept}
-            disabled={createMutation.isPending || !hasDestinations}
+            disabled={createMutation.isPending}
           >
-            {createMutation.isPending && (
+            {createMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Check className="h-4 w-4" />
             )}
             Allow
           </Button>

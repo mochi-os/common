@@ -57,6 +57,17 @@ export function getSubscriptionData(sub: PushSubscription) {
   }
 }
 
+// Detect browser name from user agent
+export function getBrowserName(): string {
+  const ua = navigator.userAgent
+  if (ua.includes('Firefox')) return 'Firefox'
+  if (ua.includes('Edg/')) return 'Edge'
+  if (ua.includes('Chrome')) return 'Chrome'
+  if (ua.includes('Safari')) return 'Safari'
+  if (ua.includes('Opera') || ua.includes('OPR')) return 'Opera'
+  return 'Browser'
+}
+
 function urlBase64ToUint8Array(base64: string): ArrayBuffer {
   const padding = '='.repeat((4 - (base64.length % 4)) % 4)
   const b64 = (base64 + padding).replace(/-/g, '+').replace(/_/g, '/')

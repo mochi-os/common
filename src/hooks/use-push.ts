@@ -1,7 +1,23 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { requestHelpers } from '../lib/request'
+import { handlePermissionError } from '../lib/permission-utils'
 import * as push from '../lib/push'
+import { getBrowserName } from '../lib/push'
+
+// All push API calls go to notifications app
+const NOTIFICATIONS_APP = 'notifications'
+
+// Check if error is a permission error and handle it
+function checkPermissionError(error: unknown): void {
+  if (error && typeof error === 'object' && 'data' in error) {
+    // ApiError structure: error.data contains the response data
+    const apiError = error as { data?: unknown }
+    if (apiError.data) {
+      handlePermissionError(apiError.data, NOTIFICATIONS_APP)
+    }
+  }
+}
 
 interface VapidKeyResponse {
   data: {
@@ -74,16 +90,22 @@ export function usePush() {
       formData.append('endpoint', subData.endpoint)
       formData.append('auth', subData.auth)
       formData.append('p256dh', subData.p256dh)
+      formData.append('label', getBrowserName())
 
-      await requestHelpers.post(
-        '/notifications/-/accounts/add',
-        formData.toString(),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        }
-      )
+      try {
+        await requestHelpers.post(
+          '/notifications/-/accounts/add',
+          formData.toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          }
+        )
+      } catch (error) {
+        checkPermissionError(error)
+        throw error
+      }
     },
     onSuccess: () => {
       setState((s) => ({ ...s, permission: 'granted', subscribed: true }))
@@ -99,28 +121,33 @@ export function usePush() {
       const reg = await navigator.serviceWorker.ready
       const sub = await reg.pushManager.getSubscription()
       if (sub) {
-        // Find the account by endpoint (stored as identifier for browser accounts)
-        const res = await requestHelpers.getRaw<AccountsListResponse>(
-          '/notifications/-/accounts/list?capability=notify'
-        )
-        const accounts = res?.data || []
-        const account = accounts.find(
-          (a) => a.type === 'browser' && a.identifier === sub.endpoint
-        )
-
-        if (account) {
-          const formData = new URLSearchParams()
-          formData.append('id', String(account.id))
-
-          await requestHelpers.post(
-            '/notifications/-/accounts/remove',
-            formData.toString(),
-            {
-              headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-              },
-            }
+        try {
+          // Find the account by endpoint (stored as identifier for browser accounts)
+          const res = await requestHelpers.getRaw<AccountsListResponse>(
+            '/notifications/-/accounts/list?capability=notify'
           )
+          const accounts = res?.data || []
+          const account = accounts.find(
+            (a) => a.type === 'browser' && a.identifier === sub.endpoint
+          )
+
+          if (account) {
+            const formData = new URLSearchParams()
+            formData.append('id', String(account.id))
+
+            await requestHelpers.post(
+              '/notifications/-/accounts/remove',
+              formData.toString(),
+              {
+                headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+                },
+              }
+            )
+          }
+        } catch (error) {
+          checkPermissionError(error)
+          throw error
         }
 
         await sub.unsubscribe()
