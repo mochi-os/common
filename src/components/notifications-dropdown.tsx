@@ -1,9 +1,17 @@
 import { useState, useEffect } from 'react'
 import { Bell, Check, ExternalLink } from 'lucide-react'
 import { cn } from '../lib/utils'
+import { useScreenSize } from '../hooks/use-screen-size'
 import { Button } from './ui/button'
 
 import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from './ui/drawer'
 import { ScrollArea } from './ui/scroll-area'
 import { Switch } from './ui/switch'
 import { Label } from './ui/label'
@@ -97,6 +105,7 @@ export function NotificationsDropdown({
   onNotificationClick,
   buttonClassName,
 }: NotificationsDropdownProps) {
+  const { isDesktop } = useScreenSize()
   const [open, setOpen] = useState(false)
   const [showAll, setShowAll] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -122,110 +131,133 @@ export function NotificationsDropdown({
     }
   }
 
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant='ghost'
-          size='icon'
-          className={cn('relative', buttonClassName)}
-          aria-label='Notifications'
-        >
-          <Bell className='size-5' />
-          {unreadCount > 0 && (
-            <span className='absolute right-1.5 top-1.5 flex size-2.5'>
-              <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75'></span>
-              <span className='relative inline-flex size-2.5 rounded-full bg-red-500'></span>
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent
-        align='end'
-        sideOffset={8}
-        className='w-80 p-0 overflow-hidden shadow-lg border-border sm:w-96'
-      >
-        {/* Header */}
-        <div className='flex items-center justify-between border-b bg-muted/30 px-4 py-3'>
-          <div className='flex items-center gap-2'>
-            <span className='font-semibold text-sm'>Notifications</span>
-            {unreadCount > 0 && (
-              <span className='rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'>
-                {unreadCount}
-              </span>
-            )}
-          </div>
-          <div className='flex items-center gap-2'>
-            <div className='flex items-center gap-2 pr-2 border-r mr-2'>
-              <Label
-                htmlFor='show-all'
-                className='text-[10px] uppercase font-medium text-muted-foreground tracking-wider cursor-pointer select-none'
-              >
-                All
-              </Label>
-              <Switch
-                id='show-all'
-                checked={showAll}
-                onCheckedChange={setShowAll}
-                className='scale-75 origin-right'
-              />
-            </div>
-            {notificationsUrl && (
-              <a
-                href={notificationsUrl}
-                onClick={() => setOpen(false)}
-                className='text-muted-foreground hover:text-foreground transition-colors'
-                title='View all'
-              >
-                <ExternalLink className='size-4' />
-              </a>
-            )}
-          </div>
-        </div>
+  const triggerButton = (
+    <Button
+      variant='ghost'
+      size='icon'
+      className={cn('relative', buttonClassName)}
+      aria-label='Notifications'
+    >
+      <Bell className='size-5' />
+      {unreadCount > 0 && (
+        <span className='absolute right-1.5 top-1.5 flex size-2.5'>
+          <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75'></span>
+          <span className='relative inline-flex size-2.5 rounded-full bg-red-500'></span>
+        </span>
+      )}
+    </Button>
+  )
 
-        {/* List */}
-        <ScrollArea className='max-h-[min(420px,80vh)] overflow-y-scroll'>
-          <div className='flex flex-col'>
-            {displayedNotifications.length === 0 ? (
-              <div className='flex flex-col items-center justify-center py-12 text-center px-4'>
-                <Bell className='size-8 text-muted-foreground/20 mb-3' />
-                <p className='text-sm font-medium text-foreground'>
-                  {showAll ? 'No notifications yet' : "You're all caught up!"}
-                </p>
-                <p className='text-xs text-muted-foreground mt-1 max-w-[180px]'>
-                  {showAll
-                    ? "We'll notify you when something important happens."
-                    : 'Check "All" to see your past notifications.'}
-                </p>
-              </div>
-            ) : (
-              <div className='divide-y divide-border/40'>
-                {displayedNotifications.map((notification) => (
-                  <NotificationItem
-                    key={notification.id}
-                    notification={notification}
-                    onClick={handleNotificationClick}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-
-        {/* Footer actions */}
+  const headerContent = (
+    <div className='flex items-center justify-between border-b bg-muted/30 px-4 py-3'>
+      <div className='flex items-center gap-2'>
+        <span className='font-semibold text-sm'>Notifications</span>
         {unreadCount > 0 && (
-          <div className='border-t bg-muted/30 p-2'>
-            <Button
-              variant='ghost'
-              className='w-full justify-center h-8 text-xs text-muted-foreground hover:text-primary'
-              onClick={() => onMarkAllAsRead?.()}
-            >
-              <Check className='mr-2 size-3' />
-              Mark all as read
-            </Button>
+          <span className='rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary'>
+            {unreadCount}
+          </span>
+        )}
+      </div>
+      <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 pr-2 border-r mr-2'>
+          <Label
+            htmlFor='show-all'
+            className='text-[10px] uppercase font-medium text-muted-foreground tracking-wider cursor-pointer select-none'
+          >
+            All
+          </Label>
+          <Switch
+            id='show-all'
+            checked={showAll}
+            onCheckedChange={setShowAll}
+            className='scale-75 origin-right'
+          />
+        </div>
+        {notificationsUrl && (
+          <a
+            href={notificationsUrl}
+            onClick={() => setOpen(false)}
+            className='text-muted-foreground hover:text-foreground transition-colors'
+            title='View all'
+          >
+            <ExternalLink className='size-4' />
+          </a>
+        )}
+      </div>
+    </div>
+  )
+
+  const listContent = (
+    <ScrollArea className='max-h-[min(420px,80vh)] overflow-y-scroll'>
+      <div className='flex flex-col'>
+        {displayedNotifications.length === 0 ? (
+          <div className='flex flex-col items-center justify-center py-12 text-center px-4'>
+            <Bell className='size-8 text-muted-foreground/20 mb-3' />
+            <p className='text-sm font-medium text-foreground'>
+              {showAll ? 'No notifications yet' : "You're all caught up!"}
+            </p>
+            <p className='text-xs text-muted-foreground mt-1 max-w-[180px]'>
+              {showAll
+                ? "We'll notify you when something important happens."
+                : 'Check "All" to see your past notifications.'}
+            </p>
+          </div>
+        ) : (
+          <div className='divide-y divide-border/40'>
+            {displayedNotifications.map((notification) => (
+              <NotificationItem
+                key={notification.id}
+                notification={notification}
+                onClick={handleNotificationClick}
+              />
+            ))}
           </div>
         )}
-      </PopoverContent>
-    </Popover>
+      </div>
+    </ScrollArea>
+  )
+
+  const footerContent = unreadCount > 0 && (
+    <div className='border-t bg-muted/30 p-2'>
+      <Button
+        variant='ghost'
+        className='w-full justify-center h-8 text-xs text-muted-foreground hover:text-primary'
+        onClick={() => onMarkAllAsRead?.()}
+      >
+        <Check className='mr-2 size-3' />
+        Mark all as read
+      </Button>
+    </div>
+  )
+
+  if (isDesktop) {
+    return (
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>{triggerButton}</PopoverTrigger>
+        <PopoverContent
+          align='end'
+          sideOffset={8}
+          className='w-80 p-0 overflow-hidden shadow-lg border-border sm:w-96'
+        >
+          {headerContent}
+          {listContent}
+          {footerContent}
+        </PopoverContent>
+      </Popover>
+    )
+  }
+
+  return (
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerTrigger asChild>{triggerButton}</DrawerTrigger>
+      <DrawerContent>
+        <DrawerHeader className='sr-only'>
+          <DrawerTitle>Notifications</DrawerTitle>
+        </DrawerHeader>
+        {headerContent}
+        {listContent}
+        {footerContent}
+      </DrawerContent>
+    </Drawer>
   )
 }
