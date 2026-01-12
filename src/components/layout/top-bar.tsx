@@ -1,5 +1,5 @@
-import { useEffect } from 'react'
-import { CircleUser, LogIn, LogOut, Search, Grid3X3, Moon, Sun, Settings } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { CircleUser, LogIn, LogOut, Search, Grid3X3, Moon, Sun, Settings, Check, Monitor } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -18,6 +18,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '../ui/drawer'
 import { SignOutDialog } from '../sign-out-dialog'
 import { NotificationsDropdown } from '../notifications-dropdown'
 
@@ -113,8 +120,9 @@ export function TopBar({
   className,
 }: TopBarProps) {
   const [open, setOpen] = useDialogState()
-  const { theme } = useTheme()
-  const { isMobile } = useScreenSize()
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
+  const { isMobile, isDesktop } = useScreenSize()
   // Only use vertical mode when explicitly requested
   const isVertical = vertical
 
@@ -224,41 +232,115 @@ export function TopBar({
           {showAppSwitcher && <AppSwitcher buttonClassName={iconButtonClass} />}
 
           {/* User Menu with Name Display */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className={cn("h-9 gap-2", isMobile ? "px-2" : "px-3")}>
-                <CircleUser className="size-5" />
-                {!isMobile && <span className="text-sm font-medium">{displayName}</span>}
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-56" align="end">
-              <DropdownMenuLabel className="p-0 font-normal">
-                <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
-                  <span className="font-semibold">{displayName}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {displayEmail}
-                  </span>
+          {isDesktop ? (
+            <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className={cn("h-9 gap-2", isMobile ? "px-2" : "px-3")}>
+                  <CircleUser className="size-5" />
+                  {!isMobile && <span className="text-sm font-medium">{displayName}</span>}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-56" align="end">
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
+                    <span className="font-semibold">{displayName}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {displayEmail}
+                    </span>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <a href="/settings/" className="flex items-center gap-2">
+                    <Settings className="size-4" />
+                    Settings
+                  </a>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <ThemeToggle />
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => setOpen(true)}
+                  className="hover:text-red-600 dark:hover:text-red-500 focus:text-red-600 dark:focus:text-red-500"
+                >
+                  <LogOut className="size-4" />
+                  Log out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Drawer open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+              <DrawerTrigger asChild>
+                <Button variant="ghost" className="h-9 gap-2 px-2">
+                  <CircleUser className="size-5" />
+                </Button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle className="sr-only">Profile</DrawerTitle>
+                </DrawerHeader>
+                <div className="px-4 pb-4">
+                  <div className="mb-4 pb-4 border-b">
+                    <div className="grid text-start text-sm leading-tight">
+                      <span className="truncate font-semibold">{displayName}</span>
+                      <span className="truncate text-xs text-muted-foreground">{displayEmail}</span>
+                    </div>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <a href="/settings/" className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md">
+                      <Settings size={16} />
+                      Settings
+                    </a>
+                    <div className="px-2 py-1.5">
+                      <div className="text-sm font-medium mb-2">Theme</div>
+                      <div className="flex flex-col gap-1">
+                        <button
+                          onClick={() => setTheme('light')}
+                          className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md"
+                        >
+                          <Sun size={16} />
+                          Light
+                          <Check
+                            size={14}
+                            className={cn('ms-auto', theme !== 'light' && 'hidden')}
+                          />
+                        </button>
+                        <button
+                          onClick={() => setTheme('dark')}
+                          className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md"
+                        >
+                          <Moon size={16} />
+                          Dark
+                          <Check
+                            size={14}
+                            className={cn('ms-auto', theme !== 'dark' && 'hidden')}
+                          />
+                        </button>
+                        <button
+                          onClick={() => setTheme('system')}
+                          className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md"
+                        >
+                          <Monitor size={16} />
+                          System
+                          <Check
+                            size={14}
+                            className={cn('ms-auto', theme !== 'system' && 'hidden')}
+                          />
+                        </button>
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => setOpen(true)}
+                      className="flex items-center gap-2 px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded-md"
+                    >
+                      <LogOut size={16} />
+                      Log out
+                    </button>
+                  </div>
                 </div>
-              </DropdownMenuLabel>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <a href="/settings/" className="flex items-center gap-2">
-                  <Settings className="size-4" />
-                  Settings
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <ThemeToggle />
-              <DropdownMenuSeparator />
-              <DropdownMenuItem 
-                onClick={() => setOpen(true)}
-                className="hover:text-red-600 dark:hover:text-red-500 focus:text-red-600 dark:focus:text-red-500"
-              >
-                <LogOut className="size-4" />
-                Log out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+              </DrawerContent>
+            </Drawer>
+          )}
         </div>
       </header>
 
