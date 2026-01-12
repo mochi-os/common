@@ -50,7 +50,9 @@ function ResponsiveDialog({
     <ResponsiveDialogContext.Provider value={{ shouldCloseOnInteractOutside }}>
       <ResponsiveDialogRoot
         {...props}
-        {...(!isDesktop && { dismissible: shouldCloseOnInteractOutside })}
+        // Always allow mobile drawers to be dismissible for better UX
+        // The shouldCloseOnInteractOutside setting only affects desktop dialogs
+        {...(!isDesktop && { dismissible: true })}
       >
         {children}
       </ResponsiveDialogRoot>
