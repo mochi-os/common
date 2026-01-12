@@ -77,6 +77,7 @@ export * from './components/faceless-avatar'
 export * from './components/learn-more'
 export * from './components/long-text'
 export * from './components/navigation-progress'
+export * from './components/notification-title'
 export * from './components/notifications-dropdown'
 export * from './components/password-input'
 export * from './components/profile-dropdown'
@@ -101,6 +102,7 @@ export * from './context/search-provider'
 // Stores
 export * from './stores/auth-store'
 export * from './stores/domain-context-store'
+export * from './stores/page-title-store'
 
 // Hooks
 export { default as useDialogState } from './hooks/use-dialog-state'
@@ -116,6 +118,8 @@ export * from './hooks/use-table-url-state'
 export * from './hooks/use-video-thumbnail'
 export * from './hooks/use-place-search'
 export * from './hooks/use-lightbox-hash'
+export * from './hooks/use-accounts'
+export * from './hooks/use-destinations'
 
 // Lib utilities
 export * from './lib/api-client'
@@ -146,6 +150,12 @@ export * from './features/errors/unauthorized-error'
 
 // Access control components
 export * from './features/access'
+
+// Connected accounts components
+export * from './features/accounts'
+
+// Subscriptions components
+export * from './features/subscriptions'
 
 // Custom icons
 export { IconDir } from './assets/custom/icon-dir'

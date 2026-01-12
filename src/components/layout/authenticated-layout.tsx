@@ -34,6 +34,7 @@ type RightPanelConfig = {
 type AuthenticatedLayoutProps = {
   children?: React.ReactNode
   sidebarData?: SidebarData
+  sidebarFooter?: React.ReactNode
   showNotifications?: boolean
   title?: string
   mobileTitle?: React.ReactNode
@@ -47,6 +48,7 @@ type AuthenticatedLayoutProps = {
 export function AuthenticatedLayout({
   children,
   sidebarData,
+  sidebarFooter,
   showNotifications = true,
   title,
   mobileTitle: _mobileTitle,
