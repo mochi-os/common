@@ -7,7 +7,13 @@ type HeaderProps = React.HTMLAttributes<HTMLElement> & {
   ref?: React.Ref<HTMLElement>
 }
 
-export function Header({ className, fixed, compact, children, ...props }: HeaderProps) {
+export function Header({
+  className,
+  fixed,
+  compact,
+  children,
+  ...props
+}: HeaderProps) {
   const [offset, setOffset] = useState(0)
 
   useEffect(() => {
@@ -31,7 +37,7 @@ export function Header({ className, fixed, compact, children, ...props }: Header
     <header
       className={cn(
         'z-40',
-        compact ? 'h-14' : 'h-16',
+        compact ? 'h-14' : 'h-17',
         fixed && 'header-fixed peer/header sticky top-0 w-full',
         offset > 10 && fixed ? 'shadow' : 'shadow-none',
         'border-b bg-background',

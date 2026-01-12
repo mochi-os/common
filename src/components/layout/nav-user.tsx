@@ -7,6 +7,7 @@ import {
   Check,
   Monitor,
   CircleUser,
+  Settings,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/auth-store'
 import { readProfileCookie } from '../../lib/profile-cookie'
@@ -59,6 +60,13 @@ export function NavUser() {
           <span className='truncate text-xs text-muted-foreground'>{displayEmail}</span>
         </div>
       </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem asChild>
+        <a href='/settings/' className='flex items-center gap-2'>
+          <Settings size={16} />
+          Settings
+        </a>
+      </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuSub>
         <DropdownMenuSubTrigger>
@@ -154,6 +162,13 @@ export function NavUserDropdownContent() {
           <span className='truncate text-xs text-muted-foreground'>{displayEmail}</span>
         </div>
       </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem asChild>
+        <a href='/settings/' className='flex items-center gap-2'>
+          <Settings size={16} />
+          Settings
+        </a>
+      </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuSub>
         <DropdownMenuSubTrigger>

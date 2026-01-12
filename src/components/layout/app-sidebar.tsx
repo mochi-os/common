@@ -59,7 +59,7 @@ export function AppSidebar({
       <SidebarHeader className='p-0 h-0' />
 
       {/* Scrollable navigation content */}
-      <SidebarContent className='overflow-y-auto pt-2'>
+      <SidebarContent className='overflow-y-auto pt-3'>
         {data.navGroups.map((props: NavGroupType) => (
           <NavGroup key={props.title} {...props} />
         ))}

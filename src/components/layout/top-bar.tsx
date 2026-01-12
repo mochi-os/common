@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { CircleUser, LogIn, LogOut, Search, Grid3X3, Moon, Sun } from 'lucide-react'
+import { CircleUser, LogIn, LogOut, Search, Grid3X3, Moon, Sun, Settings } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -238,6 +238,13 @@ export function TopBar({
                   </span>
                 </div>
               </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href="/settings/" className="flex items-center gap-2">
+                  <Settings className="size-4" />
+                  Settings
+                </a>
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <ThemeToggle />
               <DropdownMenuSeparator />
