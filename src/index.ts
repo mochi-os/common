@@ -67,6 +67,7 @@ export * from './components/faceless-avatar'
 export * from './components/learn-more'
 export * from './components/long-text'
 export * from './components/navigation-progress'
+export * from './components/notification-title'
 export * from './components/notifications-dropdown'
 export * from './components/password-input'
 export * from './components/profile-dropdown'
@@ -91,6 +92,7 @@ export * from './context/search-provider'
 // Stores
 export * from './stores/auth-store'
 export * from './stores/domain-context-store'
+export * from './stores/page-title-store'
 
 // Hooks
 export { default as useDialogState } from './hooks/use-dialog-state'

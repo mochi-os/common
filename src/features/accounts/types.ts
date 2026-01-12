@@ -6,6 +6,7 @@ export const PROVIDER_LABELS: Record<string, string> = {
   claude: 'Claude',
   email: 'Email',
   mcp: 'MCP server',
+  ntfy: 'ntfy',
   openai: 'OpenAI',
   pushbullet: 'Pushbullet',
   url: 'External URL',
@@ -14,6 +15,7 @@ export const PROVIDER_LABELS: Record<string, string> = {
 
 // Get display label for a provider type
 export function getProviderLabel(type: string): string {
+  if (!type) return 'Unknown'
   return PROVIDER_LABELS[type] || type
 }
 
@@ -54,7 +56,7 @@ export interface AccountsHookResult {
   isLoading: boolean
   isProvidersLoading: boolean
   isAccountsLoading: boolean
-  add: (type: string, fields: Record<string, string>) => Promise<Account>
+  add: (type: string, fields: Record<string, string>, addToExisting?: boolean) => Promise<Account>
   remove: (id: number) => Promise<boolean>
   update: (id: number, fields: Record<string, string>) => Promise<boolean>
   verify: (id: number, code?: string) => Promise<boolean>

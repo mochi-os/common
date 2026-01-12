@@ -1,8 +1,12 @@
 import { useEffect } from 'react'
+import { usePageTitleStore } from '../stores/page-title-store'
 
-// Sets document.title to "title - Mochi"
+// Sets the page title in the store. The actual document.title is set by
+// NotificationTitle component which combines the title with notification count.
 export function usePageTitle(title: string) {
+  const setTitle = usePageTitleStore((state) => state.setTitle)
+
   useEffect(() => {
-    document.title = `${title} - Mochi`
-  }, [title])
+    setTitle(title)
+  }, [title, setTitle])
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Loader2, Plus } from 'lucide-react'
 import { Button } from '../../components/ui/button'
 import {
@@ -18,14 +18,13 @@ import {
   SelectValue,
 } from '../../components/ui/select'
 import { Switch } from '../../components/ui/switch'
-import * as push from '../../lib/push'
 import { getProviderLabel, type Provider } from './types'
 
 interface AccountAddProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   providers: Provider[]
-  onAdd: (type: string, fields: Record<string, string>) => Promise<void>
+  onAdd: (type: string, fields: Record<string, string>, addToExisting: boolean) => Promise<void>
   isAdding: boolean
   appBase: string
 }
@@ -36,68 +35,32 @@ export function AccountAdd({
   providers,
   onAdd,
   isAdding,
-  appBase,
+  appBase: _appBase,
 }: AccountAddProps) {
   const [selectedType, setSelectedType] = useState<string>('')
   const [fields, setFields] = useState<Record<string, string>>({})
-  const [browserPushEnabled, setBrowserPushEnabled] = useState(false)
-  const [browserPushSupported, setBrowserPushSupported] = useState(false)
+  const [addToExisting, setAddToExisting] = useState(true)
 
-  // Check browser push support
-  useEffect(() => {
-    push.isSupported().then(setBrowserPushSupported)
-  }, [])
+  // Filter out browser provider from the add dialog
+  const availableProviders = useMemo(
+    () => providers.filter((p) => p.type !== 'browser'),
+    [providers]
+  )
 
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      setSelectedType(providers.length === 1 ? providers[0].type : '')
+      setSelectedType(availableProviders.length === 1 ? availableProviders[0].type : '')
       setFields({})
-      setBrowserPushEnabled(false)
+      setAddToExisting(true)
     }
-  }, [open, providers])
+  }, [open, availableProviders])
 
   const selectedProvider = providers.find((p) => p.type === selectedType)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-
-    if (selectedType === 'browser') {
-      // Handle browser push subscription
-      try {
-        const permission = await push.requestPermission()
-        if (permission !== 'granted') {
-          throw new Error('Permission denied')
-        }
-
-        // Get VAPID key from server
-        const keyRes = await fetch(`${appBase}/-/accounts/vapid`)
-        const keyData = await keyRes.json()
-        const vapidKey = keyData?.data?.key
-
-        if (!vapidKey) {
-          throw new Error('No VAPID key available')
-        }
-
-        const subscription = await push.subscribe(vapidKey)
-        if (!subscription) {
-          throw new Error('Subscription failed')
-        }
-
-        const subData = push.getSubscriptionData(subscription)
-        await onAdd('browser', {
-          endpoint: subData.endpoint,
-          auth: subData.auth,
-          p256dh: subData.p256dh,
-          label: fields.label || '',
-        })
-      } catch (error) {
-        console.error('Browser push subscription failed:', error)
-        throw error
-      }
-    } else {
-      await onAdd(selectedType, fields)
-    }
+    await onAdd(selectedType, fields, addToExisting)
   }
 
   const handleFieldChange = (name: string, value: string) => {
@@ -106,8 +69,6 @@ export function AccountAdd({
 
   const isFormValid = () => {
     if (!selectedProvider) return false
-    if (selectedType === 'browser') return browserPushSupported
-
     for (const field of selectedProvider.fields) {
       if (field.required && !fields[field.name]) {
         return false
@@ -125,7 +86,7 @@ export function AccountAdd({
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
-            {providers.length > 1 && (
+            {availableProviders.length > 1 && (
               <div className="grid gap-2">
                 <Label htmlFor="type">Account type</Label>
                 <Select value={selectedType} onValueChange={setSelectedType}>
@@ -133,7 +94,7 @@ export function AccountAdd({
                     <SelectValue placeholder="Select account type" />
                   </SelectTrigger>
                   <SelectContent>
-                    {providers.map((provider) => (
+                    {availableProviders.map((provider) => (
                       <SelectItem key={provider.type} value={provider.type}>
                         {getProviderLabel(provider.type)}
                       </SelectItem>
@@ -143,40 +104,7 @@ export function AccountAdd({
               </div>
             )}
 
-            {selectedType === 'browser' && (
-              <div className="space-y-4">
-                {browserPushSupported ? (
-                  <div className="flex items-center justify-between rounded-lg border p-4">
-                    <div>
-                      <div className="font-medium">Browser notifications</div>
-                      <div className="text-sm text-muted-foreground">
-                        Receive push notifications in this browser
-                      </div>
-                    </div>
-                    <Switch
-                      checked={browserPushEnabled}
-                      onCheckedChange={setBrowserPushEnabled}
-                    />
-                  </div>
-                ) : (
-                  <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-200">
-                    Browser push notifications are not supported in this
-                    browser.
-                  </div>
-                )}
-                <div className="grid gap-2">
-                  <Label htmlFor="label">Label (optional)</Label>
-                  <Input
-                    id="label"
-                    value={fields.label || ''}
-                    onChange={(e) => handleFieldChange('label', e.target.value)}
-                  />
-                </div>
-              </div>
-            )}
-
             {selectedProvider &&
-              selectedType !== 'browser' &&
               selectedProvider.fields.map((field) => (
                 <div key={field.name} className="grid gap-2">
                   <Label htmlFor={field.name}>{field.label}</Label>
@@ -192,6 +120,16 @@ export function AccountAdd({
                   />
                 </div>
               ))}
+
+            {selectedType && (
+              <div className="flex items-center justify-between rounded-lg border p-4">
+                <div className="font-medium">Add to existing notifications</div>
+                <Switch
+                  checked={addToExisting}
+                  onCheckedChange={setAddToExisting}
+                />
+              </div>
+            )}
           </div>
 
           <DialogFooter>
@@ -205,10 +143,10 @@ export function AccountAdd({
             <Button type="submit" disabled={isAdding || !isFormValid()}>
               {isAdding ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              ) : selectedType !== 'browser' ? (
+              ) : (
                 <Plus className="mr-2 h-4 w-4" />
-              ) : null}
-              {selectedType === 'browser' ? 'Enable' : 'Add'}
+              )}
+              Add
             </Button>
           </DialogFooter>
         </form>

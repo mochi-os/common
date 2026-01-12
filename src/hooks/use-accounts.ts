@@ -72,22 +72,26 @@ export function useAccounts(
   })
 
   // Memoize to prevent unstable references during loading
-  const providers = useMemo(() => providersData ?? [], [providersData])
-  const accounts = useMemo(() => accountsData ?? [], [accountsData])
+  // Use Array.isArray to handle cases where API returns non-array data
+  const providers = useMemo(() => Array.isArray(providersData) ? providersData : [], [providersData])
+  const accounts = useMemo(() => Array.isArray(accountsData) ? accountsData : [], [accountsData])
 
   const addMutation = useMutation({
     mutationFn: async ({
       type,
       fields,
+      addToExisting,
     }: {
       type: string
       fields: Record<string, string>
+      addToExisting: boolean
     }) => {
       const formData = new URLSearchParams()
       formData.append('type', type)
       for (const [key, value] of Object.entries(fields)) {
         formData.append(key, value)
       }
+      formData.append('add_to_existing', addToExisting ? '1' : '0')
 
       const res = await requestHelpers.post<Account>(
         `${appBase}/-/accounts/add`,
@@ -212,8 +216,8 @@ export function useAccounts(
     isLoading: isProvidersLoading || isAccountsLoading,
     isProvidersLoading,
     isAccountsLoading,
-    add: async (type: string, fields: Record<string, string>) => {
-      const result = await addMutation.mutateAsync({ type, fields })
+    add: async (type: string, fields: Record<string, string>, addToExisting = true) => {
+      const result = await addMutation.mutateAsync({ type, fields, addToExisting })
       if (!result) throw new Error('Failed to add account')
       return result
     },

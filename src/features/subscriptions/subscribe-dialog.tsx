@@ -18,10 +18,14 @@ import { getErrorMessage } from '../../lib/handle-server-error'
 import { toast } from '../../lib/toast-utils'
 import { useDestinations } from '../../hooks/use-destinations'
 import { usePush } from '../../hooks/use-push'
-import type { SubscribeDialogProps, DestinationToggle } from './types'
+import type { SubscribeDialogProps, DestinationToggle, SubscriptionItem } from './types'
 
 interface CreateResponse {
   id: number
+}
+
+interface SubscriptionToggle extends SubscriptionItem {
+  enabled: boolean
 }
 
 function getDestinationIcon(type: string, accountType?: string) {
@@ -50,14 +54,19 @@ export function SubscribeDialog({
   label,
   type = '',
   object = '',
-  notificationsBase,
+  subscriptions: subscriptionsProp,
+  appBase = '',
   onResult,
 }: SubscribeDialogProps) {
-  const { destinations, isLoading } = useDestinations(notificationsBase)
+  const { destinations, isLoading } = useDestinations(appBase)
   const push = usePush()
   const [toggles, setToggles] = useState<DestinationToggle[]>([])
   const [enableWeb, setEnableWeb] = useState(true)
   const [enableBrowserPush, setEnableBrowserPush] = useState(false)
+  const [subscriptionToggles, setSubscriptionToggles] = useState<SubscriptionToggle[]>([])
+
+  // Build subscription items from either the array prop or legacy single props
+  const subscriptionItems: SubscriptionItem[] = subscriptionsProp ?? (label ? [{ label, type, object, defaultEnabled: true }] : [])
 
   // Ensure destinations is an array (could be undefined during redirect)
   const destinationsList = Array.isArray(destinations) ? destinations : []
@@ -83,10 +92,23 @@ export function SubscribeDialog({
     }
   }, [destinationsList, isLoading, toggles.length])
 
+  // Initialize subscription toggles when dialog opens
+  useEffect(() => {
+    if (open && subscriptionToggles.length === 0 && subscriptionItems.length > 0) {
+      setSubscriptionToggles(
+        subscriptionItems.map((s) => ({
+          ...s,
+          enabled: s.defaultEnabled ?? true,
+        }))
+      )
+    }
+  }, [open, subscriptionItems, subscriptionToggles.length])
+
   // Reset toggles when dialog closes
   useEffect(() => {
     if (!open) {
       setToggles([])
+      setSubscriptionToggles([])
       setEnableWeb(true)
       setEnableBrowserPush(false)
     }
@@ -95,12 +117,13 @@ export function SubscribeDialog({
   const createMutation = useMutation({
     mutationFn: async () => {
       // If browser push was enabled, subscribe first
+      // Note: Browser account management still goes through notifications app directly
       let newBrowserAccountId: number | null = null
       if (enableBrowserPush && !push.subscribed) {
         try {
           await push.subscribe()
           // Fetch fresh accounts list to get the new browser account ID
-          const res = await fetch(`${notificationsBase}/-/accounts/list?capability=notify`, {
+          const res = await fetch('/notifications/-/accounts/list?capability=notify', {
             credentials: 'include',
           })
           if (res.ok) {
@@ -143,26 +166,36 @@ export function SubscribeDialog({
         })
       }
 
-      const formData = new URLSearchParams()
-      formData.append('app', app)
-      formData.append('label', label)
-      if (type) formData.append('type', type)
-      if (object) formData.append('object', object)
-      formData.append('destinations', JSON.stringify(enabledDestinations))
+      // Get enabled subscriptions
+      const enabledSubscriptions = subscriptionToggles.filter((s) => s.enabled)
 
-      return await requestHelpers.post<CreateResponse>(
-        `${notificationsBase}/-/subscriptions/create`,
-        formData.toString(),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-        }
-      )
+      // Create a subscription for each enabled type
+      const results: number[] = []
+      for (const sub of enabledSubscriptions) {
+        const formData = new URLSearchParams()
+        formData.append('label', sub.label)
+        if (sub.type) formData.append('type', sub.type)
+        if (sub.object) formData.append('object', sub.object)
+        formData.append('destinations', JSON.stringify(enabledDestinations))
+
+        const result = await requestHelpers.post<CreateResponse>(
+          `${appBase}/-/notifications/subscribe`,
+          formData.toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          }
+        )
+        results.push(result.id)
+      }
+
+      return results
     },
-    onSuccess: (data) => {
-      toast.success('Notifications enabled')
-      onResult?.(data.id)
+    onSuccess: (ids) => {
+      const count = ids.length
+      toast.success(count === 1 ? 'Notifications enabled' : `${count} notification types enabled`)
+      onResult?.(ids.length === 1 ? ids[0] : ids)
       onOpenChange(false)
     },
     onError: (error) => {
@@ -176,16 +209,51 @@ export function SubscribeDialog({
     )
   }
 
+  const handleSubscriptionToggle = (type: string) => {
+    setSubscriptionToggles((prev) =>
+      prev.map((s) => (s.type === type ? { ...s, enabled: !s.enabled } : s))
+    )
+  }
+
   const handleAccept = () => {
-    const hasEnabled = enableWeb || enableBrowserPush || toggles.some((t) => t.enabled)
-    if (!hasEnabled) {
+    const hasEnabledSubscription = subscriptionToggles.some((s) => s.enabled)
+    if (!hasEnabledSubscription) {
+      toast.error('Please select at least one notification type')
+      return
+    }
+    const hasEnabledDestination = enableWeb || enableBrowserPush || toggles.some((t) => t.enabled)
+    if (!hasEnabledDestination) {
       toast.error('Please select at least one destination')
       return
     }
     createMutation.mutate()
   }
 
-  const handleRefuse = () => {
+  const handleRefuse = async () => {
+    // Create subscriptions with no destinations (marks as "asked but declined")
+    // This prevents prompting the user again
+    try {
+      for (const sub of subscriptionItems) {
+        const formData = new URLSearchParams()
+        formData.append('label', sub.label)
+        if (sub.type) formData.append('type', sub.type)
+        if (sub.object) formData.append('object', sub.object)
+        formData.append('destinations', '[]')
+
+        await requestHelpers.post(
+          `${appBase}/-/notifications/subscribe`,
+          formData.toString(),
+          {
+            headers: {
+              'Content-Type': 'application/x-www-form-urlencoded',
+            },
+          }
+        )
+      }
+    } catch (error) {
+      // Silently ignore errors - declining notifications shouldn't fail visibly
+      console.error('Failed to record declined subscriptions:', error)
+    }
     onResult?.(null)
     onOpenChange(false)
   }
@@ -224,6 +292,8 @@ export function SubscribeDialog({
     return items.map((i) => i.item)
   }, [toggles, showBrowserPushOption])
 
+  const showMultipleSubscriptions = subscriptionToggles.length > 1
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -231,73 +301,99 @@ export function SubscribeDialog({
           <DialogTitle>Allow notifications</DialogTitle>
           <DialogDescription>
             <span className="font-medium">{app.charAt(0).toUpperCase() + app.slice(1)}</span> would like to send you
-            notifications for: {label}
+            notifications{showMultipleSubscriptions ? '.' : `: ${subscriptionToggles[0]?.label ?? label}`}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4">
+        <div className="py-4 space-y-4">
           {isLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-8 w-full" />
             </div>
           ) : (
-            <div className="space-y-1">
-              {sortedItems.map((item) => {
-                if (item.kind === 'web') {
+            <>
+              {/* Subscription types (only shown when multiple) */}
+              {showMultipleSubscriptions && (
+                <div className="space-y-1">
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Notify me about</p>
+                  {subscriptionToggles.map((sub) => (
+                    <div
+                      key={sub.type}
+                      className="flex items-center justify-between py-2"
+                    >
+                      <span className="text-sm">{sub.label}</span>
+                      <Switch
+                        id={`sub-toggle-${sub.type}`}
+                        checked={sub.enabled}
+                        onCheckedChange={() => handleSubscriptionToggle(sub.type)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Destinations */}
+              <div className="space-y-1">
+                {showMultipleSubscriptions && (
+                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Deliver to</p>
+                )}
+                {sortedItems.map((item) => {
+                  if (item.kind === 'web') {
+                    return (
+                      <div key="web" className="flex items-center justify-between py-2">
+                        <div className="flex items-center gap-3">
+                          <Globe className="h-4 w-4 text-muted-foreground" />
+                          <span className="text-sm">Mochi web</span>
+                        </div>
+                        <Switch
+                          id="toggle-web"
+                          checked={enableWeb}
+                          onCheckedChange={setEnableWeb}
+                        />
+                      </div>
+                    )
+                  }
+                  if (item.kind === 'browser') {
+                    return (
+                      <div key="browser" className="flex items-center justify-between py-2">
+                        <div className="flex items-center gap-3">
+                          {getDestinationIcon('account', 'browser')}
+                          <span className="text-sm">{getBrowserName()}</span>
+                        </div>
+                        <Switch
+                          id="toggle-browser-push"
+                          checked={enableBrowserPush}
+                          onCheckedChange={setEnableBrowserPush}
+                        />
+                      </div>
+                    )
+                  }
+                  const { toggle } = item
+                  const displayLabel = toggle.accountType === 'email' && toggle.identifier
+                    ? toggle.identifier
+                    : toggle.label
                   return (
-                    <div key="web" className="flex items-center justify-between py-2">
+                    <div
+                      key={`${toggle.type}-${toggle.id}`}
+                      className="flex items-center justify-between py-2"
+                    >
                       <div className="flex items-center gap-3">
-                        <Globe className="h-4 w-4 text-muted-foreground" />
-                        <span className="text-sm">Mochi web</span>
+                        <span className="text-muted-foreground">
+                          {getDestinationIcon(toggle.type, toggle.accountType)}
+                        </span>
+                        <span className="text-sm">{displayLabel}</span>
                       </div>
                       <Switch
-                        id="toggle-web"
-                        checked={enableWeb}
-                        onCheckedChange={setEnableWeb}
+                        id={`toggle-${toggle.type}-${toggle.id}`}
+                        checked={toggle.enabled}
+                        onCheckedChange={() => handleToggle(toggle.id)}
                       />
                     </div>
                   )
-                }
-                if (item.kind === 'browser') {
-                  return (
-                    <div key="browser" className="flex items-center justify-between py-2">
-                      <div className="flex items-center gap-3">
-                        {getDestinationIcon('account', 'browser')}
-                        <span className="text-sm">{getBrowserName()}</span>
-                      </div>
-                      <Switch
-                        id="toggle-browser-push"
-                        checked={enableBrowserPush}
-                        onCheckedChange={setEnableBrowserPush}
-                      />
-                    </div>
-                  )
-                }
-                const { toggle } = item
-                const displayLabel = toggle.accountType === 'email' && toggle.identifier
-                  ? toggle.identifier
-                  : toggle.label
-                return (
-                  <div
-                    key={`${toggle.type}-${toggle.id}`}
-                    className="flex items-center justify-between py-2"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="text-muted-foreground">
-                        {getDestinationIcon(toggle.type, toggle.accountType)}
-                      </span>
-                      <span className="text-sm">{displayLabel}</span>
-                    </div>
-                    <Switch
-                      id={`toggle-${toggle.type}-${toggle.id}`}
-                      checked={toggle.enabled}
-                      onCheckedChange={() => handleToggle(toggle.id)}
-                    />
-                  </div>
-                )
-              })}
-            </div>
+                })}
+              </div>
+            </>
           )}
         </div>
 

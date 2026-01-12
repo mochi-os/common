@@ -17,11 +17,12 @@ export interface Subscription {
 
 export interface SubscribeButtonProps {
   app: string
-  label: string
+  label?: string
   type?: string
   object?: string
-  onResult?: (subscriptionId: number | null) => void
-  notificationsBase?: string
+  subscriptions?: SubscriptionItem[]
+  onResult?: (subscriptionIds: number | number[] | null) => void
+  appBase?: string
   children?: React.ReactNode
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
   size?: 'default' | 'sm' | 'lg' | 'icon'
@@ -29,15 +30,27 @@ export interface SubscribeButtonProps {
   className?: string
 }
 
+export interface SubscriptionItem {
+  label: string
+  type: string
+  object?: string
+  defaultEnabled?: boolean
+}
+
 export interface SubscribeDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   app: string
-  label: string
+  /** Single subscription label (legacy) */
+  label?: string
+  /** Single subscription type (legacy) */
   type?: string
+  /** Single subscription object (legacy) */
   object?: string
-  notificationsBase: string
-  onResult?: (subscriptionId: number | null) => void
+  /** Multiple subscriptions to offer */
+  subscriptions?: SubscriptionItem[]
+  appBase?: string
+  onResult?: (subscriptionIds: number | number[] | null) => void
 }
 
 export interface DestinationToggle {

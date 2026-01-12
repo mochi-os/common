@@ -1,11 +1,10 @@
 import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { useAccounts } from './use-accounts'
 import { requestHelpers } from '../lib/request'
 import { getProviderLabel } from '../features/accounts/types'
 import { handlePermissionError } from '../lib/permission-utils'
 
-// Extract app ID from base path (e.g., "/notifications" -> "notifications")
+// Extract app ID from base path (e.g., "/people" -> "people")
 function getAppIdFromBase(base: string): string {
   return base.replace(/^\//, '').split('/')[0] || ''
 }
@@ -43,16 +42,16 @@ export interface UseDestinationsResult {
 }
 
 // Hook to fetch available notification destinations
-export function useDestinations(notificationsBase: string = '/notifications'): UseDestinationsResult {
-  const { accounts, isLoading: isAccountsLoading } = useAccounts(notificationsBase, 'notify')
-  const appId = getAppIdFromBase(notificationsBase)
+// Uses the app's notifications/destinations proxy endpoint
+export function useDestinations(appBase: string = ''): UseDestinationsResult {
+  const appId = getAppIdFromBase(appBase)
 
-  const { data: destinationsData, isLoading: isDestinationsLoading } = useQuery({
-    queryKey: ['destinations', notificationsBase],
+  const { data: destinationsData, isLoading } = useQuery({
+    queryKey: ['destinations', appBase],
     queryFn: async () => {
       try {
         return await requestHelpers.get<DestinationsResponse>(
-          `${notificationsBase}/-/destinations/list`
+          `${appBase}/-/notifications/destinations`
         )
       } catch (error) {
         if (error && typeof error === 'object' && 'data' in error) {
@@ -66,17 +65,18 @@ export function useDestinations(notificationsBase: string = '/notifications'): U
     },
   })
 
-  // Combine accounts and feeds into unified destination list
-  // Memoize to prevent infinite re-render loops in consumers
+  // Transform accounts and feeds into unified destination list
   const destinations = useMemo((): Destination[] => {
-    const accountsList = Array.isArray(accounts) ? accounts : []
-    const feedsList = destinationsData?.feeds ?? []
+    const accountsRaw = destinationsData?.accounts
+    const feedsRaw = destinationsData?.feeds
+    const accountsList = Array.isArray(accountsRaw) ? accountsRaw : []
+    const feedsList = Array.isArray(feedsRaw) ? feedsRaw : []
     return [
       ...accountsList.map((account) => ({
         type: 'account' as const,
         accountType: account.type,
         id: account.id,
-        label: account.label || getProviderLabel(account.type),
+        label: account.label || account.identifier || getProviderLabel(account.type),
         identifier: account.identifier,
         defaultEnabled: account.enabled === 1,
       })),
@@ -88,10 +88,10 @@ export function useDestinations(notificationsBase: string = '/notifications'): U
         defaultEnabled: feed.enabled === 1,
       })),
     ]
-  }, [accounts, destinationsData])
+  }, [destinationsData])
 
   return {
     destinations,
-    isLoading: isAccountsLoading || isDestinationsLoading,
+    isLoading,
   }
 }

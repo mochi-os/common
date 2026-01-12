@@ -22,7 +22,7 @@ export const notificationKeys = {
 
 // API functions
 async function fetchNotifications(): Promise<NotificationsListResponse> {
-  const response = await requestHelpers.getRaw<NotificationsListResponse>('/notifications/list')
+  const response = await requestHelpers.getRaw<NotificationsListResponse>('/notifications/-/list')
   return response ?? { data: [], count: 0, total: 0 }
 }
 
@@ -30,7 +30,7 @@ async function markAsRead(id: string): Promise<void> {
   const formData = new URLSearchParams()
   formData.append('id', id)
 
-  await requestHelpers.post('/notifications/read', formData.toString(), {
+  await requestHelpers.post('/notifications/-/read', formData.toString(), {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
@@ -38,7 +38,7 @@ async function markAsRead(id: string): Promise<void> {
 }
 
 async function markAllAsRead(): Promise<void> {
-  await requestHelpers.post('/notifications/read/all', {})
+  await requestHelpers.post('/notifications/-/read/all', {})
 }
 
 // Query hooks

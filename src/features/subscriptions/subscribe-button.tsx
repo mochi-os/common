@@ -10,8 +10,9 @@ export function SubscribeButton({
   label,
   type,
   object,
+  subscriptions,
   onResult,
-  notificationsBase = '/notifications',
+  appBase = '',
   children,
   variant = 'outline',
   size = 'default',
@@ -44,7 +45,8 @@ export function SubscribeButton({
         label={label}
         type={type}
         object={object}
-        notificationsBase={notificationsBase}
+        subscriptions={subscriptions}
+        appBase={appBase}
         onResult={onResult}
       />
     </>

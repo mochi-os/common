@@ -187,9 +187,9 @@ export function AccountManager({
     isVerifying,
   } = useAccounts(appBase, capability)
 
-  const handleAdd = async (type: string, fields: Record<string, string>) => {
+  const handleAdd = async (type: string, fields: Record<string, string>, addToExisting: boolean) => {
     try {
-      const account = await add(type, fields)
+      const account = await add(type, fields, addToExisting)
       toast.success('Account added')
       setIsAddOpen(false)
 
