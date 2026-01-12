@@ -1,5 +1,7 @@
+import { Moon } from 'lucide-react'
 import useDialogState from '../hooks/use-dialog-state'
 import { useScreenSize } from '../hooks/use-screen-size'
+import { useTheme } from '../context/theme-provider'
 import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar'
 import { Button } from './ui/button'
 import {
@@ -17,12 +19,15 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from './ui/drawer'
+import { Switch } from './ui/switch'
 import { SignOutDialog } from './sign-out-dialog'
 
 export function ProfileDropdown() {
   const { isDesktop } = useScreenSize()
   const [open, setOpen] = useDialogState()
   const [dropdownOpen, setDropdownOpen] = useDialogState()
+  const { theme, setTheme } = useTheme()
+  const isDark = theme === 'dark'
 
   const avatarButton = (
     <Button variant='ghost' className='relative h-8 w-8 rounded-full'>
@@ -45,7 +50,7 @@ export function ProfileDropdown() {
   const logoutButton = (
     <Button
       variant='ghost'
-      className='w-full justify-start px-2 text-sm'
+      className='w-full justify-start px-2 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive'
       onClick={() => setOpen(true)}
     >
       Log out
@@ -62,7 +67,23 @@ export function ProfileDropdown() {
               {userInfo}
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setOpen(true)}>
+            
+            <div className="flex items-center justify-between px-2 py-1.5 text-sm select-none">
+              <div className="flex items-center gap-2">
+                <Moon className="size-4" />
+                Dark mode
+              </div>
+              <Switch 
+                checked={isDark} 
+                onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+              />
+            </div>
+
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              onClick={() => setOpen(true)}
+              className="text-destructive focus:text-destructive focus:bg-destructive/10"
+            >
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>
@@ -83,7 +104,21 @@ export function ProfileDropdown() {
           </DrawerHeader>
           <div className='px-4 pb-4'>
             <div className='mb-4 pb-4 border-b'>{userInfo}</div>
-            {logoutButton}
+            
+            <div className='flex flex-col gap-2'>
+              <div className="flex items-center justify-between px-2 py-1.5 text-sm hover:bg-muted rounded-md">
+                <div className="flex items-center gap-2">
+                  <Moon className="size-4" />
+                  Dark mode
+                </div>
+                <Switch 
+                  checked={isDark} 
+                  onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+                />
+              </div>
+
+              {logoutButton}
+            </div>
           </div>
         </DrawerContent>
       </Drawer>

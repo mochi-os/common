@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { CircleUser, LogIn, LogOut, Search, Grid3X3, Moon, Sun, Settings, Check, Monitor } from 'lucide-react'
+import { CircleUser, LogIn, LogOut, Search, Grid3X3, Moon, Settings } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -10,6 +10,7 @@ import { useNotifications } from '../../hooks/use-notifications'
 import { useScreenSize } from '../../hooks/use-screen-size'
 import { SidebarTrigger } from '../ui/sidebar'
 import { Button } from '../ui/button'
+import { Switch } from '../ui/switch'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -89,25 +90,20 @@ function AppSwitcher({ buttonClassName }: { buttonClassName?: string }) {
 // Theme toggle component
 function ThemeToggle() {
   const { theme, setTheme } = useTheme()
-  
+  const isDark = theme === 'dark'
+
   const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
+    setTheme(isDark ? 'light' : 'dark')
   }
 
   return (
-    <DropdownMenuItem onClick={toggleTheme}>
-      {theme === 'dark' ? (
-        <>
-          <Sun className="size-4" />
-          Light mode
-        </>
-      ) : (
-        <>
-          <Moon className="size-4" />
-          Dark mode
-        </>
-      )}
-    </DropdownMenuItem>
+    <div className="flex items-center justify-between px-2 py-1.5 text-sm">
+      <div className="flex items-center gap-2">
+        <Moon className="size-4" />
+        Dark mode
+      </div>
+      <Switch checked={isDark} onCheckedChange={toggleTheme} />
+    </div>
   )
 }
 
@@ -123,6 +119,7 @@ export function TopBar({
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const { theme, setTheme } = useTheme()
   const { isMobile, isDesktop } = useScreenSize()
+  const isDark = theme === 'dark'
   // Only use vertical mode when explicitly requested
   const isVertical = vertical
 
@@ -291,44 +288,18 @@ export function TopBar({
                       <Settings size={16} />
                       Settings
                     </a>
-                    <div className="px-2 py-1.5">
-                      <div className="text-sm font-medium mb-2">Theme</div>
-                      <div className="flex flex-col gap-1">
-                        <button
-                          onClick={() => setTheme('light')}
-                          className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md"
-                        >
-                          <Sun size={16} />
-                          Light
-                          <Check
-                            size={14}
-                            className={cn('ms-auto', theme !== 'light' && 'hidden')}
-                          />
-                        </button>
-                        <button
-                          onClick={() => setTheme('dark')}
-                          className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md"
-                        >
-                          <Moon size={16} />
-                          Dark
-                          <Check
-                            size={14}
-                            className={cn('ms-auto', theme !== 'dark' && 'hidden')}
-                          />
-                        </button>
-                        <button
-                          onClick={() => setTheme('system')}
-                          className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md"
-                        >
-                          <Monitor size={16} />
-                          System
-                          <Check
-                            size={14}
-                            className={cn('ms-auto', theme !== 'system' && 'hidden')}
-                          />
-                        </button>
+                    
+                    <div className="flex items-center justify-between px-2 py-1.5 text-sm hover:bg-muted rounded-md">
+                      <div className="flex items-center gap-2">
+                        <Moon className="size-4" />
+                        Dark mode
                       </div>
+                      <Switch 
+                        checked={isDark} 
+                        onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+                      />
                     </div>
+                    
                     <button
                       onClick={() => setOpen(true)}
                       className="flex items-center gap-2 px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded-md"

@@ -3,15 +3,12 @@ import {
   ChevronsUpDown,
   LogOut,
   Moon,
-  Sun,
-  Check,
-  Monitor,
   CircleUser,
   Settings,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/auth-store'
 import { readProfileCookie } from '../../lib/profile-cookie'
-import { cn } from '../../lib/utils'
+
 import { useTheme } from '../../context/theme-provider'
 import { useScreenSize } from '../../hooks/use-screen-size'
 import useDialogState from '../../hooks/use-dialog-state'
@@ -21,9 +18,6 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import {
@@ -39,6 +33,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '../ui/sidebar'
+import { Switch } from '../ui/switch'
 import { SignOutDialog } from '../sign-out-dialog'
 
 export function NavUser() {
@@ -47,6 +42,7 @@ export function NavUser() {
   const [open, setOpen] = useDialogState()
   const [dropdownOpen, setDropdownOpen] = useDialogState()
   const { theme, setTheme } = useTheme()
+  const isDark = theme === 'dark'
 
   // Use email from auth store (Template mirrors core auth cookie shape)
   const email = useAuthStore((state) => state.email)
@@ -92,37 +88,16 @@ export function NavUser() {
         </a>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuSub>
-        <DropdownMenuSubTrigger>
-          <Sun /> Theme
-        </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent>
-          <DropdownMenuItem onClick={() => setTheme('light')}>
-            <Sun />
-            Light
-            <Check
-              size={14}
-              className={cn('ms-auto', theme !== 'light' && 'hidden')}
-            />
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme('dark')}>
-            <Moon />
-            Dark
-            <Check
-              size={14}
-              className={cn('ms-auto', theme !== 'dark' && 'hidden')}
-            />
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme('system')}>
-            <Monitor />
-            System
-            <Check
-              size={14}
-              className={cn('ms-auto', theme !== 'system' && 'hidden')}
-            />
-          </DropdownMenuItem>
-        </DropdownMenuSubContent>
-      </DropdownMenuSub>
+      <div className="flex items-center justify-between px-2 py-1.5 text-sm select-none">
+        <div className="flex items-center gap-2">
+          <Moon className="size-4" />
+          Dark mode
+        </div>
+        <Switch 
+          checked={isDark} 
+          onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+        />
+      </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem
         onClick={() => setOpen(true)}
@@ -180,44 +155,18 @@ export function NavUser() {
                     <Settings size={16} />
                     Settings
                   </a>
-                  <div className='px-2 py-1.5'>
-                    <div className='text-sm font-medium mb-2'>Theme</div>
-                    <div className='flex flex-col gap-1'>
-                      <button
-                        onClick={() => setTheme('light')}
-                        className='flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md'
-                      >
-                        <Sun size={16} />
-                        Light
-                        <Check
-                          size={14}
-                          className={cn('ms-auto', theme !== 'light' && 'hidden')}
-                        />
-                      </button>
-                      <button
-                        onClick={() => setTheme('dark')}
-                        className='flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md'
-                      >
-                        <Moon size={16} />
-                        Dark
-                        <Check
-                          size={14}
-                          className={cn('ms-auto', theme !== 'dark' && 'hidden')}
-                        />
-                      </button>
-                      <button
-                        onClick={() => setTheme('system')}
-                        className='flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md'
-                      >
-                        <Monitor size={16} />
-                        System
-                        <Check
-                          size={14}
-                          className={cn('ms-auto', theme !== 'system' && 'hidden')}
-                        />
-                      </button>
+                  
+                  <div className='flex items-center justify-between px-2 py-1.5 text-sm hover:bg-muted rounded-md'>
+                    <div className='flex items-center gap-2'>
+                      <Moon size={16} />
+                      Dark mode
                     </div>
+                    <Switch 
+                      checked={isDark} 
+                      onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+                    />
                   </div>
+
                   <button
                     onClick={() => setOpen(true)}
                     className='flex items-center gap-2 px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded-md'
@@ -261,37 +210,16 @@ export function NavUserDropdownContent() {
         </a>
       </DropdownMenuItem>
       <DropdownMenuSeparator />
-      <DropdownMenuSub>
-        <DropdownMenuSubTrigger>
-          <Sun /> Theme
-        </DropdownMenuSubTrigger>
-        <DropdownMenuSubContent>
-          <DropdownMenuItem onClick={() => setTheme('light')}>
-            <Sun />
-            Light
-            <Check
-              size={14}
-              className={cn('ms-auto', theme !== 'light' && 'hidden')}
-            />
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme('dark')}>
-            <Moon />
-            Dark
-            <Check
-              size={14}
-              className={cn('ms-auto', theme !== 'dark' && 'hidden')}
-            />
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTheme('system')}>
-            <Monitor />
-            System
-            <Check
-              size={14}
-              className={cn('ms-auto', theme !== 'system' && 'hidden')}
-            />
-          </DropdownMenuItem>
-        </DropdownMenuSubContent>
-      </DropdownMenuSub>
+      <div className="flex items-center justify-between px-2 py-1.5 text-sm select-none">
+        <div className="flex items-center gap-2">
+          <Moon className="size-4" />
+          Dark mode
+        </div>
+        <Switch 
+          checked={theme === 'dark'} 
+          onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
+        />
+      </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem
         onClick={() => setOpen(true)}
