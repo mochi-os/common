@@ -4,7 +4,7 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { PanelLeftIcon } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuthStore } from '../../stores/auth-store'
-import { useIsMobile } from '../../hooks/use-mobile'
+import { useScreenSize } from '../../hooks/use-screen-size'
 import { Button } from './button'
 import { Input } from './input'
 import { Separator } from './separator'
@@ -64,7 +64,7 @@ function SidebarProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  const isMobile = useIsMobile()
+  const { isMobile } = useScreenSize()
   const [openMobile, setOpenMobile] = React.useState(false)
 
   // This is the internal state of the sidebar.

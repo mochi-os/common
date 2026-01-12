@@ -107,7 +107,7 @@ export * from './stores/page-title-store'
 // Hooks
 export { default as useDialogState } from './hooks/use-dialog-state'
 export * from './hooks/use-media-query'
-export * from './hooks/use-mobile'
+export * from './hooks/use-screen-size'
 export * from './hooks/use-notifications'
 export * from './hooks/use-push'
 export * from './hooks/use-page-title'

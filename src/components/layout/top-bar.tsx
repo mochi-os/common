@@ -7,6 +7,7 @@ import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import { useNotifications } from '../../hooks/use-notifications'
+import { useScreenSize } from '../../hooks/use-screen-size'
 import { SidebarTrigger } from '../ui/sidebar'
 import { Button } from '../ui/button'
 import {
@@ -113,6 +114,7 @@ export function TopBar({
 }: TopBarProps) {
   const [open, setOpen] = useDialogState()
   const { theme } = useTheme()
+  const { isMobile } = useScreenSize()
   // Only use vertical mode when explicitly requested
   const isVertical = vertical
 
@@ -224,9 +226,9 @@ export function TopBar({
           {/* User Menu with Name Display */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-9 gap-2 px-3">
+              <Button variant="ghost" className={cn("h-9 gap-2", isMobile ? "px-2" : "px-3")}>
                 <CircleUser className="size-5" />
-                <span className="text-sm font-medium">{displayName}</span>
+                {!isMobile && <span className="text-sm font-medium">{displayName}</span>}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="min-w-56" align="end">

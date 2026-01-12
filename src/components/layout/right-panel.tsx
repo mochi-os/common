@@ -1,6 +1,6 @@
 import * as React from 'react'
 import { cn } from '../../lib/utils'
-import { useIsMobile } from '../../hooks/use-mobile'
+import { useScreenSize } from '../../hooks/use-screen-size'
 import { Button } from '../ui/button'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '../ui/sheet'
 import { PanelRightIcon, XIcon } from 'lucide-react'
@@ -44,21 +44,10 @@ function RightPanelProvider({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
-  const isMobile = useIsMobile()
+  const { isMobile, width } = useScreenSize()
   // Large screen: >= 1280px (xl breakpoint)
-  const [isLargeScreen, setIsLargeScreen] = React.useState(false)
+  const isLargeScreen = width >= 1280
   const [openMobile, setOpenMobile] = React.useState(false)
-
-  // Check for large screen
-  React.useEffect(() => {
-    const mediaQuery = window.matchMedia('(min-width: 1280px)')
-    const handleChange = (e: MediaQueryListEvent | MediaQueryList) => {
-      setIsLargeScreen(e.matches)
-    }
-    handleChange(mediaQuery)
-    mediaQuery.addEventListener('change', handleChange)
-    return () => mediaQuery.removeEventListener('change', handleChange)
-  }, [])
 
   // Internal state
   const [_open, _setOpen] = React.useState(() => {

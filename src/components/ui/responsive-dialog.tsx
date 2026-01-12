@@ -1,7 +1,7 @@
 'use client'
 
 import * as React from 'react'
-import { useMediaQuery } from '../../hooks/use-media-query'
+import { useScreenSize } from '../../hooks/use-screen-size'
 import {
   Dialog,
   DialogClose,
@@ -23,8 +23,6 @@ import {
   DrawerTrigger,
 } from './drawer'
 
-const desktop = '(min-width: 768px)'
-
 const ResponsiveDialogContext = React.createContext<{
   shouldCloseOnInteractOutside: boolean
 }>({
@@ -45,7 +43,7 @@ function ResponsiveDialog({
   shouldCloseOnInteractOutside = true,
   ...props
 }: RootResponsiveDialogProps & { shouldCloseOnInteractOutside?: boolean }) {
-  const isDesktop = useMediaQuery(desktop)
+  const { isDesktop } = useScreenSize()
   const ResponsiveDialogRoot = isDesktop ? Dialog : Drawer
 
   return (
@@ -65,7 +63,7 @@ function ResponsiveDialogTrigger({
   children,
   ...props
 }: BaseProps & { className?: string; asChild?: boolean }) {
-  const isDesktop = useMediaQuery(desktop)
+  const { isDesktop } = useScreenSize()
   const ResponsiveDialogTriggerComponent = isDesktop
     ? DialogTrigger
     : DrawerTrigger
@@ -82,7 +80,7 @@ function ResponsiveDialogClose({
   children,
   ...props
 }: BaseProps & { className?: string; asChild?: boolean }) {
-  const isDesktop = useMediaQuery(desktop)
+  const { isDesktop } = useScreenSize()
   const ResponsiveDialogCloseComponent = isDesktop ? DialogClose : DrawerClose
 
   return (
@@ -99,7 +97,7 @@ function ResponsiveDialogContent({
 }: BaseProps & { className?: string } & React.ComponentProps<
     typeof DialogContent
   >) {
-  const isDesktop = useMediaQuery(desktop)
+  const { isDesktop } = useScreenSize()
   const ResponsiveDialogContentComponent = isDesktop
     ? DialogContent
     : DrawerContent
@@ -130,7 +128,7 @@ function ResponsiveDialogDescription({
   children,
   ...props
 }: BaseProps & { className?: string }) {
-  const isDesktop = useMediaQuery(desktop)
+  const { isDesktop } = useScreenSize()
   const ResponsiveDialogDescriptionComponent = isDesktop
     ? DialogDescription
     : DrawerDescription
@@ -147,7 +145,7 @@ function ResponsiveDialogHeader({
   children,
   ...props
 }: BaseProps & { className?: string }) {
-  const isDesktop = useMediaQuery(desktop)
+  const { isDesktop } = useScreenSize()
   const ResponsiveDialogHeaderComponent = isDesktop
     ? DialogHeader
     : DrawerHeader
@@ -164,7 +162,7 @@ function ResponsiveDialogTitle({
   children,
   ...props
 }: BaseProps & { className?: string }) {
-  const isDesktop = useMediaQuery(desktop)
+  const { isDesktop } = useScreenSize()
   const ResponsiveDialogTitleComponent = isDesktop ? DialogTitle : DrawerTitle
 
   return (
@@ -179,7 +177,7 @@ function ResponsiveDialogFooter({
   children,
   ...props
 }: BaseProps & { className?: string }) {
-  const isDesktop = useMediaQuery(desktop)
+  const { isDesktop } = useScreenSize()
   const ResponsiveDialogFooterComponent = isDesktop
     ? DialogFooter
     : DrawerFooter
