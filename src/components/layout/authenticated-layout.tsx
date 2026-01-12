@@ -64,7 +64,8 @@ export function AuthenticatedLayout({
   const isLoggedIn = !!email
   const defaultOpen = getCookie('sidebar_state') !== 'false'
   const hasSidebar = sidebarData && sidebarData.navGroups.length > 0
-  const hasRightPanel = rightPanel && (rightPanel.header || rightPanel.content || rightPanel.footer)
+  const hasRightPanel =
+    rightPanel && (rightPanel.header || rightPanel.content || rightPanel.footer)
 
   // Anonymous users: minimal layout
   if (!isLoggedIn) {
@@ -95,7 +96,7 @@ export function AuthenticatedLayout({
   const layoutContent = (
     <div className='flex h-full w-full flex-col'>
       {/* Fixed Header - spans full width on all screen sizes */}
-      <header className='fixed top-0 left-0 right-0 z-50 h-12 flex-shrink-0 border-b bg-background'>
+      <header className='fixed top-0 left-0 right-0 z-[60] h-12 flex-shrink-0 border-b bg-background'>
         <div className='flex h-full items-center px-2'>
           <TopBar
             showNotifications={showNotifications}
@@ -156,15 +157,15 @@ export function AuthenticatedLayout({
             )}
           </>
         ) : (
-            /* Content area fills the rest when no sidebar */
-            <div
-              className={cn(
-                '@container/content',
-                'h-[calc(100vh-3rem)] flex-1 overflow-auto'
-              )}
-            >
-              {children ?? <Outlet />}
-            </div>
+          /* Content area fills the rest when no sidebar */
+          <div
+            className={cn(
+              '@container/content',
+              'h-[calc(100vh-3rem)] flex-1 overflow-auto'
+            )}
+          >
+            {children ?? <Outlet />}
+          </div>
         )}
       </div>
     </div>
