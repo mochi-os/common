@@ -55,7 +55,7 @@ export function ProfileDropdown() {
   if (isDesktop) {
     return (
       <>
-        <DropdownMenu modal={false} open={dropdownOpen} onOpenChange={setDropdownOpen}>
+        <DropdownMenu modal={false} open={!!dropdownOpen} onOpenChange={setDropdownOpen}>
           <DropdownMenuTrigger asChild>{avatarButton}</DropdownMenuTrigger>
           <DropdownMenuContent className='w-56' align='end' forceMount>
             <DropdownMenuLabel className='font-normal'>
@@ -75,7 +75,7 @@ export function ProfileDropdown() {
 
   return (
     <>
-      <Drawer open={dropdownOpen} onOpenChange={setDropdownOpen}>
+      <Drawer open={!!dropdownOpen} onOpenChange={setDropdownOpen}>
         <DrawerTrigger asChild>{avatarButton}</DrawerTrigger>
         <DrawerContent>
           <DrawerHeader>
