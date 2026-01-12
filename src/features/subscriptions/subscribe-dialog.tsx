@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from '../../components/ui/dialog'
 import { Button } from '../../components/ui/button'
+import { Card, CardContent } from '../../components/ui/card'
 import { Switch } from '../../components/ui/switch'
 import { Skeleton } from '../../components/ui/skeleton'
 import { requestHelpers } from '../../lib/request'
@@ -73,12 +74,17 @@ export function SubscribeDialog({
 
   // Find existing browser destination if any
   const browserDestination = destinationsList.find((d) => d.accountType === 'browser')
-  // Show browser push option if supported and not already configured
-  const showBrowserPushOption = push.supported && !browserDestination
+  // Show browser push option if support check completed, supported, and not already configured
+  const showBrowserPushOption = push.supportChecked && push.supported && !browserDestination
+  // Consider loading until both destinations and push support check are ready
+  const loading = isLoading || !push.supportChecked
 
   // Initialize toggles when destinations load
+  // Compare by destination IDs to detect any changes, not just length
+  const destinationIds = destinationsList.map((d) => `${d.type}-${d.id}`).join(',')
+  const toggleIds = toggles.map((t) => `${t.type}-${t.id}`).join(',')
   useEffect(() => {
-    if (!isLoading && toggles.length === 0) {
+    if (!loading && destinationsList.length > 0 && destinationIds !== toggleIds) {
       setToggles(
         destinationsList.map((d) => ({
           type: d.type,
@@ -90,7 +96,7 @@ export function SubscribeDialog({
         }))
       )
     }
-  }, [destinationsList, isLoading, toggles.length])
+  }, [destinationsList, loading, destinationIds, toggleIds])
 
   // Initialize subscription toggles when dialog opens
   useEffect(() => {
@@ -166,17 +172,15 @@ export function SubscribeDialog({
         })
       }
 
-      // Get enabled subscriptions
-      const enabledSubscriptions = subscriptionToggles.filter((s) => s.enabled)
-
-      // Create a subscription for each enabled type
+      // Create a subscription for each type
+      // Enabled types get destinations, disabled types get empty destinations
       const results: number[] = []
-      for (const sub of enabledSubscriptions) {
+      for (const sub of subscriptionToggles) {
         const formData = new URLSearchParams()
         formData.append('label', sub.label)
         if (sub.type) formData.append('type', sub.type)
         if (sub.object) formData.append('object', sub.object)
-        formData.append('destinations', JSON.stringify(enabledDestinations))
+        formData.append('destinations', JSON.stringify(sub.enabled ? enabledDestinations : []))
 
         const result = await requestHelpers.post<CreateResponse>(
           `${appBase}/-/notifications/subscribe`,
@@ -193,8 +197,14 @@ export function SubscribeDialog({
       return results
     },
     onSuccess: (ids) => {
-      const count = ids.length
-      toast.success(count === 1 ? 'Notifications enabled' : `${count} notification types enabled`)
+      const enabledCount = subscriptionToggles.filter((s) => s.enabled).length
+      if (enabledCount === 0) {
+        toast.success('Notification preferences saved')
+      } else if (enabledCount === 1) {
+        toast.success('Notifications enabled')
+      } else {
+        toast.success(`${enabledCount} notification types enabled`)
+      }
       onResult?.(ids.length === 1 ? ids[0] : ids)
       onOpenChange(false)
     },
@@ -217,12 +227,9 @@ export function SubscribeDialog({
 
   const handleAccept = () => {
     const hasEnabledSubscription = subscriptionToggles.some((s) => s.enabled)
-    if (!hasEnabledSubscription) {
-      toast.error('Please select at least one notification type')
-      return
-    }
     const hasEnabledDestination = enableWeb || enableBrowserPush || toggles.some((t) => t.enabled)
-    if (!hasEnabledDestination) {
+    // Only require destinations if at least one subscription type is enabled
+    if (hasEnabledSubscription && !hasEnabledDestination) {
       toast.error('Please select at least one destination')
       return
     }
@@ -296,7 +303,7 @@ export function SubscribeDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md max-h-[85vh] flex flex-col">
         <DialogHeader>
           <DialogTitle>Allow notifications</DialogTitle>
           <DialogDescription>
@@ -305,8 +312,8 @@ export function SubscribeDialog({
           </DialogDescription>
         </DialogHeader>
 
-        <div className="py-4 space-y-4">
-          {isLoading ? (
+        <div className="py-4 space-y-4 overflow-y-auto flex-1 min-h-0">
+          {loading ? (
             <div className="space-y-2">
               <Skeleton className="h-8 w-full" />
               <Skeleton className="h-8 w-full" />
@@ -315,89 +322,150 @@ export function SubscribeDialog({
             <>
               {/* Subscription types (only shown when multiple) */}
               {showMultipleSubscriptions && (
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Notify me about</p>
-                  {subscriptionToggles.map((sub) => (
-                    <div
-                      key={sub.type}
-                      className="flex items-center justify-between py-2"
-                    >
-                      <span className="text-sm">{sub.label}</span>
-                      <Switch
-                        id={`sub-toggle-${sub.type}`}
-                        checked={sub.enabled}
-                        onCheckedChange={() => handleSubscriptionToggle(sub.type)}
-                      />
-                    </div>
-                  ))}
-                </div>
+                <Card className="py-0">
+                  <CardContent className="px-3 py-2">
+                    <p className="text-sm font-semibold mb-1">Notify about</p>
+                    {subscriptionToggles.map((sub) => (
+                      <div
+                        key={sub.type}
+                        className="flex items-center justify-between py-1"
+                      >
+                        <span className="text-sm">{sub.label}</span>
+                        <Switch
+                          id={`sub-toggle-${sub.type}`}
+                          checked={sub.enabled}
+                          onCheckedChange={() => handleSubscriptionToggle(sub.type)}
+                        />
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
               )}
 
               {/* Destinations */}
-              <div className="space-y-1">
-                {showMultipleSubscriptions && (
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-2">Deliver to</p>
-                )}
-                {sortedItems.map((item) => {
-                  if (item.kind === 'web') {
+              {showMultipleSubscriptions ? (
+                <Card className="py-0">
+                  <CardContent className="px-3 py-2">
+                    <p className="text-sm font-semibold mb-1">Deliver to</p>
+                    {sortedItems.map((item) => {
+                      if (item.kind === 'web') {
+                        return (
+                          <div key="web" className="flex items-center justify-between gap-2 py-1">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <Globe className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                              <span className="text-sm truncate">Mochi web</span>
+                            </div>
+                            <Switch
+                              id="toggle-web"
+                              checked={enableWeb}
+                              onCheckedChange={setEnableWeb}
+                            />
+                          </div>
+                        )
+                      }
+                      if (item.kind === 'browser') {
+                        return (
+                          <div key="browser" className="flex items-center justify-between gap-2 py-1">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <span className="flex-shrink-0">{getDestinationIcon('account', 'browser')}</span>
+                              <span className="text-sm truncate">{getBrowserName()}</span>
+                            </div>
+                            <Switch
+                              id="toggle-browser-push"
+                              checked={enableBrowserPush}
+                              onCheckedChange={setEnableBrowserPush}
+                            />
+                          </div>
+                        )
+                      }
+                      const { toggle } = item
+                      const displayLabel = toggle.accountType === 'email' && toggle.identifier
+                        ? toggle.identifier
+                        : toggle.label
+                      return (
+                        <div
+                          key={`${toggle.type}-${toggle.id}`}
+                          className="flex items-center justify-between gap-2 py-1"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="flex-shrink-0 text-muted-foreground">
+                              {getDestinationIcon(toggle.type, toggle.accountType)}
+                            </span>
+                            <span className="text-sm truncate">{displayLabel}</span>
+                          </div>
+                          <Switch
+                            id={`toggle-${toggle.type}-${toggle.id}`}
+                            checked={toggle.enabled}
+                            onCheckedChange={() => handleToggle(toggle.id)}
+                          />
+                        </div>
+                      )
+                    })}
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-1">
+                  {sortedItems.map((item) => {
+                    if (item.kind === 'web') {
+                      return (
+                        <div key="web" className="flex items-center justify-between gap-2 py-2">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <Globe className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                            <span className="text-sm truncate">Mochi web</span>
+                          </div>
+                          <Switch
+                            id="toggle-web"
+                            checked={enableWeb}
+                            onCheckedChange={setEnableWeb}
+                          />
+                        </div>
+                      )
+                    }
+                    if (item.kind === 'browser') {
+                      return (
+                        <div key="browser" className="flex items-center justify-between gap-2 py-2">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <span className="flex-shrink-0">{getDestinationIcon('account', 'browser')}</span>
+                            <span className="text-sm truncate">{getBrowserName()}</span>
+                          </div>
+                          <Switch
+                            id="toggle-browser-push"
+                            checked={enableBrowserPush}
+                            onCheckedChange={setEnableBrowserPush}
+                          />
+                        </div>
+                      )
+                    }
+                    const { toggle } = item
+                    const displayLabel = toggle.accountType === 'email' && toggle.identifier
+                      ? toggle.identifier
+                      : toggle.label
                     return (
-                      <div key="web" className="flex items-center justify-between py-2">
-                        <div className="flex items-center gap-3">
-                          <Globe className="h-4 w-4 text-muted-foreground" />
-                          <span className="text-sm">Mochi web</span>
+                      <div
+                        key={`${toggle.type}-${toggle.id}`}
+                        className="flex items-center justify-between gap-2 py-2"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="flex-shrink-0 text-muted-foreground">
+                            {getDestinationIcon(toggle.type, toggle.accountType)}
+                          </span>
+                          <span className="text-sm truncate">{displayLabel}</span>
                         </div>
                         <Switch
-                          id="toggle-web"
-                          checked={enableWeb}
-                          onCheckedChange={setEnableWeb}
+                          id={`toggle-${toggle.type}-${toggle.id}`}
+                          checked={toggle.enabled}
+                          onCheckedChange={() => handleToggle(toggle.id)}
                         />
                       </div>
                     )
-                  }
-                  if (item.kind === 'browser') {
-                    return (
-                      <div key="browser" className="flex items-center justify-between py-2">
-                        <div className="flex items-center gap-3">
-                          {getDestinationIcon('account', 'browser')}
-                          <span className="text-sm">{getBrowserName()}</span>
-                        </div>
-                        <Switch
-                          id="toggle-browser-push"
-                          checked={enableBrowserPush}
-                          onCheckedChange={setEnableBrowserPush}
-                        />
-                      </div>
-                    )
-                  }
-                  const { toggle } = item
-                  const displayLabel = toggle.accountType === 'email' && toggle.identifier
-                    ? toggle.identifier
-                    : toggle.label
-                  return (
-                    <div
-                      key={`${toggle.type}-${toggle.id}`}
-                      className="flex items-center justify-between py-2"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="text-muted-foreground">
-                          {getDestinationIcon(toggle.type, toggle.accountType)}
-                        </span>
-                        <span className="text-sm">{displayLabel}</span>
-                      </div>
-                      <Switch
-                        id={`toggle-${toggle.type}-${toggle.id}`}
-                        checked={toggle.enabled}
-                        onCheckedChange={() => handleToggle(toggle.id)}
-                      />
-                    </div>
-                  )
-                })}
-              </div>
+                  })}
+                </div>
+              )}
             </>
           )}
         </div>
 
-        <DialogFooter className="flex-row gap-2 sm:justify-end">
+        <DialogFooter className="flex-row gap-2 sm:justify-end flex-shrink-0">
           <Button variant="outline" onClick={handleRefuse}>
             Not now
           </Button>
