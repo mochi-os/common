@@ -38,6 +38,7 @@ interface AccountsListResponse {
 
 interface PushState {
   supported: boolean
+  supportChecked: boolean
   permission: NotificationPermission
   subscribed: boolean
 }
@@ -46,6 +47,7 @@ export function usePush() {
   const queryClient = useQueryClient()
   const [state, setState] = useState<PushState>({
     supported: false,
+    supportChecked: false,
     permission: push.getPermission(),
     subscribed: false,
   })
@@ -65,7 +67,7 @@ export function usePush() {
   // Check if browser is subscribed by comparing local subscription with accounts
   useEffect(() => {
     push.isSupported().then((supported) => {
-      setState((s) => ({ ...s, supported }))
+      setState((s) => ({ ...s, supported, supportChecked: true }))
       if (supported && push.getPermission() === 'granted') {
         navigator.serviceWorker.ready.then((reg) =>
           reg.pushManager
