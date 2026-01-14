@@ -3,7 +3,7 @@ import { useScreenSize } from '../../hooks/use-screen-size'
 
 interface PageHeaderProps {
   icon?: ReactNode
-  title: string
+  title: ReactNode
   description?: string
   actions?: ReactNode
   /** Optional search bar to show in full-width row above title on mobile */
