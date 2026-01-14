@@ -23,7 +23,7 @@ export function PageHeader({ icon, title, description, actions, searchBar }: Pag
       )}
       
       {/* Title and actions row */}
-      <div className='flex items-center justify-between px-4 py-3 md:px-6 md:py-4'>
+      <div className='flex h-[52px] items-center justify-between px-4 md:h-[60px] md:px-6'>
           <div>
             <div className='flex items-center gap-2 md:gap-3'>
               {icon}

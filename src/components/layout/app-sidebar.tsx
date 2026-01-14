@@ -26,7 +26,7 @@ function CollapseBtn() {
       variant='outline'
       size='icon'
       className={cn(
-        'absolute -right-3 top-[6.5%] -translate-y-1/2 z-50 h-6 w-6 rounded-full border bg-background shadow-md',
+        'absolute -right-3 top-[9.4%] -translate-y-1/2 z-50 h-6 w-6 rounded-full border bg-background shadow-md',
         'hover:bg-accent hover:text-accent-foreground',
         'hidden md:inline-flex'
       )}
@@ -59,7 +59,7 @@ export function AppSidebar({
       <SidebarHeader className='p-0 h-0' />
 
       {/* Scrollable navigation content */}
-      <SidebarContent className='overflow-y-auto pt-3'>
+      <SidebarContent className='overflow-y-auto pt-2'>
         {data.navGroups.map((props: NavGroupType) => (
           <NavGroup key={props.title} {...props} />
         ))}
