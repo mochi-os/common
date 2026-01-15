@@ -193,8 +193,7 @@ export function SubscribeDialog({
       return results
     },
     onSuccess: (ids) => {
-      const count = ids.length
-      toast.success(count === 1 ? 'Notifications enabled' : `${count} notification types enabled`)
+      toast.success('Notifications enabled')
       onResult?.(ids.length === 1 ? ids[0] : ids)
       onOpenChange(false)
     },
@@ -298,7 +297,7 @@ export function SubscribeDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
         <DialogHeader>
-          <DialogTitle>Allow notifications</DialogTitle>
+          <DialogTitle>Enable notifications</DialogTitle>
           <DialogDescription>
             <span className="font-medium">{app.charAt(0).toUpperCase() + app.slice(1)}</span> would like to send you
             notifications{showMultipleSubscriptions ? '.' : `: ${subscriptionToggles[0]?.label ?? label}`}
@@ -410,7 +409,7 @@ export function SubscribeDialog({
             ) : (
               <Check className="h-4 w-4" />
             )}
-            Allow
+            Enable
           </Button>
         </DialogFooter>
       </DialogContent>
