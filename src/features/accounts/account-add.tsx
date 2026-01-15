@@ -41,10 +41,13 @@ export function AccountAdd({
   const [fields, setFields] = useState<Record<string, string>>({})
   const [addToExisting, setAddToExisting] = useState(true)
 
+  // Ensure providers is always an array (defensive check)
+  const providersList = Array.isArray(providers) ? providers : []
+
   // Filter out browser provider from the add dialog
   const availableProviders = useMemo(
-    () => providers.filter((p) => p.type !== 'browser'),
-    [providers]
+    () => providersList.filter((p) => p.type !== 'browser'),
+    [providersList]
   )
 
   // Reset form when dialog opens
@@ -56,7 +59,7 @@ export function AccountAdd({
     }
   }, [open, availableProviders])
 
-  const selectedProvider = providers.find((p) => p.type === selectedType)
+  const selectedProvider = providersList.find((p) => p.type === selectedType)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
