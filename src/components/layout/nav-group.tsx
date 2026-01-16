@@ -102,6 +102,7 @@ function SidebarMenuAction({ item }: { item: NavAction }) {
           setOpenMobile(false)
           item.onClick()
         }}
+        variant={item.variant}
       >
         {item.icon && <item.icon />}
         <span>{item.title}</span>

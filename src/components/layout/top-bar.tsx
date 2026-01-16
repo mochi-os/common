@@ -216,9 +216,21 @@ export function TopBar({
         <div className={cn('flex items-center gap-1', isVertical && 'flex-col')}>
           {/* Search */}
           {showSearch && (
-            <Button variant="ghost" size="icon" className={iconButtonClass}>
-              <Search className="size-5" />
-              <span className="sr-only">Search</span>
+            <Button
+              variant='ghost'
+              size={isDesktop ? 'default' : 'icon'}
+              className={cn(
+                'gap-2',
+                !isDesktop && iconButtonClass,
+                isDesktop && 'text-muted-foreground font-normal'
+              )}
+            >
+              <Search className='size-5' />
+              {isDesktop ? (
+                <span>Search</span>
+              ) : (
+                <span className='sr-only'>Search</span>
+              )}
             </Button>
           )}
 
