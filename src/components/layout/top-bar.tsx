@@ -1,5 +1,13 @@
 import { useEffect, useState } from 'react'
-import { CircleUser, LogIn, LogOut, Search, Grid3X3, Moon, Settings } from 'lucide-react'
+import {
+  Check,
+  ChevronRight,
+  ExternalLink,
+  Home,
+  LogIn,
+  LogOut,
+  PanelLeft,
+} from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -7,10 +15,12 @@ import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import { useNotifications } from '../../hooks/use-notifications'
+import type { Notification } from '../notifications-dropdown'
 import { useScreenSize } from '../../hooks/use-screen-size'
-import { SidebarTrigger } from '../ui/sidebar'
+import { useSidebar } from '../ui/sidebar'
 import { Button } from '../ui/button'
 import { Switch } from '../ui/switch'
+import { ScrollArea } from '../ui/scroll-area'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -27,7 +37,6 @@ import {
   DrawerTrigger,
 } from '../ui/drawer'
 import { SignOutDialog } from '../sign-out-dialog'
-import { NotificationsDropdown } from '../notifications-dropdown'
 
 type TopBarProps = {
   showNotifications?: boolean
@@ -38,71 +47,174 @@ type TopBarProps = {
   className?: string
 }
 
-// Separate component to isolate the useNotifications hook
-function TopBarNotifications({ buttonClassName }: { buttonClassName?: string }) {
+function formatTimestamp(timestamp: number): string {
+  const now = Date.now() / 1000
+  const diff = now - timestamp
+
+  if (diff < 60) return 'Just now'
+  if (diff < 3600) return `${Math.floor(diff / 60)}m`
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d`
+
+  const date = new Date(timestamp * 1000)
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+}
+
+// Mochi logo with optional notification badge
+function MochiLogo({ hasNotifications }: { hasNotifications?: boolean }) {
+  return (
+    <div className="relative">
+      <img
+        src="./images/logo-header.svg"
+        alt="Mochi"
+        className="h-6 w-6"
+      />
+      {hasNotifications && (
+        <span className="absolute -right-0.5 -top-0.5 flex size-2.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex size-2.5 rounded-full bg-red-500"></span>
+        </span>
+      )}
+    </div>
+  )
+}
+
+// Notification item for the menu
+function NotificationItem({
+  notification,
+  onClick,
+}: {
+  notification: Notification
+  onClick?: (notification: Notification) => void
+}) {
+  const isUnread = notification.read === 0
+
+  return (
+    <button
+      type="button"
+      onClick={() => onClick?.(notification)}
+      className={cn(
+        'flex w-full items-start gap-2 px-2 py-2 text-left text-sm rounded-md transition-colors hover:bg-muted',
+        isUnread ? 'bg-muted/50' : ''
+      )}
+    >
+      <div
+        className={cn(
+          'mt-1.5 size-2 shrink-0 rounded-full',
+          isUnread ? 'bg-primary' : 'bg-transparent'
+        )}
+      />
+      <div className="flex-1 min-w-0">
+        <p className={cn('text-sm leading-snug truncate', isUnread && 'font-medium')}>
+          {notification.content}
+        </p>
+        <p className="text-[11px] text-muted-foreground">
+          {formatTimestamp(notification.created)}
+        </p>
+      </div>
+    </button>
+  )
+}
+
+// Notifications section for the menu
+function NotificationsSection({
+  onClose,
+}: {
+  onClose: () => void
+}) {
   const { notifications, markAsRead, markAllAsRead } = useNotifications()
+  const [expanded, setExpanded] = useState(false)
+  const unreadNotifications = notifications.filter((n) => n.read === 0)
+  const unreadCount = unreadNotifications.length
 
-  return (
-    <NotificationsDropdown
-      notifications={notifications}
-      notificationsUrl="/notifications/"
-      onNotificationClick={(n) => markAsRead(n.id)}
-      onMarkAllAsRead={markAllAsRead}
-      buttonClassName={buttonClassName}
-    />
-  )
-}
-
-// App Switcher for global navigation between apps
-function AppSwitcher({ buttonClassName }: { buttonClassName?: string }) {
-  const apps = [
-    { name: 'Home', url: '/', icon: '🏠' },
-    { name: 'Chat', url: '/chat/', icon: '💬' },
-    { name: 'Feeds', url: '/feeds/', icon: '📰' },
-    { name: 'Forums', url: '/forums/', icon: '💭' },
-    { name: 'Friends', url: '/friends/', icon: '👥' },
-  ]
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className={buttonClassName}>
-          <Grid3X3 className="size-5" />
-          <span className="sr-only">Apps</span>
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-48">
-        <DropdownMenuLabel>Apps</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {apps.map((app) => (
-          <DropdownMenuItem key={app.name} asChild>
-            <a href={app.url} className="flex items-center gap-2">
-              <span>{app.icon}</span>
-              {app.name}
-            </a>
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  )
-}
-
-// Theme toggle component
-function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const isDark = theme === 'dark'
-
-  const toggleTheme = () => {
-    setTheme(isDark ? 'light' : 'dark')
+  const handleNotificationClick = (notification: Notification) => {
+    markAsRead(notification.id)
+    if (notification.link) {
+      onClose()
+      window.location.href = notification.link
+    }
   }
 
-  return (
-    <div className="flex items-center justify-between px-2 py-1.5 text-sm">
-      <div className="flex items-center gap-2">
-        <Moon className="size-4" />
-        Dark mode
+  if (unreadCount === 0) {
+    return (
+      <div className="px-2 py-3 text-center">
+        <p className="text-sm text-muted-foreground">No new notifications</p>
       </div>
-      <Switch checked={isDark} onCheckedChange={toggleTheme} />
+    )
+  }
+
+  const displayedNotifications = expanded
+    ? unreadNotifications
+    : unreadNotifications.slice(0, 3)
+
+  return (
+    <div className="py-1">
+      <div className="px-2 pb-1 flex items-center justify-between">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+          Notifications
+        </span>
+        <div className="flex items-center gap-1">
+          {unreadCount > 0 && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+              onClick={() => markAllAsRead()}
+            >
+              <Check className="size-3 mr-1" />
+              Clear
+            </Button>
+          )}
+          <a
+            href="/notifications/"
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground p-1"
+            title="View all"
+          >
+            <ExternalLink className="size-3.5" />
+          </a>
+        </div>
+      </div>
+      <ScrollArea className={expanded ? 'max-h-64' : ''}>
+        <div className="space-y-0.5 px-1">
+          {displayedNotifications.map((notification) => (
+            <NotificationItem
+              key={notification.id}
+              notification={notification}
+              onClick={handleNotificationClick}
+            />
+          ))}
+        </div>
+      </ScrollArea>
+      {unreadCount > 3 && !expanded && (
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full h-7 text-xs text-muted-foreground"
+          onClick={() => setExpanded(true)}
+        >
+          Show {unreadCount - 3} more
+          <ChevronRight className="size-3 ml-1" />
+        </Button>
+      )}
+    </div>
+  )
+}
+
+// Sidebar toggle for the menu
+function SidebarToggleItem() {
+  const { toggleSidebar, open } = useSidebar()
+
+  return (
+    <div
+      className="flex items-center justify-between px-2 py-1.5 text-sm rounded-md hover:bg-muted cursor-pointer"
+      onClick={toggleSidebar}
+    >
+      <div className="flex items-center gap-2">
+        <PanelLeft className="size-4" />
+        Sidebar
+      </div>
+      <Switch checked={open} onCheckedChange={toggleSidebar} />
     </div>
   )
 }
@@ -110,18 +222,14 @@ function ThemeToggle() {
 export function TopBar({
   showNotifications = true,
   showSidebarTrigger = false,
-  showSearch = false,
-  showAppSwitcher = false,
   vertical = false,
   className,
 }: TopBarProps) {
-  const [open, setOpen] = useDialogState()
-  const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const { theme, setTheme } = useTheme()
-  const { isMobile, isDesktop } = useScreenSize()
-  const isDark = theme === 'dark'
-  // Only use vertical mode when explicitly requested
-  const isVertical = vertical
+  const [signOutOpen, setSignOutOpen] = useDialogState()
+  const [menuOpen, setMenuOpen] = useState(false)
+  const { theme } = useTheme()
+  const { isDesktop, isMobile } = useScreenSize()
+  const { notifications } = useNotifications()
 
   const email = useAuthStore((state) => state.email)
   const isLoggedIn = !!email
@@ -129,40 +237,29 @@ export function TopBar({
   const displayName = profile.name || 'User'
   const displayEmail = email || ''
 
+  const unreadCount = notifications.filter((n) => n.read === 0).length
+  const hasNotifications = showNotifications && unreadCount > 0
+
   useEffect(() => {
     const themeColor = theme === 'dark' ? '#020817' : '#fff'
     const metaThemeColor = document.querySelector("meta[name='theme-color']")
     if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
   }, [theme])
 
-  // Button sizes
-  const iconButtonClass = 'size-9'
-
   // Non-logged-in: minimal header with just Mochi icon
   if (!isLoggedIn) {
     const isDomainRouted = isDomainEntityRouting()
     return (
-      <header className={cn("z-50 flex h-12 items-center px-4", className)}>
+      <header className={cn('z-50 flex h-12 items-center px-4', className)}>
         {isDomainRouted ? (
-          // Domain-routed: just the icon, no dropdown
           <div className="flex items-center gap-2">
-            <img
-              src="./images/logo-header.svg"
-              alt="Mochi"
-              className="h-6 w-6"
-            />
-            <span className="text-lg font-semibold">Mochi</span>
+            <MochiLogo />
           </div>
         ) : (
-          // Main site: icon with dropdown containing login
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="h-9 gap-2 px-3">
-                <img
-                  src="./images/logo-header.svg"
-                  alt="Mochi"
-                  className="h-6 w-6"
-                />
+                <MochiLogo />
                 <span className="text-lg font-semibold">Mochi</span>
               </Button>
             </DropdownMenuTrigger>
@@ -180,142 +277,146 @@ export function TopBar({
     )
   }
 
-  // Logged-in: full header spanning the viewport width
+  // Logged-in: Mochi logo as the single menu trigger
+  const menuContent = (
+    <>
+      {/* User info with logout icon */}
+      <DropdownMenuLabel className="p-0 font-normal">
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <div className="grid text-start text-sm leading-tight">
+            <span className="font-semibold">{displayName}</span>
+            <span className="text-xs text-muted-foreground">{displayEmail}</span>
+          </div>
+          <button
+            onClick={() => setSignOutOpen(true)}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            title="Log out"
+          >
+            <LogOut className="size-4" />
+          </button>
+        </div>
+      </DropdownMenuLabel>
+
+      {/* Home (hide if already at /) */}
+      {window.location.pathname !== '/' && (
+        <>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <a href="/" className="flex items-center gap-2">
+              <Home className="size-4" />
+              Home
+            </a>
+          </DropdownMenuItem>
+        </>
+      )}
+
+      {/* Sidebar toggle (mobile only) */}
+      {showSidebarTrigger && isMobile && (
+        <>
+          <DropdownMenuSeparator />
+          <SidebarToggleItem />
+        </>
+      )}
+
+      {/* Notifications */}
+      {showNotifications && (
+        <>
+          <DropdownMenuSeparator />
+          <NotificationsSection onClose={() => setMenuOpen(false)} />
+        </>
+      )}
+    </>
+  )
+
+  // Mobile: use drawer
+  const mobileMenuContent = (
+    <div className="px-4 pb-4">
+      {/* User info with logout icon */}
+      <div className="mb-4 pb-4 border-b">
+        <div className="flex items-center justify-between">
+          <div className="grid text-start text-sm leading-tight">
+            <span className="truncate font-semibold">{displayName}</span>
+            <span className="truncate text-xs text-muted-foreground">{displayEmail}</span>
+          </div>
+          <button
+            onClick={() => setSignOutOpen(true)}
+            className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            title="Log out"
+          >
+            <LogOut size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Menu items */}
+      <div className="flex flex-col gap-1">
+        {window.location.pathname !== '/' && (
+          <a
+            href="/"
+            className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md"
+          >
+            <Home size={16} />
+            Home
+          </a>
+        )}
+
+        {showSidebarTrigger && <SidebarToggleItem />}
+      </div>
+
+      {/* Notifications */}
+      {showNotifications && (
+        <div className="mt-4 pt-4 border-t">
+          <NotificationsSection onClose={() => setMenuOpen(false)} />
+        </div>
+      )}
+    </div>
+  )
+
   return (
     <>
       <header
         className={cn(
-          'z-50 flex h-full w-full items-center gap-2 px-2',
-          isVertical ? 'flex-col py-2' : 'flex-row',
+          'z-50 flex items-center',
+          !vertical && 'mt-2',
+          vertical
+            ? 'h-auto flex-col gap-1 px-2 pt-6 pb-2'
+            : 'h-full w-full flex-row gap-2 px-2',
           className
         )}
       >
-        {/* Left section: Sidebar trigger + Logo + Mochi text */}
-        <div className={cn('flex items-center gap-2', isVertical && 'flex-col')}>
-          {/* Sidebar trigger (mobile/when requested) */}
-          {showSidebarTrigger && <SidebarTrigger className={cn(iconButtonClass, 'md:hidden')} />}
+        {/* Mochi logo as the single menu trigger */}
+        {isDesktop ? (
+          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className={vertical ? "size-8 p-0" : "h-9 gap-2 px-3"}>
+                <MochiLogo hasNotifications={hasNotifications} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="min-w-72" align="start">
+              {menuContent}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
+            <DrawerTrigger asChild>
+              <Button variant="ghost" className="h-9 gap-2 px-3">
+                <MochiLogo hasNotifications={hasNotifications} />
+              </Button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle className="sr-only">Menu</DrawerTitle>
+              </DrawerHeader>
+              {mobileMenuContent}
+            </DrawerContent>
+          </Drawer>
+        )}
 
-          {/* Logo + Mochi branding */}
-          <a
-            href="/"
-            className="flex items-center gap-2 rounded-md px-2 py-1 hover:bg-accent"
-          >
-            <img
-              src="./images/logo-header.svg"
-              alt="Mochi"
-              className="h-6 w-6"
-            />
-            <span className="text-lg font-semibold">Mochi</span>
-          </a>
-        </div>
-
-        {/* Spacer - pushes actions to the right */}
-        <div className="flex-1" />
-
-        {/* Right section: Global actions */}
-        <div className={cn('flex items-center gap-1', isVertical && 'flex-col')}>
-          {/* Search */}
-          {showSearch && (
-            <Button variant="ghost" size="icon" className={iconButtonClass}>
-              <Search className="size-5" />
-              <span className="sr-only">Search</span>
-            </Button>
-          )}
-
-          {/* Notifications */}
-          {showNotifications && <TopBarNotifications buttonClassName={iconButtonClass} />}
-
-          {/* App Switcher */}
-          {showAppSwitcher && <AppSwitcher buttonClassName={iconButtonClass} />}
-
-          {/* User Menu with Name Display */}
-          {isDesktop ? (
-            <DropdownMenu open={userMenuOpen} onOpenChange={setUserMenuOpen}>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className={cn("h-9 gap-2", isMobile ? "px-2" : "px-3")}>
-                  <CircleUser className="size-5" />
-                  {!isMobile && <span className="text-sm font-medium">{displayName}</span>}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-56" align="end">
-                <DropdownMenuLabel className="p-0 font-normal">
-                  <div className="grid px-2 py-1.5 text-start text-sm leading-tight">
-                    <span className="font-semibold">{displayName}</span>
-                    <span className="text-xs text-muted-foreground">
-                      {displayEmail}
-                    </span>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem asChild>
-                  <a href="/settings/" className="flex items-center gap-2">
-                    <Settings className="size-4" />
-                    Settings
-                  </a>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <ThemeToggle />
-                <DropdownMenuSeparator />
-                <DropdownMenuItem 
-                  onClick={() => setOpen(true)}
-                  className="hover:text-red-600 dark:hover:text-red-500 focus:text-red-600 dark:focus:text-red-500"
-                >
-                  <LogOut className="size-4" />
-                  Log out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          ) : (
-            <Drawer open={userMenuOpen} onOpenChange={setUserMenuOpen}>
-              <DrawerTrigger asChild>
-                <Button variant="ghost" className="h-9 gap-2 px-2">
-                  <CircleUser className="size-5" />
-                </Button>
-              </DrawerTrigger>
-              <DrawerContent>
-                <DrawerHeader>
-                  <DrawerTitle className="sr-only">Profile</DrawerTitle>
-                </DrawerHeader>
-                <div className="px-4 pb-4">
-                  <div className="mb-4 pb-4 border-b">
-                    <div className="grid text-start text-sm leading-tight">
-                      <span className="truncate font-semibold">{displayName}</span>
-                      <span className="truncate text-xs text-muted-foreground">{displayEmail}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <a href="/settings/" className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md">
-                      <Settings size={16} />
-                      Settings
-                    </a>
-                    
-                    <div className="flex items-center justify-between px-2 py-1.5 text-sm hover:bg-muted rounded-md">
-                      <div className="flex items-center gap-2">
-                        <Moon className="size-4" />
-                        Dark mode
-                      </div>
-                      <Switch 
-                        checked={isDark} 
-                        onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')} 
-                      />
-                    </div>
-                    
-                    <button
-                      onClick={() => setOpen(true)}
-                      className="flex items-center gap-2 px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded-md"
-                    >
-                      <LogOut size={16} />
-                      Log out
-                    </button>
-                  </div>
-                </div>
-              </DrawerContent>
-            </Drawer>
-          )}
-        </div>
+        {/* Spacer - only for horizontal layout */}
+        {!vertical && <div className="flex-1" />}
       </header>
 
-      <SignOutDialog open={!!open} onOpenChange={setOpen} />
+      <SignOutDialog open={!!signOutOpen} onOpenChange={setSignOutOpen} />
     </>
   )
 }
