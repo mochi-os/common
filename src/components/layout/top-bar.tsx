@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   Check,
-  ChevronRight,
+  ChevronDown,
   ExternalLink,
   Home,
   LogIn,
@@ -150,28 +150,26 @@ function NotificationsSection({
   return (
     <div className="py-1">
       <div className="px-2 pb-1 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <span className="text-xs font-medium text-muted-foreground">
           Notifications
         </span>
         <div className="flex items-center gap-1">
           {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+            <button
+              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               onClick={() => markAllAsRead()}
+              title="Clear all"
             >
-              <Check className="size-3 mr-1" />
-              Clear
-            </Button>
+              <Check className="size-4" />
+            </button>
           )}
           <a
             href="/notifications/"
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground p-1"
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="View all"
           >
-            <ExternalLink className="size-3.5" />
+            <ExternalLink className="size-4" />
           </a>
         </div>
       </div>
@@ -187,15 +185,15 @@ function NotificationsSection({
         </div>
       </ScrollArea>
       {unreadCount > 3 && !expanded && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full h-7 text-xs text-muted-foreground"
-          onClick={() => setExpanded(true)}
-        >
-          Show {unreadCount - 3} more
-          <ChevronRight className="size-3 ml-1" />
-        </Button>
+        <div className="flex justify-center pt-1">
+          <button
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            onClick={() => setExpanded(true)}
+            title={`Show ${unreadCount - 3} more`}
+          >
+            <ChevronDown className="size-4" />
+          </button>
+        </div>
       )}
     </div>
   )
@@ -230,6 +228,7 @@ export function TopBar({
   const { theme } = useTheme()
   const { isDesktop, isMobile } = useScreenSize()
   const { notifications } = useNotifications()
+  const { toggleSidebar } = useSidebar()
 
   const email = useAuthStore((state) => state.email)
   const isLoggedIn = !!email
@@ -289,26 +288,13 @@ export function TopBar({
           </div>
           <button
             onClick={() => setSignOutOpen(true)}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Log out"
           >
             <LogOut className="size-4" />
           </button>
         </div>
       </DropdownMenuLabel>
-
-      {/* Home (hide if already at /) */}
-      {window.location.pathname !== '/' && (
-        <>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem asChild>
-            <a href="/" className="flex items-center gap-2">
-              <Home className="size-4" />
-              Home
-            </a>
-          </DropdownMenuItem>
-        </>
-      )}
 
       {/* Sidebar toggle (mobile only) */}
       {showSidebarTrigger && isMobile && (
@@ -340,7 +326,7 @@ export function TopBar({
           </div>
           <button
             onClick={() => setSignOutOpen(true)}
-            className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+            className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Log out"
           >
             <LogOut size={16} />
@@ -349,19 +335,11 @@ export function TopBar({
       </div>
 
       {/* Menu items */}
-      <div className="flex flex-col gap-1">
-        {window.location.pathname !== '/' && (
-          <a
-            href="/"
-            className="flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-muted rounded-md"
-          >
-            <Home size={16} />
-            Home
-          </a>
-        )}
-
-        {showSidebarTrigger && <SidebarToggleItem />}
-      </div>
+      {showSidebarTrigger && (
+        <div className="flex flex-col gap-1">
+          <SidebarToggleItem />
+        </div>
+      )}
 
       {/* Notifications */}
       {showNotifications && (
@@ -379,37 +357,85 @@ export function TopBar({
           'z-50 flex items-center',
           !vertical && 'mt-2',
           vertical
-            ? 'h-auto flex-col gap-1 px-2 pt-6 pb-2'
+            ? 'h-auto flex-col gap-1 pl-4 pr-2 pt-7 pb-2'
             : 'h-full w-full flex-row gap-2 px-2',
           className
         )}
       >
-        {/* Mochi logo as the single menu trigger */}
+        {/* Logo opens menu, other icons appear on hover */}
         {isDesktop ? (
-          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className={vertical ? "size-8 p-0" : "h-9 gap-2 px-3"}>
-                <MochiLogo hasNotifications={hasNotifications} />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="min-w-72" align="start">
-              {menuContent}
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="group/logo flex items-center gap-1">
+            {/* Logo - opens menu */}
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <button className="flex items-center focus:outline-none">
+                  <MochiLogo hasNotifications={hasNotifications} />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-72" align="start">
+                {menuContent}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Home - hidden until hover, hidden when at "/" */}
+            {window.location.pathname !== '/' && (
+              <a
+                href="/"
+                className={cn(
+                  "-ml-1 p-1 rounded hover:bg-muted transition-all",
+                  "opacity-0 group-hover/logo:opacity-100"
+                )}
+                title="Home"
+              >
+                <Home className="size-5 text-muted-foreground" />
+              </a>
+            )}
+          </div>
         ) : (
-          <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
-            <DrawerTrigger asChild>
-              <Button variant="ghost" className="h-9 gap-2 px-3">
-                <MochiLogo hasNotifications={hasNotifications} />
-              </Button>
-            </DrawerTrigger>
-            <DrawerContent>
-              <DrawerHeader>
-                <DrawerTitle className="sr-only">Menu</DrawerTitle>
-              </DrawerHeader>
-              {mobileMenuContent}
-            </DrawerContent>
-          </Drawer>
+          <div className="group/logo flex items-center gap-1">
+            {/* Logo - opens drawer */}
+            <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
+              <DrawerTrigger asChild>
+                <button className="flex items-center focus:outline-none">
+                  <MochiLogo hasNotifications={hasNotifications} />
+                </button>
+              </DrawerTrigger>
+              <DrawerContent>
+                <DrawerHeader>
+                  <DrawerTitle className="sr-only">Menu</DrawerTitle>
+                </DrawerHeader>
+                {mobileMenuContent}
+              </DrawerContent>
+            </Drawer>
+
+            {/* Home - hidden until hover, hidden when at "/" */}
+            {window.location.pathname !== '/' && (
+              <a
+                href="/"
+                className={cn(
+                  "-ml-1 p-1 rounded hover:bg-muted transition-all",
+                  "opacity-0 group-hover/logo:opacity-100"
+                )}
+                title="Home"
+              >
+                <Home className="size-5 text-muted-foreground" />
+              </a>
+            )}
+
+            {/* Sidebar toggle - mobile only, hidden until hover */}
+            {showSidebarTrigger && (
+              <button
+                onClick={() => toggleSidebar()}
+                className={cn(
+                  "-ml-1 p-1 rounded hover:bg-muted transition-all",
+                  "opacity-0 group-hover/logo:opacity-100"
+                )}
+                title="Toggle sidebar"
+              >
+                <PanelLeft className="size-5 text-muted-foreground" />
+              </button>
+            )}
+          </div>
         )}
 
         {/* Spacer - only for horizontal layout */}

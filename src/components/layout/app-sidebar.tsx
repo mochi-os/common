@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useLayout } from '../../context/layout-provider'
 import {
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  ChevronRight as ChevronRightIcon,
   ExternalLink,
   Home,
   LogOut,
@@ -31,7 +31,6 @@ import { ScrollArea } from '../ui/scroll-area'
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
@@ -172,28 +171,26 @@ function NotificationsSection({
   return (
     <div className="py-1">
       <div className="px-2 pb-1 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+        <span className="text-xs font-medium text-muted-foreground">
           Notifications
         </span>
         <div className="flex items-center gap-1">
           {unreadCount > 0 && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground"
+            <button
+              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
               onClick={() => markAllAsRead()}
+              title="Clear all"
             >
-              <Check className="size-3 mr-1" />
-              Clear
-            </Button>
+              <Check className="size-4" />
+            </button>
           )}
           <a
             href="/notifications/"
             onClick={onClose}
-            className="text-muted-foreground hover:text-foreground p-1"
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="View all"
           >
-            <ExternalLink className="size-3.5" />
+            <ExternalLink className="size-4" />
           </a>
         </div>
       </div>
@@ -209,15 +206,15 @@ function NotificationsSection({
         </div>
       </ScrollArea>
       {unreadCount > 3 && !expanded && (
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full h-7 text-xs text-muted-foreground"
-          onClick={() => setExpanded(true)}
-        >
-          Show {unreadCount - 3} more
-          <ChevronRightIcon className="size-3 ml-1" />
-        </Button>
+        <div className="flex justify-center pt-1">
+          <button
+            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            onClick={() => setExpanded(true)}
+            title={`Show ${unreadCount - 3} more`}
+          >
+            <ChevronDown className="size-4" />
+          </button>
+        </div>
       )}
     </div>
   )
@@ -241,52 +238,56 @@ function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean })
     <>
       <SidebarMenu>
         <SidebarMenuItem>
-          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-            <DropdownMenuTrigger asChild>
-              <SidebarMenuButton size="lg" className="hover:bg-transparent active:bg-transparent">
-                <MochiLogo hasNotifications={hasNotifications} />
-              </SidebarMenuButton>
-            </DropdownMenuTrigger>
-        <DropdownMenuContent className="min-w-72" align="start">
-          {/* User info with logout icon */}
-          <DropdownMenuLabel className="p-0 font-normal">
-            <div className="flex items-center justify-between px-2 py-1.5">
-              <div className="grid text-start text-sm leading-tight">
-                <span className="font-semibold">{displayName}</span>
-                <span className="text-xs text-muted-foreground">{displayEmail}</span>
-              </div>
-              <button
-                onClick={() => setSignOutOpen(true)}
-                className="p-1.5 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                title="Log out"
+          <div className="flex items-center gap-1 group/logo">
+            {/* Logo - opens menu */}
+            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <SidebarMenuButton size="lg" className="w-auto hover:bg-transparent active:bg-transparent focus-visible:ring-0">
+                  <MochiLogo hasNotifications={hasNotifications} />
+                </SidebarMenuButton>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="min-w-72" align="start">
+                  {/* User info with logout icon */}
+                  <DropdownMenuLabel className="p-0 font-normal">
+                    <div className="flex items-center justify-between px-2 py-1.5">
+                      <div className="grid text-start text-sm leading-tight">
+                        <span className="font-semibold">{displayName}</span>
+                        <span className="text-xs text-muted-foreground">{displayEmail}</span>
+                      </div>
+                      <button
+                        onClick={() => setSignOutOpen(true)}
+                        className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                        title="Log out"
+                      >
+                        <LogOut className="size-4" />
+                      </button>
+                    </div>
+                  </DropdownMenuLabel>
+
+                  {/* Notifications */}
+                  {showNotifications && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <NotificationsSection onClose={() => setMenuOpen(false)} />
+                    </>
+                  )}
+                </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Home - hidden until hover, hidden when at "/" */}
+            {window.location.pathname !== '/' && (
+              <a
+                href="/"
+                className={cn(
+                  "ml-1 p-1 rounded hover:bg-muted transition-all",
+                  "opacity-0 group-hover/logo:opacity-100"
+                )}
+                title="Home"
               >
-                <LogOut className="size-4" />
-              </button>
-            </div>
-          </DropdownMenuLabel>
-
-          {/* Home (hide if already at /) */}
-          {window.location.pathname !== '/' && (
-            <>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <a href="/" className="flex items-center gap-2">
-                  <Home className="size-4" />
-                  Home
-                </a>
-              </DropdownMenuItem>
-            </>
-          )}
-
-          {/* Notifications */}
-          {showNotifications && (
-            <>
-              <DropdownMenuSeparator />
-              <NotificationsSection onClose={() => setMenuOpen(false)} />
-            </>
-          )}
-        </DropdownMenuContent>
-          </DropdownMenu>
+                <Home className="size-5 text-muted-foreground" />
+              </a>
+            )}
+          </div>
         </SidebarMenuItem>
       </SidebarMenu>
 
