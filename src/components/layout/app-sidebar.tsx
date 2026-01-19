@@ -8,6 +8,7 @@ import {
   ExternalLink,
   Home,
   LogOut,
+  Settings,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuthStore } from '../../stores/auth-store'
@@ -19,6 +20,7 @@ import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
+  SidebarGroup,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -36,7 +38,7 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { SignOutDialog } from '../sign-out-dialog'
-import type { SidebarData, NavGroup as NavGroupType } from './types'
+import type { SidebarData } from './types'
 
 type AppSidebarProps = {
   data: SidebarData
@@ -85,12 +87,8 @@ function formatTimestamp(timestamp: number): string {
 function MochiLogo({ unreadCount }: { unreadCount?: number }) {
   const hasNotifications = unreadCount !== undefined && unreadCount > 0
   return (
-    <div className="relative">
-      <img
-        src="./images/logo-header.svg"
-        alt="Mochi"
-        className="h-6 w-6"
-      />
+    <div className='relative'>
+      <img src='./images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
       {hasNotifications && (
         <span className='absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-sm animate-pulsate'>
           {unreadCount > 9 ? '9+' : unreadCount}
@@ -112,7 +110,7 @@ function NotificationItem({
 
   return (
     <button
-      type="button"
+      type='button'
       onClick={() => onClick?.(notification)}
       className={cn(
         'flex w-full items-start gap-2 px-2 py-2 text-left text-sm rounded-md transition-colors hover:bg-muted',
@@ -125,11 +123,16 @@ function NotificationItem({
           isUnread ? 'bg-primary' : 'bg-transparent'
         )}
       />
-      <div className="flex-1 min-w-0">
-        <p className={cn('text-sm leading-snug truncate', isUnread && 'font-medium')}>
+      <div className='flex-1 min-w-0'>
+        <p
+          className={cn(
+            'text-sm leading-snug truncate',
+            isUnread && 'font-medium'
+          )}
+        >
           {notification.content}
         </p>
-        <p className="text-[11px] text-muted-foreground">
+        <p className='text-[11px] text-muted-foreground'>
           {formatTimestamp(notification.created)}
         </p>
       </div>
@@ -138,11 +141,7 @@ function NotificationItem({
 }
 
 // Notifications section for the menu
-function NotificationsSection({
-  onClose,
-}: {
-  onClose: () => void
-}) {
+function NotificationsSection({ onClose }: { onClose: () => void }) {
   const { notifications, markAsRead, markAllAsRead } = useNotifications()
   const [expanded, setExpanded] = useState(false)
   const unreadNotifications = notifications.filter((n) => n.read === 0)
@@ -158,8 +157,8 @@ function NotificationsSection({
 
   if (unreadCount === 0) {
     return (
-      <div className="px-2 py-3 text-center">
-        <p className="text-sm text-muted-foreground">No new notifications</p>
+      <div className='px-2 py-3 text-center'>
+        <p className='text-sm text-muted-foreground'>No new notifications</p>
       </div>
     )
   }
@@ -169,34 +168,34 @@ function NotificationsSection({
     : unreadNotifications.slice(0, 3)
 
   return (
-    <div className="py-1">
-      <div className="px-2 pb-1 flex items-center justify-between">
-        <span className="text-xs font-medium text-muted-foreground">
+    <div className='py-1'>
+      <div className='px-2 pb-1 flex items-center justify-between'>
+        <span className='text-xs font-medium text-muted-foreground'>
           Notifications
         </span>
-        <div className="flex items-center gap-1">
+        <div className='flex items-center gap-1'>
           {unreadCount > 0 && (
             <button
-              className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+              className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
               onClick={() => markAllAsRead()}
-              title="Clear all"
+              title='Clear all'
             >
-              <Check className="size-4" />
+              <Check className='size-4' />
             </button>
           )}
           <a
-            href="/notifications/"
+            href='/notifications/'
             onClick={onClose}
-            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-            title="View all"
-            target="_self"
+            className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
+            title='View all'
+            target='_self'
           >
-            <ExternalLink className="size-4" />
+            <ExternalLink className='size-4' />
           </a>
         </div>
       </div>
       <ScrollArea className={expanded ? 'max-h-64' : ''}>
-        <div className="space-y-0.5 px-1">
+        <div className='space-y-0.5 px-1'>
           {displayedNotifications.map((notification) => (
             <NotificationItem
               key={notification.id}
@@ -207,13 +206,13 @@ function NotificationsSection({
         </div>
       </ScrollArea>
       {unreadCount > 3 && !expanded && (
-        <div className="flex justify-center pt-1">
+        <div className='flex justify-center pt-1'>
           <button
-            className="p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
             onClick={() => setExpanded(true)}
             title={`Show ${unreadCount - 3} more`}
           >
-            <ChevronDown className="size-4" />
+            <ChevronDown className='size-4' />
           </button>
         </div>
       )}
@@ -222,7 +221,11 @@ function NotificationsSection({
 }
 
 // Mochi logo menu for the sidebar header
-function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean }) {
+function SidebarLogoMenu({
+  showNotifications,
+}: {
+  showNotifications?: boolean
+}) {
   const [signOutOpen, setSignOutOpen] = useDialogState()
   const [menuOpen, setMenuOpen] = useState(false)
   const { notifications } = useNotifications()
@@ -235,6 +238,11 @@ function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean })
   const displayEmail = email || ''
 
   const unreadCount = notifications.filter((n) => n.read === 0).length
+
+  // Hide the logo menu on mobile as it's already in the top bar
+  // if (isMobile) {
+  //   return null
+  // }
 
   return (
     <>
@@ -250,32 +258,43 @@ function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean })
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <SidebarMenuButton
-                  size="lg"
+                  size='lg'
                   className={cn(
                     'w-auto hover:bg-transparent active:bg-transparent focus-visible:ring-0',
                     isCollapsed && 'size-auto p-0 hover:bg-transparent'
                   )}
                 >
-                  <MochiLogo unreadCount={showNotifications ? unreadCount : 0} />
+                  <MochiLogo
+                    unreadCount={showNotifications ? unreadCount : 0}
+                  />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-72" align="start">
+              <DropdownMenuContent className='min-w-72' align='start'>
                 {/* User info with logout icon */}
-                <DropdownMenuLabel className="p-0 font-normal">
-                  <div className="flex items-center justify-between px-2 py-1.5">
-                    <div className="grid text-start text-sm leading-tight">
-                      <span className="font-semibold">{displayName}</span>
-                      <span className="text-xs text-muted-foreground">
+                <DropdownMenuLabel className='p-0 font-normal'>
+                  <div className='flex items-center justify-between px-2 py-1.5'>
+                    <div className='grid text-start text-sm leading-tight'>
+                      <span className='font-semibold'>{displayName}</span>
+                      <span className='text-xs text-muted-foreground'>
                         {displayEmail}
                       </span>
                     </div>
-                    <button
-                      onClick={() => setSignOutOpen(true)}
-                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                      title="Log out"
-                    >
-                      <LogOut className="size-4" />
-                    </button>
+                    <div className='flex items-center gap-1'>
+                      <a
+                        href='/settings'
+                        className='p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
+                        title='Settings'
+                      >
+                        <Settings className='size-4' />
+                      </a>
+                      <button
+                        onClick={() => setSignOutOpen(true)}
+                        className='p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
+                        title='Log out'
+                      >
+                        <LogOut className='size-4' />
+                      </button>
+                    </div>
                   </div>
                 </DropdownMenuLabel>
 
@@ -292,16 +311,16 @@ function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean })
             {/* Home - hidden until hover, hidden when at "/" */}
             {window.location.pathname !== '/' && (
               <a
-                href="/"
+                href='/'
                 className={cn(
                   'rounded transition-all text-muted-foreground hover:text-foreground',
                   isCollapsed
                     ? 'p-0 hover:bg-transparent opacity-100 flex items-center justify-center'
-                    : 'ml-1 p-1 hover:bg-muted opacity-0 group-hover/logo:opacity-100'
+                    : 'ml-1 p-1 hover:bg-muted'
                 )}
-                title="Home"
+                title='Home'
               >
-                <Home className="size-5" />
+                <Home className='size-5' />
               </a>
             )}
           </div>
@@ -319,19 +338,61 @@ export function AppSidebar({
   sidebarFooter,
 }: AppSidebarProps) {
   const { collapsible } = useLayout()
+  const { isMobile } = useSidebar()
 
   return (
     <Sidebar collapsible={collapsible} variant='sidebar'>
       {/* Header with Mochi logo menu */}
-      <SidebarHeader>
-        <SidebarLogoMenu showNotifications={showNotifications} />
-      </SidebarHeader>
+      {!isMobile && (
+        <SidebarHeader>
+          <SidebarLogoMenu showNotifications={showNotifications} />
+        </SidebarHeader>
+      )}
 
       {/* Scrollable navigation content */}
       <SidebarContent className='overflow-y-auto'>
-        {data.navGroups.map((props: NavGroupType) => (
-          <NavGroup key={props.title} {...props} />
-        ))}
+        {/* Render Primary Action ("New ...") at the top */}
+        {(() => {
+          const primaryItem = data.navGroups
+            .flatMap((g) => g.items)
+            .find((i) => i.variant === 'primary' && 'onClick' in i)
+
+          if (primaryItem && 'onClick' in primaryItem) {
+            return (
+              <SidebarGroup className='pb-0'>
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      tooltip={primaryItem.title}
+                      onClick={primaryItem.onClick}
+                      variant='primary'
+                      className='h-9 justify-center font-medium shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]'
+                    >
+                      {primaryItem.icon && (
+                        <primaryItem.icon className='size-5' />
+                      )}
+                      <span className='group-data-[collapsible=icon]:hidden'>
+                        {primaryItem.title}
+                      </span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </SidebarGroup>
+            )
+          }
+          return null
+        })()}
+
+        {data.navGroups.map((group) => {
+          // Filter out the primary action from the groups
+          const filteredItems = group.items.filter(
+            (i) => i.variant !== 'primary'
+          )
+
+          if (filteredItems.length === 0) return null
+
+          return <NavGroup key={group.title} {...group} items={filteredItems} />
+        })}
       </SidebarContent>
 
       {/* Optional footer content from props */}

@@ -335,15 +335,12 @@ export function TopBar({
       </div>
 
       {/* Menu items */}
-      {showSidebarTrigger && (
-        <div className='flex flex-col gap-1'>
-          <SidebarToggleItem />
-        </div>
-      )}
+      {/* Sidebar toggle - mobile only, hidden as we have a dedicated button in header now */}
+
 
       {/* Notifications */}
       {showNotifications && (
-        <div className='mt-4 pt-4 border-t'>
+        <div className='mt-4 pt-4'>
           <NotificationsSection onClose={() => setMenuOpen(false)} />
         </div>
       )}
@@ -392,7 +389,18 @@ export function TopBar({
             )}
           </div>
         ) : (
-          <div className='group/logo flex items-center gap-1'>
+          <div className='flex items-center gap-1'>
+            {/* Sidebar toggle - mobile only, always visible */}
+            {showSidebarTrigger && (
+              <button
+                onClick={() => toggleSidebar()}
+                className='p-1 rounded hover:bg-muted transition-all'
+                title='Toggle sidebar'
+              >
+                <PanelLeft className='size-5 text-muted-foreground' />
+              </button>
+            )}
+
             {/* Logo - opens drawer */}
             <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
               <DrawerTrigger asChild>
@@ -408,32 +416,15 @@ export function TopBar({
               </DrawerContent>
             </Drawer>
 
-            {/* Home - hidden until hover, hidden when at "/" */}
+            {/* Home - always visible, hidden when at "/" */}
             {window.location.pathname !== '/' && (
               <a
                 href='/'
-                className={cn(
-                  '-ml-1 p-1 rounded hover:bg-muted transition-all',
-                  'opacity-0 group-hover/logo:opacity-100'
-                )}
+                className='p-1 rounded hover:bg-muted transition-all'
                 title='Home'
               >
                 <Home className='size-5 text-muted-foreground' />
               </a>
-            )}
-
-            {/* Sidebar toggle - mobile only, hidden until hover */}
-            {showSidebarTrigger && (
-              <button
-                onClick={() => toggleSidebar()}
-                className={cn(
-                  '-ml-1 p-1 rounded hover:bg-muted transition-all',
-                  'opacity-0 group-hover/logo:opacity-100'
-                )}
-                title='Toggle sidebar'
-              >
-                <PanelLeft className='size-5 text-muted-foreground' />
-              </button>
             )}
           </div>
         )}
