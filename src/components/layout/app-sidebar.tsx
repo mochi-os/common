@@ -225,6 +225,8 @@ function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean })
   const [signOutOpen, setSignOutOpen] = useDialogState()
   const [menuOpen, setMenuOpen] = useState(false)
   const { notifications } = useNotifications()
+  const { state } = useSidebar()
+  const isCollapsed = state === 'collapsed'
 
   const email = useAuthStore((state) => state.email)
   const profile = readProfileCookie()
@@ -238,40 +240,53 @@ function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean })
     <>
       <SidebarMenu>
         <SidebarMenuItem>
-          <div className="flex items-center gap-1 group/logo">
+          <div
+            className={cn(
+              'flex items-center group/logo',
+              isCollapsed ? 'flex-col gap-4 py-2' : 'gap-1'
+            )}
+          >
             {/* Logo - opens menu */}
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size="lg" className="w-auto hover:bg-transparent active:bg-transparent focus-visible:ring-0">
+                <SidebarMenuButton
+                  size="lg"
+                  className={cn(
+                    'w-auto hover:bg-transparent active:bg-transparent focus-visible:ring-0',
+                    isCollapsed && 'size-auto p-0 hover:bg-transparent'
+                  )}
+                >
                   <MochiLogo hasNotifications={hasNotifications} />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-72" align="start">
-                  {/* User info with logout icon */}
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center justify-between px-2 py-1.5">
-                      <div className="grid text-start text-sm leading-tight">
-                        <span className="font-semibold">{displayName}</span>
-                        <span className="text-xs text-muted-foreground">{displayEmail}</span>
-                      </div>
-                      <button
-                        onClick={() => setSignOutOpen(true)}
-                        className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        title="Log out"
-                      >
-                        <LogOut className="size-4" />
-                      </button>
+                {/* User info with logout icon */}
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center justify-between px-2 py-1.5">
+                    <div className="grid text-start text-sm leading-tight">
+                      <span className="font-semibold">{displayName}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {displayEmail}
+                      </span>
                     </div>
-                  </DropdownMenuLabel>
+                    <button
+                      onClick={() => setSignOutOpen(true)}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title="Log out"
+                    >
+                      <LogOut className="size-4" />
+                    </button>
+                  </div>
+                </DropdownMenuLabel>
 
-                  {/* Notifications */}
-                  {showNotifications && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <NotificationsSection onClose={() => setMenuOpen(false)} />
-                    </>
-                  )}
-                </DropdownMenuContent>
+                {/* Notifications */}
+                {showNotifications && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <NotificationsSection onClose={() => setMenuOpen(false)} />
+                  </>
+                )}
+              </DropdownMenuContent>
             </DropdownMenu>
 
             {/* Home - hidden until hover, hidden when at "/" */}
@@ -279,12 +294,14 @@ function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean })
               <a
                 href="/"
                 className={cn(
-                  "ml-1 p-1 rounded hover:bg-muted transition-all",
-                  "opacity-0 group-hover/logo:opacity-100"
+                  'rounded transition-all text-muted-foreground hover:text-foreground',
+                  isCollapsed
+                    ? 'p-0 hover:bg-transparent opacity-100 flex items-center justify-center'
+                    : 'ml-1 p-1 hover:bg-muted opacity-0 group-hover/logo:opacity-100'
                 )}
                 title="Home"
               >
-                <Home className="size-5 text-muted-foreground" />
+                <Home className="size-5" />
               </a>
             )}
           </div>
