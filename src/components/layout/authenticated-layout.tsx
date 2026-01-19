@@ -94,9 +94,9 @@ export function AuthenticatedLayout({
 
   // Main authenticated layout content
   const layoutContent = (
-    <div className='flex h-full w-full flex-col'>
+    <div className='flex h-svh w-full flex-col overflow-hidden'>
       {/* Fixed Header - spans full width on all screen sizes */}
-      <header className='fixed top-0 left-0 right-0 z-[60] h-12 flex-shrink-0 border-b bg-background'>
+      <header className='fixed top-0 left-0 right-0 z-[60] h-12 flex-shrink-0 border-b bg-background md:hidden'>
         <div className='flex h-full items-center px-2'>
           <TopBar
             showNotifications={showNotifications}
@@ -106,13 +106,13 @@ export function AuthenticatedLayout({
       </header>
 
       {/* Main body below fixed header */}
-      <div className='flex flex-1 pt-12'>
+      <div className='flex flex-1 pt-12 md:pt-0 overflow-hidden'>
         {hasSidebar ? (
           <>
             {/* Left Sidebar - hidden on mobile, shown as drawer via SidebarTrigger */}
             <div
               className={cn(
-                'relative hidden h-[calc(100vh-3rem)] flex-col flex-shrink-0 overflow-visible md:flex',
+                'relative hidden h-full flex-col flex-shrink-0 overflow-visible md:flex',
                 'w-(--sidebar-width) has-data-[state=collapsed]:w-(--sidebar-width-icon)',
                 'transition-[width] duration-200 ease-linear'
               )}
@@ -128,7 +128,7 @@ export function AuthenticatedLayout({
             <SidebarInset
               className={cn(
                 '@container/content',
-                'h-[calc(100vh-3rem)] overflow-auto flex-1'
+                'h-full overflow-auto flex-1'
               )}
             >
               {children ?? <Outlet />}
@@ -136,7 +136,7 @@ export function AuthenticatedLayout({
 
             {/* Right Panel - optional, only on large screens */}
             {hasRightPanel && (
-              <RightPanel className='h-[calc(100vh-3rem)]'>
+              <RightPanel className='h-full'>
                 {(rightPanel.header || rightPanel.showCloseButton) && (
                   <RightPanelHeader className={rightPanel.headerClassName}>
                     <div className='flex-1'>{rightPanel.header}</div>
@@ -161,7 +161,7 @@ export function AuthenticatedLayout({
           <div
             className={cn(
               '@container/content',
-              'h-[calc(100vh-3rem)] flex-1 overflow-auto'
+              'h-full flex-1 overflow-auto'
             )}
           >
             {children ?? <Outlet />}
