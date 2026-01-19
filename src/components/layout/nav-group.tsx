@@ -135,11 +135,13 @@ function SidebarMenuLink({
       </SidebarMenuItem>
     )
   }
+  // Use explicit isActive prop if provided, otherwise check pathname
+  const isActive = item.isActive ?? checkIsActive(pathname, item)
   return (
     <SidebarMenuItem>
       <SidebarMenuButton
         asChild
-        isActive={checkIsActive(pathname, item)}
+        isActive={isActive}
         tooltip={item.title}
       >
         <Link to={item.url} onClick={() => setOpenMobile(false)}>

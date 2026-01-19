@@ -19,8 +19,6 @@ import {
 } from './right-panel'
 import type { SidebarData } from './types'
 
-// Removed FullHeightRail component - no longer needed without collapse button
-
 type RightPanelConfig = {
   header?: React.ReactNode
   content?: React.ReactNode
@@ -77,7 +75,7 @@ export function AuthenticatedLayout({
             <div className='relative h-svh w-full'>
               {/* Floating TopBar - only on main site, not domain-routed entities */}
               {!isDomainRouted && (
-                <div className='absolute top-0 left-0 z-50'>
+                <div className='absolute top-2 left-2 z-50'>
                   <TopBar showNotifications={false} />
                 </div>
               )}
@@ -94,80 +92,114 @@ export function AuthenticatedLayout({
 
   // Main authenticated layout content
   const layoutContent = (
-    <div className='flex h-svh w-full flex-col overflow-hidden'>
-      {/* Fixed Header - spans full width on all screen sizes */}
-      <header className='fixed top-0 left-0 right-0 z-[60] h-12 flex-shrink-0 border-b bg-background md:hidden'>
-        <div className='flex h-full items-center px-2'>
-          <TopBar
-            showNotifications={showNotifications}
-            showSidebarTrigger={hasSidebar}
-          />
-        </div>
-      </header>
-
-      {/* Main body below fixed header */}
-      <div className='flex flex-1 pt-12 md:pt-0 overflow-hidden'>
-        {hasSidebar ? (
-          <>
-            {/* Left Sidebar - hidden on mobile, shown as drawer via SidebarTrigger */}
-            <div
-              className={cn(
-                'relative hidden h-full flex-col flex-shrink-0 overflow-visible md:flex',
-                'w-(--sidebar-width) has-data-[state=collapsed]:w-(--sidebar-width-icon)',
-                'transition-[width] duration-200 ease-linear'
-              )}
-            >
-              <AppSidebar
-                data={sidebarData}
-                showNotifications={showNotifications}
-                sidebarFooter={sidebarFooter}
-              />
-            </div>
-
-            {/* Main Content Area - independently scrollable */}
-            <SidebarInset
-              className={cn(
-                '@container/content',
-                'h-full overflow-auto flex-1'
-              )}
-            >
-              {children ?? <Outlet />}
-            </SidebarInset>
-
-            {/* Right Panel - optional, only on large screens */}
-            {hasRightPanel && (
-              <RightPanel className='h-full'>
-                {(rightPanel.header || rightPanel.showCloseButton) && (
-                  <RightPanelHeader className={rightPanel.headerClassName}>
-                    <div className='flex-1'>{rightPanel.header}</div>
-                    {rightPanel.showCloseButton && <RightPanelCloseButton />}
-                  </RightPanelHeader>
-                )}
-                {rightPanel.content && (
-                  <RightPanelContent className={rightPanel.contentClassName}>
-                    {rightPanel.content}
-                  </RightPanelContent>
-                )}
-                {rightPanel.footer && (
-                  <RightPanelFooter className={rightPanel.footerClassName}>
-                    {rightPanel.footer}
-                  </RightPanelFooter>
-                )}
-              </RightPanel>
-            )}
-          </>
-        ) : (
-          /* Content area fills the rest when no sidebar */
+    <div className='flex h-svh w-full'>
+      {hasSidebar ? (
+        <>
+          {/* Left column: Sidebar (logo menu is inside SidebarHeader) */}
           <div
             className={cn(
+              'relative hidden h-full flex-shrink-0 overflow-visible md:flex',
+              'w-(--sidebar-width) has-data-[state=collapsed]:w-(--sidebar-width-icon)',
+              'transition-[width] duration-200 ease-linear'
+            )}
+          >
+            <AppSidebar
+              data={sidebarData}
+              showNotifications={showNotifications}
+              sidebarFooter={sidebarFooter}
+            />
+          </div>
+
+          {/* Mobile TopBar - fixed at top, full width */}
+          <header className='fixed top-0 left-0 right-0 z-[60] h-12 flex-shrink-0 border-b bg-background md:hidden'>
+            <div className='flex h-full items-center px-2'>
+              <TopBar
+                showNotifications={showNotifications}
+                showSidebarTrigger={true}
+              />
+            </div>
+          </header>
+
+          {/* Main Content Area - full height on desktop, below header on mobile */}
+          <SidebarInset
+            className={cn(
               '@container/content',
-              'h-full flex-1 overflow-auto'
+              'h-full overflow-auto flex-1',
+              'pt-12 md:pt-0'
             )}
           >
             {children ?? <Outlet />}
+          </SidebarInset>
+
+          {/* Right Panel - optional, only on large screens */}
+          {hasRightPanel && (
+            <RightPanel className='h-full'>
+              {(rightPanel.header || rightPanel.showCloseButton) && (
+                <RightPanelHeader className={rightPanel.headerClassName}>
+                  <div className='flex-1'>{rightPanel.header}</div>
+                  {rightPanel.showCloseButton && <RightPanelCloseButton />}
+                </RightPanelHeader>
+              )}
+              {rightPanel.content && (
+                <RightPanelContent className={rightPanel.contentClassName}>
+                  {rightPanel.content}
+                </RightPanelContent>
+              )}
+              {rightPanel.footer && (
+                <RightPanelFooter className={rightPanel.footerClassName}>
+                  {rightPanel.footer}
+                </RightPanelFooter>
+              )}
+            </RightPanel>
+          )}
+        </>
+      ) : (
+        /* No sidebar: TopBar on the left (desktop) or top (mobile) */
+        <>
+          {/* Mobile header bar */}
+          <div className='flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden'>
+            <TopBar showNotifications={showNotifications} />
+            {_mobileTitle && (
+              <>
+                <div className='flex-1' />
+                <div className='pr-2'>{_mobileTitle}</div>
+              </>
+            )}
           </div>
-        )}
-      </div>
+
+          {/* Desktop vertical TopBar */}
+          <div className='hidden flex-col flex-shrink-0 md:flex'>
+            <TopBar showNotifications={showNotifications} vertical />
+          </div>
+
+          {/* Content area fills the rest */}
+          <div className={cn('@container/content', 'flex-1 overflow-auto')}>
+            {children ?? <Outlet />}
+          </div>
+
+          {/* Right Panel - optional, only on large screens */}
+          {hasRightPanel && (
+            <RightPanel className='h-full'>
+              {(rightPanel.header || rightPanel.showCloseButton) && (
+                <RightPanelHeader className={rightPanel.headerClassName}>
+                  <div className='flex-1'>{rightPanel.header}</div>
+                  {rightPanel.showCloseButton && <RightPanelCloseButton />}
+                </RightPanelHeader>
+              )}
+              {rightPanel.content && (
+                <RightPanelContent className={rightPanel.contentClassName}>
+                  {rightPanel.content}
+                </RightPanelContent>
+              )}
+              {rightPanel.footer && (
+                <RightPanelFooter className={rightPanel.footerClassName}>
+                  {rightPanel.footer}
+                </RightPanelFooter>
+              )}
+            </RightPanel>
+          )}
+        </>
+      )}
     </div>
   )
 

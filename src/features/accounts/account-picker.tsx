@@ -30,10 +30,14 @@ export function AccountPicker({
 }: AccountPickerProps) {
   const [isAddOpen, setIsAddOpen] = useState(false)
 
-  const { providers, accounts, isLoading, add, isAdding } = useAccounts(
+  const { providers: providersData, accounts: accountsData, isLoading, add, isAdding } = useAccounts(
     appBase,
     capability
   )
+
+  // Ensure arrays are always arrays (defensive check)
+  const providers = Array.isArray(providersData) ? providersData : []
+  const accounts = Array.isArray(accountsData) ? accountsData : []
 
   const handleValueChange = (val: string) => {
     if (val === '__add__') {
