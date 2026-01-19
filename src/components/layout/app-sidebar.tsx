@@ -5,8 +5,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CircleUser,
   ExternalLink,
-  Home,
   LogOut,
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
@@ -81,15 +81,22 @@ function formatTimestamp(timestamp: number): string {
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
 }
 
-// Mochi logo with optional notification badge
-function MochiLogo({ hasNotifications }: { hasNotifications?: boolean }) {
+// Mochi logo
+function MochiLogo() {
+  return (
+    <img
+      src="./images/logo-header.svg"
+      alt="Mochi"
+      className="h-6 w-6"
+    />
+  )
+}
+
+// User icon with optional notification badge
+function UserIcon({ hasNotifications }: { hasNotifications?: boolean }) {
   return (
     <div className="relative">
-      <img
-        src="./images/logo-header.svg"
-        alt="Mochi"
-        className="h-6 w-6"
-      />
+      <CircleUser className="size-5 text-muted-foreground" />
       {hasNotifications && (
         <span className="absolute -right-0.5 -top-0.5 flex size-2.5">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
@@ -220,11 +227,13 @@ function NotificationsSection({
   )
 }
 
-// Mochi logo menu for the sidebar header
+// Sidebar header with mochi logo and user menu
 function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean }) {
   const [signOutOpen, setSignOutOpen] = useDialogState()
   const [menuOpen, setMenuOpen] = useState(false)
   const { notifications } = useNotifications()
+  const { state } = useSidebar()
+  const isCollapsed = state === 'collapsed'
 
   const email = useAuthStore((state) => state.email)
   const profile = readProfileCookie()
@@ -238,55 +247,49 @@ function SidebarLogoMenu({ showNotifications }: { showNotifications?: boolean })
     <>
       <SidebarMenu>
         <SidebarMenuItem>
-          <div className="flex items-center gap-1 group/logo">
-            {/* Logo - opens menu */}
+          <div className={cn(
+            "flex items-center gap-1.5",
+            isCollapsed && "flex-col"
+          )}>
+            {/* Logo - links to home */}
+            <a href="/" className="p-2" title="Home">
+              <MochiLogo />
+            </a>
+
+            {/* User icon - opens menu */}
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size="lg" className="w-auto hover:bg-transparent active:bg-transparent focus-visible:ring-0">
-                  <MochiLogo hasNotifications={hasNotifications} />
+                <SidebarMenuButton size="sm" className="w-auto p-2 hover:bg-muted">
+                  <UserIcon hasNotifications={hasNotifications} />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-72" align="start">
-                  {/* User info with logout icon */}
-                  <DropdownMenuLabel className="p-0 font-normal">
-                    <div className="flex items-center justify-between px-2 py-1.5">
-                      <div className="grid text-start text-sm leading-tight">
-                        <span className="font-semibold">{displayName}</span>
-                        <span className="text-xs text-muted-foreground">{displayEmail}</span>
-                      </div>
-                      <button
-                        onClick={() => setSignOutOpen(true)}
-                        className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                        title="Log out"
-                      >
-                        <LogOut className="size-4" />
-                      </button>
+                {/* User info with logout icon */}
+                <DropdownMenuLabel className="p-0 font-normal">
+                  <div className="flex items-center justify-between px-2 py-1.5">
+                    <div className="grid text-start text-sm leading-tight">
+                      <span className="font-semibold">{displayName}</span>
+                      <span className="text-xs text-muted-foreground">{displayEmail}</span>
                     </div>
-                  </DropdownMenuLabel>
+                    <button
+                      onClick={() => setSignOutOpen(true)}
+                      className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                      title="Log out"
+                    >
+                      <LogOut className="size-4" />
+                    </button>
+                  </div>
+                </DropdownMenuLabel>
 
-                  {/* Notifications */}
-                  {showNotifications && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <NotificationsSection onClose={() => setMenuOpen(false)} />
-                    </>
-                  )}
-                </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Home - hidden until hover, hidden when at "/" */}
-            {window.location.pathname !== '/' && (
-              <a
-                href="/"
-                className={cn(
-                  "ml-1 p-1 rounded hover:bg-muted transition-all",
-                  "opacity-0 group-hover/logo:opacity-100"
+                {/* Notifications */}
+                {showNotifications && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <NotificationsSection onClose={() => setMenuOpen(false)} />
+                  </>
                 )}
-                title="Home"
-              >
-                <Home className="size-5 text-muted-foreground" />
-              </a>
-            )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -302,13 +305,16 @@ export function AppSidebar({
   sidebarFooter,
 }: AppSidebarProps) {
   const { collapsible } = useLayout()
+  const { isMobile } = useSidebar()
 
   return (
     <Sidebar collapsible={collapsible} variant='sidebar'>
-      {/* Header with Mochi logo menu */}
-      <SidebarHeader>
-        <SidebarLogoMenu showNotifications={showNotifications} />
-      </SidebarHeader>
+      {/* Header with Mochi logo menu - hidden on mobile (mobile has its own TopBar) */}
+      {!isMobile && (
+        <SidebarHeader>
+          <SidebarLogoMenu showNotifications={showNotifications} />
+        </SidebarHeader>
+      )}
 
       {/* Scrollable navigation content */}
       <SidebarContent className='overflow-y-auto'>

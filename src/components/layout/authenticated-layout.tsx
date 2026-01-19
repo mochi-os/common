@@ -156,27 +156,28 @@ export function AuthenticatedLayout({
           )}
         </>
       ) : (
-        /* No sidebar: TopBar in left column */
+        /* No sidebar layout */
         <>
-          {/* Mobile header bar */}
-          <div className='flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden'>
-            <TopBar showNotifications={showNotifications} />
-            {_mobileTitle && (
-              <>
-                <div className='flex-1' />
-                <div className='pr-2'>{_mobileTitle}</div>
-              </>
-            )}
+          {/* Mobile: column layout with header on top */}
+          <div className='flex flex-col h-full w-full md:hidden'>
+            <header className='flex h-12 flex-shrink-0 items-center border-b px-2'>
+              <TopBar showNotifications={showNotifications} />
+              <div className='flex-1' />
+              {_mobileTitle && <div className='pr-2'>{_mobileTitle}</div>}
+            </header>
+            <div className={cn('@container/content', 'flex-1 overflow-auto')}>
+              {children ?? <Outlet />}
+            </div>
           </div>
 
-          {/* Desktop vertical TopBar */}
-          <div className='hidden flex-col flex-shrink-0 md:flex'>
-            <TopBar showNotifications={showNotifications} vertical />
-          </div>
-
-          {/* Content area fills the rest */}
-          <div className={cn('@container/content', 'flex-1 overflow-auto')}>
-            {children ?? <Outlet />}
+          {/* Desktop: vertical TopBar on left, content on right */}
+          <div className='hidden md:flex h-full w-full'>
+            <div className='flex-col flex-shrink-0'>
+              <TopBar showNotifications={showNotifications} vertical />
+            </div>
+            <div className={cn('@container/content', 'flex-1 overflow-auto')}>
+              {children ?? <Outlet />}
+            </div>
           </div>
         </>
       )}
