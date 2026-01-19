@@ -61,14 +61,14 @@ function formatTimestamp(timestamp: number): string {
 }
 
 // Mochi logo with optional notification badge
-function MochiLogo({ hasNotifications }: { hasNotifications?: boolean }) {
+function MochiLogo({ unreadCount }: { unreadCount?: number }) {
+  const hasNotifications = unreadCount !== undefined && unreadCount > 0
   return (
     <div className='relative'>
       <img src='./images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
       {hasNotifications && (
-        <span className='absolute -right-0.5 -top-0.5 flex size-2.5'>
-          <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75'></span>
-          <span className='relative inline-flex size-2.5 rounded-full bg-red-500'></span>
+        <span className='absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-sm animate-pulsate'>
+          {unreadCount > 9 ? '9+' : unreadCount}
         </span>
       )}
     </div>
@@ -234,7 +234,6 @@ export function TopBar({
   const displayEmail = email || ''
 
   const unreadCount = notifications.filter((n) => n.read === 0).length
-  const hasNotifications = showNotifications && unreadCount > 0
 
   useEffect(() => {
     const themeColor = theme === 'dark' ? '#020817' : '#fff'
@@ -370,7 +369,7 @@ export function TopBar({
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <button className='flex items-center focus:outline-none'>
-                  <MochiLogo hasNotifications={hasNotifications} />
+                  <MochiLogo unreadCount={showNotifications ? unreadCount : 0} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className='min-w-72' align='start'>
@@ -398,7 +397,7 @@ export function TopBar({
             <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
               <DrawerTrigger asChild>
                 <button className='flex items-center focus:outline-none'>
-                  <MochiLogo hasNotifications={hasNotifications} />
+                  <MochiLogo unreadCount={showNotifications ? unreadCount : 0} />
                 </button>
               </DrawerTrigger>
               <DrawerContent>
