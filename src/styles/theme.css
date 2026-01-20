@@ -178,6 +178,8 @@
   --color-selected: var(--selected);
   --color-notification: var(--notification);
   --color-notification-foreground: var(--notification-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
 
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);

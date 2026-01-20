@@ -1,4 +1,4 @@
-import { Moon } from 'lucide-react'
+import { Moon, LogOut } from 'lucide-react'
 import useDialogState from '../hooks/use-dialog-state'
 import { useScreenSize } from '../hooks/use-screen-size'
 import { useTheme } from '../context/theme-provider'
@@ -53,6 +53,7 @@ export function ProfileDropdown() {
       className='w-full justify-start px-2 text-sm text-destructive hover:bg-destructive/10 hover:text-destructive'
       onClick={() => setOpen(true)}
     >
+      <LogOut size={16} className='mr-2 text-destructive' />
       Log out
     </Button>
   )
@@ -84,6 +85,7 @@ export function ProfileDropdown() {
               onClick={() => setOpen(true)}
               className="text-destructive focus:text-destructive focus:bg-destructive/10"
             >
+              <LogOut size={16} className='mr-2 text-destructive' />
               Log out
             </DropdownMenuItem>
           </DropdownMenuContent>

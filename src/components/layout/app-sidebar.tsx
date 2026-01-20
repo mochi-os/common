@@ -287,9 +287,9 @@ function SidebarLogoMenu({
                       </a>
                       <button
                         onClick={() => setSignOutOpen(true)}
-                        className='flex items-center justify-center p-1.5 hover:bg-muted rounded-md transition-colors'
+                        className='flex items-center justify-center p-1.5 hover:bg-destructive/10 rounded-md transition-colors text-destructive'
                       >
-                        <LogOut className='size-4' />
+                        <LogOut className='size-4 text-destructive' />
                       </button>
                     </div>
                   </div>
@@ -349,7 +349,7 @@ export function AppSidebar({
                     onClick={primary.onClick}
                   >
                     {primary.icon && <primary.icon className='size-5' />}
-                    <span>{primary.title}</span>
+                    <span className='group-data-[collapsible=icon]:hidden'>{primary.title}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
