@@ -5,8 +5,8 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  CircleUser,
   ExternalLink,
-  Home,
   LogOut,
   Settings,
 } from 'lucide-react'
@@ -46,19 +46,24 @@ type AppSidebarProps = {
   sidebarFooter?: React.ReactNode
 }
 
+/* -----------------------------------------------------
+ * Collapse / Expand Button (ENABLED ON MOBILE)
+ * --------------------------------------------------- */
 function CollapseBtn() {
   const { toggleSidebar, state } = useSidebar()
+
   return (
     <Button
       data-sidebar='trigger'
       variant='outline'
       size='icon'
       className={cn(
-        'absolute -right-3 top-1/2 -translate-y-1/2 z-50 h-6 w-6 rounded-full border bg-background shadow-md',
+        'absolute -right-3 top-1/2 -translate-y-1/2 z-50',
+        'h-6 w-6 rounded-full border bg-background shadow-md',
         'hover:bg-accent hover:text-accent-foreground',
-        'hidden md:inline-flex'
+        'inline-flex' // <-- mobile + desktop
       )}
-      onClick={() => toggleSidebar()}
+      onClick={toggleSidebar}
     >
       {state === 'expanded' ? (
         <ChevronLeft className='h-3 w-3' />
@@ -70,6 +75,9 @@ function CollapseBtn() {
   )
 }
 
+/* -----------------------------------------------------
+ * Helpers
+ * --------------------------------------------------- */
 function formatTimestamp(timestamp: number): string {
   const now = Date.now() / 1000
   const diff = now - timestamp
@@ -79,18 +87,21 @@ function formatTimestamp(timestamp: number): string {
   if (diff < 86400) return `${Math.floor(diff / 3600)}h`
   if (diff < 604800) return `${Math.floor(diff / 86400)}d`
 
-  const date = new Date(timestamp * 1000)
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  return new Date(timestamp * 1000).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
-// Mochi logo with optional notification badge
+/* -----------------------------------------------------
+ * Mochi Logo (HOME LINK)
+ * --------------------------------------------------- */
 function MochiLogo({ unreadCount }: { unreadCount?: number }) {
-  const hasNotifications = unreadCount !== undefined && unreadCount > 0
   return (
     <div className='relative'>
-      <img src='./images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
-      {hasNotifications && (
-        <span className='absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-sm animate-pulsate'>
+      <img src='/images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
+      {!!unreadCount && (
+        <span className='absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white'>
           {unreadCount > 9 ? '9+' : unreadCount}
         </span>
       )}
@@ -98,7 +109,26 @@ function MochiLogo({ unreadCount }: { unreadCount?: number }) {
   )
 }
 
-// Notification item for the menu
+/* -----------------------------------------------------
+ * User Icon
+ * --------------------------------------------------- */
+function UserIcon({ hasNotifications }: { hasNotifications?: boolean }) {
+  return (
+    <div className='relative'>
+      <CircleUser className='size-5 text-muted-foreground' />
+      {hasNotifications && (
+        <span className='absolute -right-0.5 -top-0.5 flex size-2.5'>
+          <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75' />
+          <span className='relative inline-flex size-2.5 rounded-full bg-red-500' />
+        </span>
+      )}
+    </div>
+  )
+}
+
+/* -----------------------------------------------------
+ * Notifications
+ * --------------------------------------------------- */
 function NotificationItem({
   notification,
   onClick,
@@ -114,22 +144,14 @@ function NotificationItem({
       onClick={() => onClick?.(notification)}
       className={cn(
         'flex w-full items-start gap-2 px-2 py-2 text-left text-sm rounded-md transition-colors hover:bg-muted',
-        isUnread ? 'bg-muted/50' : ''
+        isUnread && 'bg-muted/50'
       )}
     >
       <div
-        className={cn(
-          'mt-1.5 size-2 shrink-0 rounded-full',
-          isUnread ? 'bg-primary' : 'bg-transparent'
-        )}
+        className={cn('mt-1.5 size-2 rounded-full', isUnread && 'bg-primary')}
       />
       <div className='flex-1 min-w-0'>
-        <p
-          className={cn(
-            'text-sm leading-snug truncate',
-            isUnread && 'font-medium'
-          )}
-        >
+        <p className={cn('truncate', isUnread && 'font-medium')}>
           {notification.content}
         </p>
         <p className='text-[11px] text-muted-foreground'>
@@ -140,78 +162,63 @@ function NotificationItem({
   )
 }
 
-// Notifications section for the menu
 function NotificationsSection({ onClose }: { onClose: () => void }) {
   const { notifications, markAsRead, markAllAsRead } = useNotifications()
   const [expanded, setExpanded] = useState(false)
-  const unreadNotifications = notifications.filter((n) => n.read === 0)
-  const unreadCount = unreadNotifications.length
 
-  const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id)
-    if (notification.link) {
-      onClose()
-      window.location.href = notification.link
-    }
-  }
+  const unread = notifications.filter((n) => n.read === 0)
 
-  if (unreadCount === 0) {
+  if (!unread.length) {
     return (
-      <div className='px-2 py-3 text-center'>
-        <p className='text-sm text-muted-foreground'>No new notifications</p>
+      <div className='px-2 py-3 text-center text-sm text-muted-foreground'>
+        No new notifications
       </div>
     )
   }
 
-  const displayedNotifications = expanded
-    ? unreadNotifications
-    : unreadNotifications.slice(0, 3)
+  const visible = expanded ? unread : unread.slice(0, 3)
 
   return (
     <div className='py-1'>
-      <div className='px-2 pb-1 flex items-center justify-between'>
+      <div className='flex items-center justify-between px-2 pb-1'>
         <span className='text-xs font-medium text-muted-foreground'>
           Notifications
         </span>
-        <div className='flex items-center gap-1'>
-          {unreadCount > 0 && (
-            <button
-              className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-              onClick={() => markAllAsRead()}
-              title='Clear all'
-            >
-              <Check className='size-4' />
-            </button>
-          )}
+        <div className='flex gap-1'>
+          <button
+            onClick={markAllAsRead}
+            className='p-1 hover:bg-muted rounded'
+          >
+            <Check className='size-4' />
+          </button>
           <a
             href='/notifications/'
             onClick={onClose}
-            className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-            title='View all'
-            target='_self'
+            className='p-1 hover:bg-muted rounded'
           >
             <ExternalLink className='size-4' />
           </a>
         </div>
       </div>
+
       <ScrollArea className={expanded ? 'max-h-64' : ''}>
         <div className='space-y-0.5 px-1'>
-          {displayedNotifications.map((notification) => (
+          {visible.map((n) => (
             <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onClick={handleNotificationClick}
+              key={n.id}
+              notification={n}
+              onClick={(notif) => {
+                markAsRead(notif.id)
+                notif.link && (window.location.href = notif.link)
+              }}
             />
           ))}
         </div>
       </ScrollArea>
-      {unreadCount > 3 && !expanded && (
+
+      {unread.length > 3 && !expanded && (
         <div className='flex justify-center pt-1'>
-          <button
-            className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-            onClick={() => setExpanded(true)}
-            title={`Show ${unreadCount - 3} more`}
-          >
+          <button onClick={() => setExpanded(true)}>
             <ChevronDown className='size-4' />
           </button>
         </div>
@@ -220,29 +227,22 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
   )
 }
 
-// Mochi logo menu for the sidebar header
+/* -----------------------------------------------------
+ * Sidebar Header (Logo + User Menu)
+ * --------------------------------------------------- */
 function SidebarLogoMenu({
   showNotifications,
 }: {
   showNotifications?: boolean
 }) {
-  const [signOutOpen, setSignOutOpen] = useDialogState()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [signOutOpen, setSignOutOpen] = useDialogState()
   const { notifications } = useNotifications()
   const { state } = useSidebar()
-  const isCollapsed = state === 'collapsed'
-
-  const email = useAuthStore((state) => state.email)
-  const profile = readProfileCookie()
-  const displayName = profile.name || 'User'
-  const displayEmail = email || ''
 
   const unreadCount = notifications.filter((n) => n.read === 0).length
-
-  // Hide the logo menu on mobile as it's already in the top bar
-  // if (isMobile) {
-  //   return null
-  // }
+  const profile = readProfileCookie()
+  const email = useAuthStore((s) => s.email)
 
   return (
     <>
@@ -250,47 +250,44 @@ function SidebarLogoMenu({
         <SidebarMenuItem>
           <div
             className={cn(
-              'flex items-center group/logo',
-              isCollapsed ? 'flex-col gap-4 py-2' : 'gap-1'
+              'flex items-center',
+              state === 'expanded' ? 'gap-1.5' : 'flex-col gap-0 justify-center'
             )}
           >
-            {/* Logo - opens menu */}
+            {/* Home */}
+            <a href='/' title='Home' className='p-1'>
+              <MochiLogo unreadCount={showNotifications ? unreadCount : 0} />
+            </a>
+
+            {/* User */}
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton
-                  size='lg'
-                  className={cn(
-                    'w-auto hover:bg-transparent active:bg-transparent focus-visible:ring-0',
-                    isCollapsed && 'size-auto p-0 hover:bg-transparent'
-                  )}
-                >
-                  <MochiLogo
-                    unreadCount={showNotifications ? unreadCount : 0}
-                  />
+                <SidebarMenuButton size='sm' className='w-auto p-2'>
+                  <UserIcon hasNotifications={unreadCount > 0} />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
+
               <DropdownMenuContent className='min-w-72' align='start'>
-                {/* User info with logout icon */}
                 <DropdownMenuLabel className='p-0 font-normal'>
-                  <div className='flex items-center justify-between px-2 py-1.5'>
-                    <div className='grid text-start text-sm leading-tight'>
-                      <span className='font-semibold'>{displayName}</span>
-                      <span className='text-xs text-muted-foreground'>
-                        {displayEmail}
-                      </span>
+                  <div className='flex items-center justify-between gap-3 px-2 py-1.5'>
+                    <div className='flex-1 min-w-0'>
+                      <div className='font-semibold truncate'>
+                        {profile.name}
+                      </div>
+                      <div className='text-xs text-muted-foreground truncate'>
+                        {email}
+                      </div>
                     </div>
                     <div className='flex items-center gap-1'>
                       <a
                         href='/settings'
-                        className='p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-                        title='Settings'
+                        className='flex items-center justify-center p-1.5 hover:bg-muted rounded-md transition-colors'
                       >
                         <Settings className='size-4' />
                       </a>
                       <button
                         onClick={() => setSignOutOpen(true)}
-                        className='p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-                        title='Log out'
+                        className='flex items-center justify-center p-1.5 hover:bg-muted rounded-md transition-colors'
                       >
                         <LogOut className='size-4' />
                       </button>
@@ -298,7 +295,6 @@ function SidebarLogoMenu({
                   </div>
                 </DropdownMenuLabel>
 
-                {/* Notifications */}
                 {showNotifications && (
                   <>
                     <DropdownMenuSeparator />
@@ -307,22 +303,6 @@ function SidebarLogoMenu({
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
-
-            {/* Home - hidden until hover, hidden when at "/" */}
-            {window.location.pathname !== '/' && (
-              <a
-                href='/'
-                className={cn(
-                  'rounded transition-all text-muted-foreground hover:text-foreground',
-                  isCollapsed
-                    ? 'p-0 hover:bg-transparent opacity-100 flex items-center justify-center'
-                    : 'ml-1 p-1 hover:bg-muted'
-                )}
-                title='Home'
-              >
-                <Home className='size-5' />
-              </a>
-            )}
           </div>
         </SidebarMenuItem>
       </SidebarMenu>
@@ -332,6 +312,9 @@ function SidebarLogoMenu({
   )
 }
 
+/* -----------------------------------------------------
+ * App Sidebar
+ * --------------------------------------------------- */
 export function AppSidebar({
   data,
   showNotifications = true,
@@ -342,60 +325,47 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible={collapsible} variant='sidebar'>
-      {/* Header with Mochi logo menu */}
       {!isMobile && (
         <SidebarHeader>
           <SidebarLogoMenu showNotifications={showNotifications} />
         </SidebarHeader>
       )}
 
-      {/* Scrollable navigation content */}
       <SidebarContent className='overflow-y-auto'>
-        {/* Render Primary Action ("New ...") at the top */}
+        {/* Primary action */}
         {(() => {
-          const primaryItem = data.navGroups
+          const primary = data.navGroups
             .flatMap((g) => g.items)
             .find((i) => i.variant === 'primary' && 'onClick' in i)
 
-          if (primaryItem && 'onClick' in primaryItem) {
-            return (
-              <SidebarGroup className='pb-0'>
-                <SidebarMenu>
-                  <SidebarMenuItem>
-                    <SidebarMenuButton
-                      tooltip={primaryItem.title}
-                      onClick={primaryItem.onClick}
-                      variant='primary'
-                      className='h-9 justify-center font-medium shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]'
-                    >
-                      {primaryItem.icon && (
-                        <primaryItem.icon className='size-5' />
-                      )}
-                      <span className='group-data-[collapsible=icon]:hidden'>
-                        {primaryItem.title}
-                      </span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                </SidebarMenu>
-              </SidebarGroup>
-            )
-          }
-          return null
+          if (!primary || !('onClick' in primary)) return null
+
+          return (
+            <SidebarGroup>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    variant='primary'
+                    onClick={primary.onClick}
+                  >
+                    {primary.icon && <primary.icon className='size-5' />}
+                    <span>{primary.title}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroup>
+          )
         })()}
 
-        {data.navGroups.map((group) => {
-          // Filter out the primary action from the groups
-          const filteredItems = group.items.filter(
-            (i) => i.variant !== 'primary'
-          )
-
-          if (filteredItems.length === 0) return null
-
-          return <NavGroup key={group.title} {...group} items={filteredItems} />
-        })}
+        {data.navGroups.map((group) => (
+          <NavGroup
+            key={group.title}
+            {...group}
+            items={group.items.filter((i) => i.variant !== 'primary')}
+          />
+        ))}
       </SidebarContent>
 
-      {/* Optional footer content from props */}
       {sidebarFooter && <SidebarFooter>{sidebarFooter}</SidebarFooter>}
 
       <CollapseBtn />

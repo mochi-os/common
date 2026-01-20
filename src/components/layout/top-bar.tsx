@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react'
 import {
   Check,
   ChevronDown,
+  CircleUser,
   ExternalLink,
-  Home,
   LogIn,
   LogOut,
   PanelLeft,
 } from 'lucide-react'
+
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
@@ -19,7 +20,6 @@ import type { Notification } from '../notifications-dropdown'
 import { useScreenSize } from '../../hooks/use-screen-size'
 import { useSidebar } from '../ui/sidebar'
 import { Button } from '../ui/button'
-import { Switch } from '../ui/switch'
 import { ScrollArea } from '../ui/scroll-area'
 import {
   DropdownMenu,
@@ -41,12 +41,13 @@ import { SignOutDialog } from '../sign-out-dialog'
 type TopBarProps = {
   showNotifications?: boolean
   showSidebarTrigger?: boolean
-  showSearch?: boolean
-  showAppSwitcher?: boolean
   vertical?: boolean
   className?: string
 }
 
+/* -----------------------------------------------------
+ * Helpers
+ * --------------------------------------------------- */
 function formatTimestamp(timestamp: number): string {
   const now = Date.now() / 1000
   const diff = now - timestamp
@@ -56,26 +57,45 @@ function formatTimestamp(timestamp: number): string {
   if (diff < 86400) return `${Math.floor(diff / 3600)}h`
   if (diff < 604800) return `${Math.floor(diff / 86400)}d`
 
-  const date = new Date(timestamp * 1000)
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  return new Date(timestamp * 1000).toLocaleDateString(undefined, {
+    month: 'short',
+    day: 'numeric',
+  })
 }
 
-// Mochi logo with optional notification badge
-function MochiLogo({ unreadCount }: { unreadCount?: number }) {
-  const hasNotifications = unreadCount !== undefined && unreadCount > 0
+/* -----------------------------------------------------
+ * Mochi Logo
+ * --------------------------------------------------- */
+function MochiLogo() {
   return (
-    <div className='relative'>
-      <img src='./images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
+    <img
+      src="/images/logo-header.svg"
+      alt="Mochi"
+      className="h-6 w-6"
+    />
+  )
+}
+
+/* -----------------------------------------------------
+ * User Icon
+ * --------------------------------------------------- */
+function UserIcon({ hasNotifications }: { hasNotifications?: boolean }) {
+  return (
+    <div className="relative">
+      <CircleUser className="size-6 text-muted-foreground" />
       {hasNotifications && (
-        <span className='absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white shadow-sm animate-pulsate'>
-          {unreadCount > 9 ? '9+' : unreadCount}
+        <span className="absolute -right-0.5 -top-0.5 flex size-2.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75" />
+          <span className="relative inline-flex size-2.5 rounded-full bg-red-500" />
         </span>
       )}
     </div>
   )
 }
 
-// Notification item for the menu
+/* -----------------------------------------------------
+ * Notifications
+ * --------------------------------------------------- */
 function NotificationItem({
   notification,
   onClick,
@@ -87,29 +107,19 @@ function NotificationItem({
 
   return (
     <button
-      type='button'
+      type="button"
       onClick={() => onClick?.(notification)}
       className={cn(
         'flex w-full items-start gap-2 px-2 py-2 text-left text-sm rounded-md transition-colors hover:bg-muted',
-        isUnread ? 'bg-muted/50' : ''
+        isUnread && 'bg-muted/50'
       )}
     >
-      <div
-        className={cn(
-          'mt-1.5 size-2 shrink-0 rounded-full',
-          isUnread ? 'bg-primary' : 'bg-transparent'
-        )}
-      />
-      <div className='flex-1 min-w-0'>
-        <p
-          className={cn(
-            'text-sm leading-snug truncate',
-            isUnread && 'font-medium'
-          )}
-        >
+      <div className={cn('mt-1.5 size-2 rounded-full', isUnread && 'bg-primary')} />
+      <div className="flex-1 min-w-0">
+        <p className={cn('truncate', isUnread && 'font-medium')}>
           {notification.content}
         </p>
-        <p className='text-[11px] text-muted-foreground'>
+        <p className="text-[11px] text-muted-foreground">
           {formatTimestamp(notification.created)}
         </p>
       </div>
@@ -117,78 +127,61 @@ function NotificationItem({
   )
 }
 
-// Notifications section for the menu
 function NotificationsSection({ onClose }: { onClose: () => void }) {
   const { notifications, markAsRead, markAllAsRead } = useNotifications()
   const [expanded, setExpanded] = useState(false)
-  const unreadNotifications = notifications.filter((n) => n.read === 0)
-  const unreadCount = unreadNotifications.length
 
-  const handleNotificationClick = (notification: Notification) => {
-    markAsRead(notification.id)
-    if (notification.link) {
-      onClose()
-      window.location.href = notification.link
-    }
-  }
+  const unread = notifications.filter((n) => n.read === 0)
 
-  if (unreadCount === 0) {
+  if (!unread.length) {
     return (
-      <div className='px-2 py-3 text-center'>
-        <p className='text-sm text-muted-foreground'>No new notifications</p>
+      <div className="px-2 py-3 text-center text-sm text-muted-foreground">
+        No new notifications
       </div>
     )
   }
 
-  const displayedNotifications = expanded
-    ? unreadNotifications
-    : unreadNotifications.slice(0, 3)
+  const visible = expanded ? unread : unread.slice(0, 3)
 
   return (
-    <div className='py-1'>
-      <div className='px-2 pb-1 flex items-center justify-between'>
-        <span className='text-xs font-medium text-muted-foreground'>
+    <div className="py-1">
+      <div className="flex items-center justify-between px-2 pb-1">
+        <span className="text-xs font-medium text-muted-foreground">
           Notifications
         </span>
-        <div className='flex items-center gap-1'>
-          {unreadCount > 0 && (
-            <button
-              className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-              onClick={() => markAllAsRead()}
-              title='Clear all'
-            >
-              <Check className='size-4' />
-            </button>
-          )}
+        <div className="flex gap-1">
+          <button onClick={markAllAsRead} className="p-1 hover:bg-muted rounded">
+            <Check className="size-4" />
+          </button>
           <a
-            href='/notifications/'
+            href="/notifications/"
             onClick={onClose}
-            className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-            title='View all'
+            className="p-1 hover:bg-muted rounded"
           >
-            <ExternalLink className='size-4' />
+            <ExternalLink className="size-4" />
           </a>
         </div>
       </div>
+
       <ScrollArea className={expanded ? 'max-h-64' : ''}>
-        <div className='space-y-0.5 px-1'>
-          {displayedNotifications.map((notification) => (
+        <div className="space-y-0.5 px-1">
+          {visible.map((n) => (
             <NotificationItem
-              key={notification.id}
-              notification={notification}
-              onClick={handleNotificationClick}
+              key={n.id}
+              notification={n}
+              onClick={(notif) => {
+                markAsRead(notif.id)
+                notif.link && (window.location.href = notif.link)
+              }}
             />
           ))}
         </div>
       </ScrollArea>
-      {unreadCount > 3 && !expanded && (
-        <div className='flex justify-center pt-1'>
-          <button
-            className='p-1 rounded text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-            onClick={() => setExpanded(true)}
-            title={`Show ${unreadCount - 3} more`}
-          >
-            <ChevronDown className='size-4' />
+
+      {unread.length > 3 && !expanded && (
+        <div className="flex justify-center pt-1">
+          <button onClick={() => setExpanded(true)}>
+            <ChevronDown className="size-4" />
           </button>
         </div>
       )}
@@ -196,24 +189,9 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
   )
 }
 
-// Sidebar toggle for the menu
-function SidebarToggleItem() {
-  const { toggleSidebar, open } = useSidebar()
-
-  return (
-    <div
-      className='flex items-center justify-between px-2 py-1.5 text-sm rounded-md hover:bg-muted cursor-pointer'
-      onClick={toggleSidebar}
-    >
-      <div className='flex items-center gap-2'>
-        <PanelLeft className='size-4' />
-        Sidebar
-      </div>
-      <Switch checked={open} onCheckedChange={toggleSidebar} />
-    </div>
-  )
-}
-
+/* -----------------------------------------------------
+ * TopBar
+ * --------------------------------------------------- */
 export function TopBar({
   showNotifications = true,
   showSidebarTrigger = false,
@@ -222,46 +200,43 @@ export function TopBar({
 }: TopBarProps) {
   const [signOutOpen, setSignOutOpen] = useDialogState()
   const [menuOpen, setMenuOpen] = useState(false)
-  const { theme } = useTheme()
-  const { isDesktop, isMobile } = useScreenSize()
-  const { notifications } = useNotifications()
-  const { toggleSidebar } = useSidebar()
 
-  const email = useAuthStore((state) => state.email)
+  const { theme } = useTheme()
+  const { isMobile } = useScreenSize()
+  const { toggleSidebar } = useSidebar()
+  const { notifications } = useNotifications()
+
+  const email = useAuthStore((s) => s.email)
   const isLoggedIn = !!email
   const profile = readProfileCookie()
-  const displayName = profile.name || 'User'
-  const displayEmail = email || ''
 
   const unreadCount = notifications.filter((n) => n.read === 0).length
 
   useEffect(() => {
-    const themeColor = theme === 'dark' ? '#020817' : '#fff'
-    const metaThemeColor = document.querySelector("meta[name='theme-color']")
-    if (metaThemeColor) metaThemeColor.setAttribute('content', themeColor)
+    const meta = document.querySelector("meta[name='theme-color']")
+    meta?.setAttribute('content', theme === 'dark' ? '#020817' : '#fff')
   }, [theme])
 
-  // Non-logged-in: minimal header with just Mochi icon
+  /* ------------------ NOT LOGGED IN ------------------ */
   if (!isLoggedIn) {
     const isDomainRouted = isDomainEntityRouting()
+
     return (
       <header className={cn('z-50 flex h-12 items-center px-4', className)}>
         {isDomainRouted ? (
-          <div className='flex items-center gap-2'>
-            <MochiLogo />
-          </div>
+          <MochiLogo />
         ) : (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant='ghost' className='h-9 gap-2 px-3'>
+              <Button variant="ghost" className="gap-2">
                 <MochiLogo />
-                <span className='text-lg font-semibold'>Mochi</span>
+                <span className="font-semibold">Mochi</span>
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align='start'>
+            <DropdownMenuContent align="start">
               <DropdownMenuItem asChild>
-                <a href='/login'>
-                  <LogIn className='size-4' />
+                <a href="/login">
+                  <LogIn className="size-4" />
                   Log in
                 </a>
               </DropdownMenuItem>
@@ -272,37 +247,24 @@ export function TopBar({
     )
   }
 
-  // Logged-in: Mochi logo as the single menu trigger
+  /* ------------------ MENU CONTENT ------------------ */
   const menuContent = (
     <>
-      {/* User info with logout icon */}
-      <DropdownMenuLabel className='p-0 font-normal'>
-        <div className='flex items-center justify-between px-2 py-1.5'>
-          <div className='grid text-start text-sm leading-tight'>
-            <span className='font-semibold'>{displayName}</span>
-            <span className='text-xs text-muted-foreground'>
-              {displayEmail}
-            </span>
+      <DropdownMenuLabel className="p-0 font-normal">
+        <div className="flex items-center justify-between px-2 py-1.5">
+          <div className="grid text-sm">
+            <span className="font-semibold">{profile.name}</span>
+            <span className="text-xs text-muted-foreground">{email}</span>
           </div>
           <button
             onClick={() => setSignOutOpen(true)}
-            className='p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-            title='Log out'
+            className="p-1.5 hover:bg-muted rounded"
           >
-            <LogOut className='size-4' />
+            <LogOut className="size-4" />
           </button>
         </div>
       </DropdownMenuLabel>
 
-      {/* Sidebar toggle (mobile only) */}
-      {showSidebarTrigger && isMobile && (
-        <>
-          <DropdownMenuSeparator />
-          <SidebarToggleItem />
-        </>
-      )}
-
-      {/* Notifications */}
       {showNotifications && (
         <>
           <DropdownMenuSeparator />
@@ -312,125 +274,59 @@ export function TopBar({
     </>
   )
 
-  // Mobile: use drawer
-  const mobileMenuContent = (
-    <div className='px-4 pb-4'>
-      {/* User info with logout icon */}
-      <div className='mb-4 pb-4 border-b'>
-        <div className='flex items-center justify-between'>
-          <div className='grid text-start text-sm leading-tight'>
-            <span className='truncate font-semibold'>{displayName}</span>
-            <span className='truncate text-xs text-muted-foreground'>
-              {displayEmail}
-            </span>
-          </div>
-          <button
-            onClick={() => setSignOutOpen(true)}
-            className='p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-muted transition-colors'
-            title='Log out'
-          >
-            <LogOut size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* Menu items */}
-      {/* Sidebar toggle - mobile only, hidden as we have a dedicated button in header now */}
-
-
-      {/* Notifications */}
-      {showNotifications && (
-        <div className='mt-4 pt-4'>
-          <NotificationsSection onClose={() => setMenuOpen(false)} />
-        </div>
-      )}
-    </div>
-  )
-
   return (
     <>
       <header
         className={cn(
-          'z-50 flex items-center',
-          !vertical && 'mt-2',
-          vertical
-            ? 'h-auto flex-col gap-1 pl-4 pr-2 pt-7 pb-2'
-            : 'h-full w-full flex-row gap-2 px-2',
+          'z-50 flex items-center gap-2 px-2',
+          vertical && 'flex-col',
           className
         )}
       >
-        {/* Logo opens menu, other icons appear on hover */}
-        {isDesktop ? (
-          <div className='group/logo flex items-center gap-1'>
-            {/* Logo - opens menu */}
-            <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
-              <DropdownMenuTrigger asChild>
-                <button className='flex items-center focus:outline-none'>
-                  <MochiLogo unreadCount={showNotifications ? unreadCount : 0} />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className='min-w-72' align='start'>
-                {menuContent}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Home - hidden until hover, hidden when at "/" */}
-            {window.location.pathname !== '/' && (
-              <a
-                href='/'
-                className={cn(
-                  '-ml-1 p-1 rounded hover:bg-muted transition-all',
-                  'opacity-0 group-hover/logo:opacity-100'
-                )}
-                title='Home'
-              >
-                <Home className='size-5 text-muted-foreground' />
-              </a>
-            )}
-          </div>
-        ) : (
-          <div className='flex items-center gap-1'>
-            {/* Sidebar toggle - mobile only, always visible */}
-            {showSidebarTrigger && (
-              <button
-                onClick={() => toggleSidebar()}
-                className='p-1 rounded hover:bg-muted transition-all'
-                title='Toggle sidebar'
-              >
-                <PanelLeft className='size-5 text-muted-foreground' />
-              </button>
-            )}
-
-            {/* Logo - opens drawer */}
-            <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
-              <DrawerTrigger asChild>
-                <button className='flex items-center focus:outline-none'>
-                  <MochiLogo unreadCount={showNotifications ? unreadCount : 0} />
-                </button>
-              </DrawerTrigger>
-              <DrawerContent>
-                <DrawerHeader>
-                  <DrawerTitle className='sr-only'>Menu</DrawerTitle>
-                </DrawerHeader>
-                {mobileMenuContent}
-              </DrawerContent>
-            </Drawer>
-
-            {/* Home - always visible, hidden when at "/" */}
-            {window.location.pathname !== '/' && (
-              <a
-                href='/'
-                className='p-1 rounded hover:bg-muted transition-all'
-                title='Home'
-              >
-                <Home className='size-5 text-muted-foreground' />
-              </a>
-            )}
-          </div>
+        {/* Sidebar toggle (mobile) */}
+        {showSidebarTrigger && isMobile && (
+          <button
+            onClick={toggleSidebar}
+            className="p-1 rounded hover:bg-muted"
+          >
+            <PanelLeft className="size-5 text-muted-foreground" />
+          </button>
         )}
 
-        {/* Spacer - only for horizontal layout */}
-        {!vertical && <div className='flex-1' />}
+        {/* Home */}
+        <a href="/" title="Home">
+          <MochiLogo />
+        </a>
+
+        {/* User menu */}
+        {isMobile ? (
+          <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
+            <DrawerTrigger asChild>
+              <button className="p-1 rounded hover:bg-muted">
+                <UserIcon hasNotifications={unreadCount > 0} />
+              </button>
+            </DrawerTrigger>
+            <DrawerContent>
+              <DrawerHeader>
+                <DrawerTitle className="sr-only">Menu</DrawerTitle>
+              </DrawerHeader>
+              <div className="px-4 pb-4">{menuContent}</div>
+            </DrawerContent>
+          </Drawer>
+        ) : (
+          <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
+            <DropdownMenuTrigger asChild>
+              <button className="p-1 rounded hover:bg-muted">
+                <UserIcon hasNotifications={unreadCount > 0} />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="min-w-72">
+              {menuContent}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        {!vertical && <div className="flex-1" />}
       </header>
 
       <SignOutDialog open={!!signOutOpen} onOpenChange={setSignOutOpen} />

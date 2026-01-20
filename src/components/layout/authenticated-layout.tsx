@@ -1,14 +1,18 @@
 import { useEffect } from 'react'
 import { Outlet } from '@tanstack/react-router'
+
 import { cn } from '../../lib/utils'
 import { getCookie } from '../../lib/cookies'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
+
 import { LayoutProvider } from '../../context/layout-provider'
 import { SearchProvider } from '../../context/search-provider'
+
 import { SidebarInset, SidebarProvider } from '../ui/sidebar'
 import { TopBar } from './top-bar'
 import { AppSidebar } from './app-sidebar'
+
 import {
   RightPanel,
   RightPanelProvider,
@@ -17,7 +21,12 @@ import {
   RightPanelFooter,
   RightPanelCloseButton,
 } from './right-panel'
+
 import type { SidebarData } from './types'
+
+/* ------------------------------------------------------------------ */
+/* Types */
+/* ------------------------------------------------------------------ */
 
 type RightPanelConfig = {
   header?: React.ReactNode
@@ -36,11 +45,13 @@ type AuthenticatedLayoutProps = {
   showNotifications?: boolean
   title?: string
   mobileTitle?: React.ReactNode
-  /** Configuration for the optional right panel */
   rightPanel?: RightPanelConfig
-  /** Default open state for the right panel */
   rightPanelDefaultOpen?: boolean
 }
+
+/* ------------------------------------------------------------------ */
+/* Layout */
+/* ------------------------------------------------------------------ */
 
 export function AuthenticatedLayout({
   children,
@@ -53,33 +64,37 @@ export function AuthenticatedLayout({
   rightPanelDefaultOpen = true,
 }: AuthenticatedLayoutProps) {
   useEffect(() => {
-    if (title) {
-      document.title = title
-    }
+    if (title) document.title = title
   }, [title])
 
   const email = useAuthStore((state) => state.email)
   const isLoggedIn = !!email
-  const defaultOpen = getCookie('sidebar_state') !== 'false'
-  const hasSidebar = sidebarData && sidebarData.navGroups.length > 0
-  const hasRightPanel =
-    rightPanel && (rightPanel.header || rightPanel.content || rightPanel.footer)
 
-  // Anonymous users: minimal layout
+  const defaultOpen = getCookie('sidebar_state') !== 'false'
+  const hasSidebar = !!(sidebarData && sidebarData.navGroups.length > 0)
+  const hasRightPanel =
+    !!rightPanel &&
+    !!(rightPanel.header || rightPanel.content || rightPanel.footer)
+
+  /* ------------------------------------------------------------------
+   * Anonymous users (logged out)
+   * ------------------------------------------------------------------ */
   if (!isLoggedIn) {
     const isDomainRouted = isDomainEntityRouting()
+
     return (
       <SearchProvider>
         <LayoutProvider>
           <SidebarProvider defaultOpen={defaultOpen}>
             <div className='relative h-svh w-full'>
-              {/* Floating TopBar - only on main site, not domain-routed entities */}
+              {/* Floating TopBar for main site only */}
               {!isDomainRouted && (
                 <div className='absolute top-2 left-2 z-50'>
                   <TopBar showNotifications={false} />
                 </div>
               )}
-              {/* Content fills the entire viewport */}
+
+              {/* Full-page content */}
               <div className={cn('@container/content', 'h-full overflow-auto')}>
                 {children ?? <Outlet />}
               </div>
@@ -90,12 +105,15 @@ export function AuthenticatedLayout({
     )
   }
 
-  // Main authenticated layout content
+  /* ------------------------------------------------------------------
+   * Authenticated layout
+   * ------------------------------------------------------------------ */
+
   const layoutContent = (
     <div className='flex h-svh w-full'>
       {hasSidebar ? (
         <>
-          {/* Left column: Sidebar (logo menu is inside SidebarHeader) */}
+          {/* Desktop sidebar */}
           <div
             className={cn(
               'relative hidden h-full flex-shrink-0 overflow-visible md:flex',
@@ -110,28 +128,28 @@ export function AuthenticatedLayout({
             />
           </div>
 
-          {/* Mobile TopBar - fixed at top, full width */}
-          <header className='fixed top-0 left-0 right-0 z-[60] h-12 flex-shrink-0 border-b bg-background md:hidden'>
+          {/* Mobile TopBar */}
+          <header className='fixed top-0 left-0 right-0 z-[60] h-12 border-b bg-background md:hidden'>
             <div className='flex h-full items-center px-2'>
               <TopBar
                 showNotifications={showNotifications}
-                showSidebarTrigger={true}
+                showSidebarTrigger
               />
             </div>
           </header>
 
-          {/* Main Content Area - full height on desktop, below header on mobile */}
+          {/* Main content */}
           <SidebarInset
             className={cn(
               '@container/content',
-              'h-full overflow-auto flex-1',
+              'flex-1 h-full overflow-auto',
               'pt-12 md:pt-0'
             )}
           >
             {children ?? <Outlet />}
           </SidebarInset>
 
-          {/* Right Panel - optional, only on large screens */}
+          {/* Right panel */}
           {hasRightPanel && (
             <RightPanel className='h-full'>
               {(rightPanel.header || rightPanel.showCloseButton) && (
@@ -140,11 +158,13 @@ export function AuthenticatedLayout({
                   {rightPanel.showCloseButton && <RightPanelCloseButton />}
                 </RightPanelHeader>
               )}
+
               {rightPanel.content && (
                 <RightPanelContent className={rightPanel.contentClassName}>
                   {rightPanel.content}
                 </RightPanelContent>
               )}
+
               {rightPanel.footer && (
                 <RightPanelFooter className={rightPanel.footerClassName}>
                   {rightPanel.footer}
@@ -154,10 +174,11 @@ export function AuthenticatedLayout({
           )}
         </>
       ) : (
-        /* No sidebar: TopBar on the left (desktop) or top (mobile) */
         <>
-          {/* Mobile header bar */}
-          <div className='flex h-12 flex-shrink-0 items-center border-b px-2 md:hidden'>
+          {/* No sidebar layout */}
+
+          {/* Mobile */}
+          <div className='flex h-12 items-center border-b px-2 md:hidden'>
             <TopBar showNotifications={showNotifications} />
             {_mobileTitle && (
               <>
@@ -168,16 +189,16 @@ export function AuthenticatedLayout({
           </div>
 
           {/* Desktop vertical TopBar */}
-          <div className='hidden flex-col flex-shrink-0 md:flex'>
+          <div className='hidden md:flex h-full'>
             <TopBar showNotifications={showNotifications} vertical />
           </div>
 
-          {/* Content area fills the rest */}
+          {/* Content */}
           <div className={cn('@container/content', 'flex-1 overflow-auto')}>
             {children ?? <Outlet />}
           </div>
 
-          {/* Right Panel - optional, only on large screens */}
+          {/* Right panel */}
           {hasRightPanel && (
             <RightPanel className='h-full'>
               {(rightPanel.header || rightPanel.showCloseButton) && (
@@ -186,11 +207,13 @@ export function AuthenticatedLayout({
                   {rightPanel.showCloseButton && <RightPanelCloseButton />}
                 </RightPanelHeader>
               )}
+
               {rightPanel.content && (
                 <RightPanelContent className={rightPanel.contentClassName}>
                   {rightPanel.content}
                 </RightPanelContent>
               )}
+
               {rightPanel.footer && (
                 <RightPanelFooter className={rightPanel.footerClassName}>
                   {rightPanel.footer}
@@ -202,6 +225,8 @@ export function AuthenticatedLayout({
       )}
     </div>
   )
+
+  /* ------------------------------------------------------------------ */
 
   return (
     <SearchProvider>
