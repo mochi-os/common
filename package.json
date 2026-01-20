@@ -6,6 +6,10 @@
   "types": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
+    "./vite": {
+      "types": "./src/vite/mochi-plugin.d.ts",
+      "default": "./src/vite/mochi-plugin.js"
+    },
     "./components/*": "./src/components/*",
     "./components/ui/*": "./src/components/ui/*",
     "./components/layout/*": "./src/components/layout/*",
@@ -73,6 +77,7 @@
     "@types/react": "19.2.2",
     "@types/react-dom": "^19.2.1",
     "prettier": "^3.6.2",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "vite": "^7.2.7"
   }
 }
