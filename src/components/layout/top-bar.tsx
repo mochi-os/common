@@ -68,20 +68,23 @@ function formatTimestamp(timestamp: number): string {
  * Mochi Logo
  * --------------------------------------------------- */
 function MochiLogo() {
-  return <img src='/images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
+  return (
+    <div className='pt-2'>
+      <img src='/images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
+    </div>
+  )
 }
 
 /* -----------------------------------------------------
  * User Icon
  * --------------------------------------------------- */
-function UserIcon({ hasNotifications }: { hasNotifications?: boolean }) {
+function UserIcon({ unreadCount }: { unreadCount?: number }) {
   return (
-    <div className='relative'>
+    <div className='relative pt-2 pr-2'>
       <CircleUser className='size-6 text-muted-foreground' />
-      {hasNotifications && (
-        <span className='absolute -right-0.5 -top-0.5 flex size-2.5'>
-          <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75' />
-          <span className='relative inline-flex size-2.5 rounded-full bg-red-500' />
+      {!!unreadCount && (
+        <span className='absolute right-0 top-0 z-10 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white'>
+          {unreadCount > 9 ? '9+' : unreadCount}
         </span>
       )}
     </div>
@@ -284,9 +287,9 @@ export function TopBar({
 
   return (
     <>
-      <header  
+      <header
         className={cn(
-          'z-50 flex items-center gap-2 px-2 py-4',
+          'z-50 flex items-center gap-2 px-2 py-4 overflow-visible',
           vertical && 'flex-col',
           className
         )}
@@ -301,7 +304,7 @@ export function TopBar({
           </button>
         )}
 
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 overflow-visible'>
           {/* Home */}
           <a href='/' title='Home'>
             <MochiLogo />
@@ -312,7 +315,7 @@ export function TopBar({
             <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
               <DrawerTrigger asChild>
                 <button className='p-1 rounded hover:bg-muted'>
-                  <UserIcon hasNotifications={unreadCount > 0} />
+                  <UserIcon unreadCount={showNotifications ? unreadCount : 0} />
                 </button>
               </DrawerTrigger>
               <DrawerContent>
@@ -326,7 +329,7 @@ export function TopBar({
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
                 <button className='p-1 rounded hover:bg-muted'>
-                  <UserIcon hasNotifications={unreadCount > 0} />
+                  <UserIcon unreadCount={showNotifications ? unreadCount : 0} />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align='start' className='min-w-72'>

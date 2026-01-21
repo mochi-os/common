@@ -129,8 +129,8 @@ export function AuthenticatedLayout({
           </div>
 
           {/* Mobile TopBar */}
-          <header className='fixed top-0 left-0 right-0 z-[60] h-12 border-b bg-background md:hidden'>
-            <div className='flex h-full items-center px-2'>
+          <header className='fixed top-0 left-0 right-0 z-[60] h-12 border-b bg-background md:hidden overflow-visible'>
+            <div className='flex h-full items-center px-2 overflow-visible'>
               <TopBar
                 showNotifications={showNotifications}
                 showSidebarTrigger

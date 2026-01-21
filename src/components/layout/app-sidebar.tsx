@@ -96,15 +96,10 @@ function formatTimestamp(timestamp: number): string {
 /* -----------------------------------------------------
  * Mochi Logo (HOME LINK)
  * --------------------------------------------------- */
-function MochiLogo({ unreadCount }: { unreadCount?: number }) {
+function MochiLogo() {
   return (
-    <div className='relative'>
+    <div className='pt-2'>
       <img src='/images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
-      {!!unreadCount && (
-        <span className='absolute -right-1.5 -top-1.5 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white'>
-          {unreadCount > 9 ? '9+' : unreadCount}
-        </span>
-      )}
     </div>
   )
 }
@@ -112,14 +107,13 @@ function MochiLogo({ unreadCount }: { unreadCount?: number }) {
 /* -----------------------------------------------------
  * User Icon
  * --------------------------------------------------- */
-function UserIcon({ hasNotifications }: { hasNotifications?: boolean }) {
+function UserIcon({ unreadCount }: { unreadCount?: number }) {
   return (
-    <div className='relative'>
+    <div className='relative pt-2 pr-2'>
       <CircleUser className='size-5 text-muted-foreground' />
-      {hasNotifications && (
-        <span className='absolute -right-0.5 -top-0.5 flex size-2.5'>
-          <span className='absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75' />
-          <span className='relative inline-flex size-2.5 rounded-full bg-red-500' />
+      {!!unreadCount && (
+        <span className='absolute right-0 top-0 z-10 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white'>
+          {unreadCount > 9 ? '9+' : unreadCount}
         </span>
       )}
     </div>
@@ -256,14 +250,14 @@ function SidebarLogoMenu({
           >
             {/* Home */}
             <a href='/' title='Home' className='p-1'>
-              <MochiLogo unreadCount={showNotifications ? unreadCount : 0} />
+              <MochiLogo />
             </a>
 
             {/* User */}
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size='sm' className='w-auto p-2'>
-                  <UserIcon hasNotifications={unreadCount > 0} />
+                <SidebarMenuButton size='sm' className='w-auto p-2 overflow-visible'>
+                  <UserIcon unreadCount={showNotifications ? unreadCount : 0} />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
 
