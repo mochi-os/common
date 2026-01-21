@@ -104,6 +104,7 @@ function SidebarMenuAction({ item }: { item: NavAction }) {
           item.onClick()
         }}
         variant={item.variant}
+        className={item.className}
       >
         {item.icon && <item.icon />}
         <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
@@ -126,7 +127,7 @@ function SidebarMenuLink({
     const isActive = item.isActive ?? checkIsActive(pathname, item)
     return (
       <SidebarMenuItem>
-        <SidebarMenuButton asChild isActive={isActive} tooltip={item.title}>
+        <SidebarMenuButton asChild isActive={isActive} tooltip={item.title} className={item.className}>
           <a href={item.url as string} onClick={() => setOpenMobile(false)}>
             {item.icon && <item.icon />}
             <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
@@ -144,6 +145,7 @@ function SidebarMenuLink({
         asChild
         isActive={isActive}
         tooltip={item.title}
+        className={item.className}
       >
         <Link to={item.url} onClick={() => setOpenMobile(false)}>
           {item.icon && <item.icon />}
@@ -198,7 +200,7 @@ function SidebarMenuCollapsible({
                 asChild
                 isActive={shouldHighlight}
                 tooltip={item.title}
-                className='flex-1'
+                className={cn('flex-1', item.className)}
               >
                 <a href={item.url as string} onClick={() => setOpenMobile(false)}>
                   {headerContent}
@@ -209,7 +211,7 @@ function SidebarMenuCollapsible({
                 asChild
                 isActive={shouldHighlight}
                 tooltip={item.title}
-                className='flex-1'
+                className={cn('flex-1', item.className)}
               >
                 <Link to={item.url} onClick={() => setOpenMobile(false)}>
                   {headerContent}
@@ -217,7 +219,7 @@ function SidebarMenuCollapsible({
               </SidebarMenuButton>
             )
           ) : (
-            <SidebarMenuButton tooltip={item.title} className='flex-1 cursor-default'>
+            <SidebarMenuButton tooltip={item.title} className={cn('flex-1 cursor-default', item.className)}>
               {headerContent}
             </SidebarMenuButton>
           )}

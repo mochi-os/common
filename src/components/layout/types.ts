@@ -5,6 +5,7 @@ type BaseNavItem = {
   badge?: string
   icon?: React.ElementType
   variant?: 'default' | 'outline' | 'primary'
+  className?: string
 }
 
 type NavLink = BaseNavItem & {
