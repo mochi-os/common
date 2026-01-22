@@ -13,7 +13,6 @@ import {
 import { cn } from '../../lib/utils'
 import { isDomainEntityRouting } from '../../lib/app-path'
 import { useAuthStore } from '../../stores/auth-store'
-import { readProfileCookie } from '../../lib/profile-cookie'
 import { useTheme } from '../../context/theme-provider'
 import useDialogState from '../../hooks/use-dialog-state'
 import { useNotifications } from '../../hooks/use-notifications'
@@ -209,9 +208,9 @@ export function TopBar({
   const { toggleSidebar } = useSidebar()
   const { notifications } = useNotifications()
 
-  const email = useAuthStore((s) => s.email)
-  const isLoggedIn = !!email
-  const profile = readProfileCookie()
+  const name = useAuthStore((s) => s.name)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const isLoggedIn = isAuthenticated
 
   const unreadCount = notifications.filter((n) => n.read === 0).length
 
@@ -256,8 +255,7 @@ export function TopBar({
       <DropdownMenuLabel className='p-0 font-normal'>
         <div className='flex items-center justify-between px-2 py-1.5'>
           <div className='grid text-sm'>
-            <span className='font-semibold'>{profile.name}</span>
-            <span className='text-xs text-muted-foreground'>{email}</span>
+            <span className='font-semibold'>{name || 'User'}</span>
           </div>
           <div className='flex items-center gap-1'>
             <a

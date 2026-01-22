@@ -133,7 +133,6 @@ export { getAppPath, getRouterBasepath, getApiBasepath, getAuthLoginUrl, isDomai
 export * from './lib/auth-endpoints'
 export * from './lib/cookies'
 export * from './lib/handle-server-error'
-export * from './lib/profile-cookie'
 export * from './lib/query-client'
 export * from './lib/request'
 export * from './lib/show-submitted-data'

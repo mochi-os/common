@@ -67,8 +67,7 @@ export function AuthenticatedLayout({
     if (title) document.title = title
   }, [title])
 
-  const email = useAuthStore((state) => state.email)
-  const isLoggedIn = !!email
+  const isLoggedIn = useAuthStore((state) => state.isAuthenticated)
 
   const defaultOpen = getCookie('sidebar_state') !== 'false'
   const hasSidebar = !!(sidebarData && sidebarData.navGroups.length > 0)

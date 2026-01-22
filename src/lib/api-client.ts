@@ -106,7 +106,6 @@ apiClient.interceptors.response.use(
 
         if (!isAuthEndpoint && hadSession) {
           removeCookie('token')
-          removeCookie('mochi_me')
 
           useAuthStore.getState().clearAuth()
 

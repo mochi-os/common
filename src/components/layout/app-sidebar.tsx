@@ -12,7 +12,6 @@ import {
 } from 'lucide-react'
 import { cn } from '../../lib/utils'
 import { useAuthStore } from '../../stores/auth-store'
-import { readProfileCookie } from '../../lib/profile-cookie'
 import { useNotifications } from '../../hooks/use-notifications'
 import type { Notification } from '../notifications-dropdown'
 import useDialogState from '../../hooks/use-dialog-state'
@@ -235,8 +234,7 @@ function SidebarLogoMenu({
   const { state } = useSidebar()
 
   const unreadCount = notifications.filter((n) => n.read === 0).length
-  const profile = readProfileCookie()
-  const email = useAuthStore((s) => s.email)
+  const name = useAuthStore((s) => s.name)
 
   return (
     <>
@@ -266,10 +264,7 @@ function SidebarLogoMenu({
                   <div className='flex items-center justify-between gap-3 px-2 py-1.5'>
                     <div className='flex-1 min-w-0'>
                       <div className='font-semibold truncate'>
-                        {profile.name}
-                      </div>
-                      <div className='text-xs text-muted-foreground truncate'>
-                        {email}
+                        {name || 'User'}
                       </div>
                     </div>
                     <div className='flex items-center gap-1'>

@@ -7,7 +7,6 @@ import {
   Settings,
 } from 'lucide-react'
 import { useAuthStore } from '../../stores/auth-store'
-import { readProfileCookie } from '../../lib/profile-cookie'
 
 import { useTheme } from '../../context/theme-provider'
 import { useScreenSize } from '../../hooks/use-screen-size'
@@ -44,12 +43,8 @@ export function NavUser() {
   const { theme, setTheme } = useTheme()
   const isDark = theme === 'dark'
 
-  // Use email from auth store (Template mirrors core auth cookie shape)
-  const email = useAuthStore((state) => state.email)
-  // Get name from mochi_me cookie
-  const profile = readProfileCookie()
-  const displayName = profile.name || 'User'
-  const displayEmail = email || ''
+  const name = useAuthStore((state) => state.name)
+  const displayName = name || 'User'
 
   /* Update theme-color meta tag when theme is updated */
   useEffect(() => {
@@ -66,7 +61,6 @@ export function NavUser() {
       <CircleUser className='hidden size-4 group-data-[collapsible=icon]:block' />
       <div className='grid flex-1 text-start text-sm leading-tight group-data-[collapsible=icon]:hidden'>
         <span className='truncate font-semibold'>{displayName}</span>
-        <span className='truncate text-xs'>{displayEmail}</span>
       </div>
       <ChevronsUpDown className='ms-auto size-4 group-data-[collapsible=icon]:hidden' />
     </SidebarMenuButton>
@@ -77,7 +71,6 @@ export function NavUser() {
       <DropdownMenuLabel className='p-0 font-normal'>
         <div className='grid px-2 py-1.5 text-start text-sm leading-tight'>
           <span className='truncate font-semibold'>{displayName}</span>
-          <span className='truncate text-xs text-muted-foreground'>{displayEmail}</span>
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
@@ -147,7 +140,6 @@ export function NavUser() {
                 <div className='mb-4 pb-4 border-b'>
                   <div className='grid text-start text-sm leading-tight'>
                     <span className='truncate font-semibold'>{displayName}</span>
-                    <span className='truncate text-xs text-muted-foreground'>{displayEmail}</span>
                   </div>
                 </div>
                 <div className='flex flex-col gap-2'>
@@ -189,17 +181,14 @@ export function NavUserDropdownContent() {
   const [open, setOpen] = useDialogState()
   const { theme, setTheme } = useTheme()
 
-  const email = useAuthStore((state) => state.email)
-  const profile = readProfileCookie()
-  const displayName = profile.name || 'User'
-  const displayEmail = email || ''
+  const name = useAuthStore((state) => state.name)
+  const displayName = name || 'User'
 
   return (
     <>
       <DropdownMenuLabel className='p-0 font-normal'>
         <div className='grid px-2 py-1.5 text-start text-sm leading-tight'>
           <span className='truncate font-semibold'>{displayName}</span>
-          <span className='truncate text-xs text-muted-foreground'>{displayEmail}</span>
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />

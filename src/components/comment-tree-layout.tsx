@@ -67,44 +67,34 @@ export function CommentTreeLayout({
           <div
             className={`relative ${COL_WIDTH} flex shrink-0 flex-col items-center`}
           >
-            {isCollapsed ? (
-              <div
-                className={`flex ${AVATAR_SIZE} z-[5] shrink-0 items-center justify-center`}
+            <div
+              className={`flex ${AVATAR_SIZE} z-[5] shrink-0 items-center justify-center`}
+            >
+              {avatar}
+            </div>
+            {/* Collapse/Expand Button */}
+            {hasChildren && (
+              <button
+                type='button'
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onToggleCollapse()
+                }}
+                className='bg-background hover:bg-muted text-muted-foreground border-foreground/35 z-[5] mt-1 flex size-3 items-center justify-center rounded-sm border transition-colors'
+                aria-label={isCollapsed ? 'Expand' : 'Collapse'}
               >
-                {avatar}
-              </div>
-            ) : (
-              <>
-                <div
-                  className={`flex ${AVATAR_SIZE} z-[5] shrink-0 items-center justify-center`}
-                >
-                  {avatar}
-                </div>
-                {/* Collapse Button */}
-                {hasChildren && (
-                  <button
-                    type='button'
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      onToggleCollapse()
-                    }}
-                    className='bg-background hover:bg-muted text-muted-foreground border-foreground/35 z-[5] mt-1 flex size-3 items-center justify-center rounded-sm border transition-colors'
-                    aria-label={isCollapsed ? 'Expand' : 'Collapse'}
-                  >
-                    {isCollapsed ? (
-                      <Plus className='size-2' />
-                    ) : (
-                      <Minus className='size-2' />
-                    )}
-                  </button>
+                {isCollapsed ? (
+                  <Plus className='size-2' />
+                ) : (
+                  <Minus className='size-2' />
                 )}
-              </>
+              </button>
             )}
 
-            {/* Trunk Line (Down to children) */}
+            {/* Trunk Line (Down to children) - extends past pb-2 padding */}
             {hasChildren && !isCollapsed && (
               <div
-                className={`${LINE_COLOR} absolute top-4 bottom-0 ${LINE_LEFT} w-px`}
+                className={`${LINE_COLOR} absolute top-4 -bottom-2 ${LINE_LEFT} w-px`}
               />
             )}
           </div>

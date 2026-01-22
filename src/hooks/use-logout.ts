@@ -22,7 +22,6 @@ export function useLogout() {
       }
 
       removeCookie('token')
-      removeCookie('mochi_me')
       clearAuth()
 
       toast.success('Logged out successfully')
@@ -30,7 +29,6 @@ export function useLogout() {
       window.location.href = getAuthLoginUrl()
     } catch (_error) {
       removeCookie('token')
-      removeCookie('mochi_me')
       clearAuth()
 
       toast.error('Logged out (with errors)')

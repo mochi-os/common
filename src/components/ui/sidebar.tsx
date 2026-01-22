@@ -162,8 +162,7 @@ function Sidebar({
   collapsible?: 'offcanvas' | 'icon' | 'none'
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar()
-  const email = useAuthStore((state) => state.email)
-  const isLoggedIn = !!email
+  const isLoggedIn = useAuthStore((state) => state.isAuthenticated)
 
   // Hide sidebar when not logged in
   if (!isLoggedIn) {

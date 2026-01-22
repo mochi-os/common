@@ -1,12 +1,11 @@
 import { create } from 'zustand'
 import { removeCookie, getCookie } from '../lib/cookies'
-import { readProfileCookie, clearProfileCookie } from '../lib/profile-cookie'
 
 const TOKEN_COOKIE = 'token'
 
 interface AuthState {
   token: string
-  email: string
+  identity: string
   name: string
   isLoading: boolean
   isInitialized: boolean
@@ -14,21 +13,18 @@ interface AuthState {
   isAuthenticated: boolean
 
   setLoading: (isLoading: boolean) => void
-  syncFromCookie: () => void
+  setProfile: (identity: string, name: string) => void
   clearAuth: () => void
   initialize: () => void
 }
 
 export const useAuthStore = create<AuthState>()((set, get) => {
   const initialToken = getCookie(TOKEN_COOKIE) || ''
-  const profile = readProfileCookie()
-  const initialEmail = profile.email || ''
-  const initialName = profile.name || ''
 
   return {
     token: initialToken,
-    email: initialEmail,
-    name: initialName,
+    identity: '',
+    name: '',
     isLoading: false,
     isInitialized: false,
     isAuthenticated: Boolean(initialToken),
@@ -37,35 +33,16 @@ export const useAuthStore = create<AuthState>()((set, get) => {
       set({ isLoading })
     },
 
-    syncFromCookie: () => {
-      const cookieToken = getCookie(TOKEN_COOKIE) || ''
-      const profile = readProfileCookie()
-      const cookieEmail = profile.email || ''
-      const cookieName = profile.name || ''
-      const storeToken = get().token
-      const storeEmail = get().email
-      const storeName = get().name
-
-      if (cookieToken !== storeToken || cookieEmail !== storeEmail || cookieName !== storeName) {
-        set({
-          token: cookieToken,
-          email: cookieEmail,
-          name: cookieName,
-          isAuthenticated: Boolean(cookieToken),
-          isInitialized: true,
-        })
-      } else {
-        set({ isInitialized: true })
-      }
+    setProfile: (identity, name) => {
+      set({ identity, name })
     },
 
     clearAuth: () => {
       removeCookie(TOKEN_COOKIE)
-      clearProfileCookie()
 
       set({
         token: '',
-        email: '',
+        identity: '',
         name: '',
         isAuthenticated: false,
         isLoading: false,
@@ -74,7 +51,18 @@ export const useAuthStore = create<AuthState>()((set, get) => {
     },
 
     initialize: () => {
-      get().syncFromCookie()
+      const cookieToken = getCookie(TOKEN_COOKIE) || ''
+      const storeToken = get().token
+
+      if (cookieToken !== storeToken) {
+        set({
+          token: cookieToken,
+          isAuthenticated: Boolean(cookieToken),
+          isInitialized: true,
+        })
+      } else {
+        set({ isInitialized: true })
+      }
     },
   }
 })
