@@ -34,7 +34,7 @@ let cachedApiBasepath: string | null = null
 const KNOWN_APPS = [
   'wikis', 'wiki', 'forums', 'forum', 'feeds', 'feed', 'chat', 'files',
   'login', 'home', 'notifications', 'people', 'friends', 'settings', 'publisher',
-  'apps', 'featured', 'repositories',
+  'apps', 'recommendations', 'repositories',
 ]
 
 // Check if we're on a domain with entity routing (subdomain or custom domain)
