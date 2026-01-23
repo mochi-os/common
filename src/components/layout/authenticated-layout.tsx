@@ -47,6 +47,7 @@ type AuthenticatedLayoutProps = {
   mobileTitle?: React.ReactNode
   rightPanel?: RightPanelConfig
   rightPanelDefaultOpen?: boolean
+  isLoadingSidebar?: boolean
 }
 
 /* ------------------------------------------------------------------ */
@@ -62,6 +63,7 @@ export function AuthenticatedLayout({
   sidebarFooter,
   rightPanel,
   rightPanelDefaultOpen = true,
+  isLoadingSidebar,
 }: AuthenticatedLayoutProps) {
   useEffect(() => {
     if (title) document.title = title
@@ -124,6 +126,7 @@ export function AuthenticatedLayout({
               data={sidebarData}
               showNotifications={showNotifications}
               sidebarFooter={sidebarFooter}
+              isLoading={isLoadingSidebar}
             />
           </div>
 
