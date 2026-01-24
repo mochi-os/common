@@ -13,7 +13,6 @@ import {
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { ScrollArea } from './ui/scroll-area'
-import { toast } from '../lib/toast-utils'
 import { cn } from '../lib/utils'
 import { requestHelpers } from '../lib/request'
 
@@ -58,8 +57,6 @@ interface SearchEntityDialogProps {
   emptyMessage?: string
   /** Label for subscribe button */
   subscribeLabel?: string
-  /** Label shown when already subscribed */
-  subscribedLabel?: string
   /** Optional recommended entities to show when not searching */
   recommendations?: RecommendedEntity[]
   /** Whether recommendations are loading */
@@ -82,13 +79,13 @@ export function SearchEntityDialog({
   placeholder = 'Search...',
   emptyMessage = 'No results found',
   subscribeLabel = 'Subscribe',
-  subscribedLabel = 'Subscribed',
   recommendations = [],
   isLoadingRecommendations = false,
   isRecommendationsError = false,
 }: SearchEntityDialogProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [pendingEntityId, setPendingEntityId] = useState<string | null>(null)
 
   // Debounce search input
   useEffect(() => {
@@ -96,11 +93,12 @@ export function SearchEntityDialog({
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  // Clear search when dialog closes
+  // Clear state when dialog closes
   useEffect(() => {
     if (!open) {
       setSearchQuery('')
       setDebouncedSearch('')
+      setPendingEntityId(null)
     }
   }, [open])
 
@@ -120,13 +118,14 @@ export function SearchEntityDialog({
   const results = data || []
 
   const handleSubscribe = async (entity: DirectoryEntry) => {
+    setPendingEntityId(entity.id)
     try {
       await onSubscribe(entity.id, entity)
-      toast.success(`Subscribed to ${entity.name}`)
       onOpenChange(false)
     } catch (error) {
       console.error('Failed to subscribe:', error)
-      toast.error('Failed to subscribe')
+    } finally {
+      setPendingEntityId(null)
     }
   }
 
@@ -183,111 +182,117 @@ export function SearchEntityDialog({
           )}
 
           {!debouncedSearch && (() => {
-            // Filter out recommendations the user already has
-            const filteredRecommendations = recommendations.filter(
-              (rec) => !subscribedIds.has(rec.id)
-            )
+            const filteredRecommendations = recommendations.filter((rec) => !subscribedIds.has(rec.id))
             return (
-              <div className="p-4">
-                {isLoadingRecommendations ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="text-muted-foreground size-5 animate-spin" />
-                  </div>
-                ) : isRecommendationsError || filteredRecommendations.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                    <Search className="size-12 opacity-20" />
-                  </div>
-                ) : (
-                  <div>
-                    <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wide">
-                      Recommended
-                    </p>
-                    <div className="space-y-1">
-                      {filteredRecommendations.map((rec) => (
-                        <div
-                          key={rec.id}
-                          className="group flex items-center justify-between p-3 rounded-lg hover:bg-background hover:shadow-sm border border-transparent hover:border-border transition-all duration-200"
-                        >
-                          <div className="flex items-center gap-3 overflow-hidden">
-                            <div className={cn(
-                              "flex items-center justify-center size-10 rounded-full shrink-0",
-                              iconClassName
-                            )}>
-                              <Icon className="size-5" />
-                            </div>
-                            <div className="min-w-0 flex-1">
-                              <div className="truncate font-medium text-sm leading-none mb-1">
-                                {rec.name}
-                              </div>
-                              {rec.blurb && (
-                                <div className="text-muted-foreground text-xs truncate opacity-80">
-                                  {rec.blurb}
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                          <Button
-                            size="sm"
-                            variant="secondary"
-                            onClick={() => handleSubscribe({ id: rec.id, name: rec.name, fingerprint: rec.fingerprint })}
-                            className="h-8 px-4 rounded-full transition-all opacity-0 group-hover:opacity-100"
+            <div className="p-4">
+              {isLoadingRecommendations ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="text-muted-foreground size-5 animate-spin" />
+                </div>
+              ) : isRecommendationsError || filteredRecommendations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                  <Search className="size-12 opacity-20" />
+                </div>
+              ) : (
+                <div>
+                  <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wide">
+                    Recommended
+                  </p>
+                  <div className="space-y-1">
+                    {filteredRecommendations.map((rec) => {
+                        const isPending = pendingEntityId === rec.id
+
+                        return (
+                          <div
+                            key={rec.id}
+                            className="group flex items-center justify-between p-3 rounded-lg border border-transparent transition-all duration-200 hover:bg-background hover:shadow-sm hover:border-border"
                           >
-                            {subscribeLabel}
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                            <div className="flex items-center gap-3 overflow-hidden">
+                              <div className={cn(
+                                "flex items-center justify-center size-10 rounded-full shrink-0",
+                                iconClassName
+                              )}>
+                                <Icon className="size-5" />
+                              </div>
+                              <div className="min-w-0 flex-1">
+                                <div className="truncate font-medium text-sm leading-none mb-1">
+                                  {rec.name}
+                                </div>
+                                {rec.blurb && (
+                                  <div className="text-muted-foreground text-xs truncate opacity-80">
+                                    {rec.blurb}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              variant="secondary"
+                              disabled={isPending}
+                              onClick={() => handleSubscribe({ id: rec.id, name: rec.name, fingerprint: rec.fingerprint })}
+                              className="h-8 px-4 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                            >
+                              {isPending ? (
+                                <Loader2 className="size-4 animate-spin" />
+                              ) : (
+                                subscribeLabel
+                              )}
+                            </Button>
+                          </div>
+                        )
+                      })}
                   </div>
-                )}
-              </div>
-            )
-          })()}
+                </div>
+              )}
+            </div>
+          )})()}
 
           {results.length > 0 && (
             <div className="p-2 space-y-1">
-              {results.map((entity) => {
-                const isSubscribed = subscribedIds.has(entity.fingerprint || entity.id)
+              {results
+                .filter((entity) => !subscribedIds.has(entity.fingerprint || entity.id))
+                .map((entity) => {
+                  const isPending = pendingEntityId === entity.id
 
-                return (
-                  <div
-                    key={entity.fingerprint || entity.id}
-                    className="group flex items-center justify-between p-3 rounded-lg hover:bg-background hover:shadow-sm border border-transparent hover:border-border transition-all duration-200"
-                  >
-                    <div className="flex items-center gap-3 overflow-hidden">
-                      <div className={cn(
-                        "flex items-center justify-center size-10 rounded-full shrink-0",
-                        iconClassName
-                      )}>
-                        <Icon className="size-5" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="truncate font-medium text-sm leading-none mb-1">
-                          {entity.name}
-                        </div>
-                        {entity.fingerprint && (
-                          <div className="text-muted-foreground text-xs truncate opacity-80 font-mono">
-                            {entity.fingerprint.match(/.{1,3}/g)?.join('-')}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    <Button
-                      size="sm"
-                      variant={isSubscribed ? 'outline' : 'secondary'}
-                      disabled={isSubscribed}
-                      onClick={() => handleSubscribe(entity)}
-                      className={cn(
-                        'h-8 px-4 rounded-full transition-all',
-                        isSubscribed
-                          ? 'opacity-50'
-                          : 'opacity-0 group-hover:opacity-100'
-                      )}
+                  return (
+                    <div
+                      key={entity.fingerprint || entity.id}
+                      className="group flex items-center justify-between p-3 rounded-lg border border-transparent transition-all duration-200 hover:bg-background hover:shadow-sm hover:border-border"
                     >
-                      {isSubscribed ? subscribedLabel : subscribeLabel}
-                    </Button>
-                  </div>
-                )
-              })}
+                      <div className="flex items-center gap-3 overflow-hidden">
+                        <div className={cn(
+                          "flex items-center justify-center size-10 rounded-full shrink-0",
+                          iconClassName
+                        )}>
+                          <Icon className="size-5" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="truncate font-medium text-sm leading-none mb-1">
+                            {entity.name}
+                          </div>
+                          {entity.fingerprint && (
+                            <div className="text-muted-foreground text-xs truncate opacity-80 font-mono">
+                              {entity.fingerprint.match(/.{1,3}/g)?.join('-')}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={isPending}
+                        onClick={() => handleSubscribe(entity)}
+                        className="h-8 px-4 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                      >
+                        {isPending ? (
+                          <Loader2 className="size-4 animate-spin" />
+                        ) : (
+                          subscribeLabel
+                        )}
+                      </Button>
+                    </div>
+                  )
+                })}
             </div>
           )}
         </ScrollArea>

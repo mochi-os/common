@@ -21,6 +21,7 @@ type NavAction = BaseNavItem & {
   url?: never
   items?: never
   external?: never
+  isActive?: boolean
 }
 
 // Sub-item that can be a link, action, or nested collapsible

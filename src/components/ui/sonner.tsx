@@ -11,6 +11,7 @@ export function Toaster({ duration = DEFAULT_DURATION, ...props }: ToasterProps)
     <Sonner
       theme={theme as ToasterProps['theme']}
       duration={duration}
+      position="bottom-right"
       className='toaster group [&_div[data-content]]:w-full'
       style={
         {

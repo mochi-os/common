@@ -99,6 +99,7 @@ function SidebarMenuAction({ item }: { item: NavAction }) {
     <SidebarMenuItem>
       <SidebarMenuButton
         tooltip={item.title}
+        isActive={item.isActive}
         onClick={() => {
           setOpenMobile(false)
           item.onClick()
