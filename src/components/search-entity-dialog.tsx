@@ -24,6 +24,13 @@ interface DirectoryEntry {
   class?: string
 }
 
+interface RecommendedEntity {
+  id: string
+  name: string
+  blurb?: string
+  fingerprint?: string
+}
+
 interface SearchEntityDialogProps {
   /** Whether the dialog is open */
   open: boolean
@@ -53,6 +60,12 @@ interface SearchEntityDialogProps {
   subscribeLabel?: string
   /** Label shown when already subscribed */
   subscribedLabel?: string
+  /** Optional recommended entities to show when not searching */
+  recommendations?: RecommendedEntity[]
+  /** Whether recommendations are loading */
+  isLoadingRecommendations?: boolean
+  /** Whether recommendations failed to load */
+  isRecommendationsError?: boolean
 }
 
 export function SearchEntityDialog({
@@ -65,11 +78,14 @@ export function SearchEntityDialog({
   icon: Icon,
   iconClassName = 'bg-primary/10 text-primary',
   title,
-  description = 'Search the directory',
+  description,
   placeholder = 'Search...',
   emptyMessage = 'No results found',
   subscribeLabel = 'Subscribe',
   subscribedLabel = 'Subscribed',
+  recommendations = [],
+  isLoadingRecommendations = false,
+  isRecommendationsError = false,
 }: SearchEntityDialogProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -125,8 +141,8 @@ export function SearchEntityDialog({
           <ResponsiveDialogTitle className="text-xl font-semibold tracking-tight">
             {title}
           </ResponsiveDialogTitle>
-          <ResponsiveDialogDescription className="text-xs">
-            {description}
+          <ResponsiveDialogDescription className={cn("text-xs", !description && "sr-only")}>
+            {description || title}
           </ResponsiveDialogDescription>
         </ResponsiveDialogHeader>
 
@@ -163,21 +179,69 @@ export function SearchEntityDialog({
                 <Icon className="text-muted-foreground size-8" />
               </div>
               <h3 className="font-semibold text-sm">{emptyMessage}</h3>
-              <p className="text-muted-foreground mt-1 text-xs">
-                Try a different search term
-              </p>
             </div>
           )}
 
-          {!debouncedSearch && (
-            <div className="h-full flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-              <Search className="size-12 mb-3 opacity-20" />
-              <p className="text-sm font-medium">Start typing to search</p>
-              <p className="text-xs opacity-70">
-                Search by name, entity ID, fingerprint, or URL
-              </p>
-            </div>
-          )}
+          {!debouncedSearch && (() => {
+            // Filter out recommendations the user already has
+            const filteredRecommendations = recommendations.filter(
+              (rec) => !subscribedIds.has(rec.id)
+            )
+            return (
+              <div className="p-4">
+                {isLoadingRecommendations ? (
+                  <div className="flex items-center justify-center py-8">
+                    <Loader2 className="text-muted-foreground size-5 animate-spin" />
+                  </div>
+                ) : isRecommendationsError || filteredRecommendations.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
+                    <Search className="size-12 opacity-20" />
+                  </div>
+                ) : (
+                  <div>
+                    <p className="text-muted-foreground mb-3 text-xs font-medium uppercase tracking-wide">
+                      Recommended
+                    </p>
+                    <div className="space-y-1">
+                      {filteredRecommendations.map((rec) => (
+                        <div
+                          key={rec.id}
+                          className="group flex items-center justify-between p-3 rounded-lg hover:bg-background hover:shadow-sm border border-transparent hover:border-border transition-all duration-200"
+                        >
+                          <div className="flex items-center gap-3 overflow-hidden">
+                            <div className={cn(
+                              "flex items-center justify-center size-10 rounded-full shrink-0",
+                              iconClassName
+                            )}>
+                              <Icon className="size-5" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <div className="truncate font-medium text-sm leading-none mb-1">
+                                {rec.name}
+                              </div>
+                              {rec.blurb && (
+                                <div className="text-muted-foreground text-xs truncate opacity-80">
+                                  {rec.blurb}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            onClick={() => handleSubscribe({ id: rec.id, name: rec.name, fingerprint: rec.fingerprint })}
+                            className="h-8 px-4 rounded-full transition-all opacity-0 group-hover:opacity-100"
+                          >
+                            {subscribeLabel}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )
+          })()}
 
           {results.length > 0 && (
             <div className="p-2 space-y-1">
