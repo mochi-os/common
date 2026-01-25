@@ -21,6 +21,7 @@ interface DirectoryEntry {
   name: string
   fingerprint?: string
   class?: string
+  location?: string
 }
 
 interface RecommendedEntity {
@@ -37,6 +38,8 @@ interface SearchEntityDialogProps {
   onOpenChange: (open: boolean) => void
   /** Called when user clicks subscribe on an entity */
   onSubscribe: (entityId: string, entity: DirectoryEntry) => Promise<void>
+  /** Called when user clicks bookmark on an entity (optional) */
+  onBookmark?: (entityId: string, server?: string) => Promise<void>
   /** Set of already subscribed entity IDs or fingerprints */
   subscribedIds?: Set<string>
   /** Entity class being searched (e.g., "feed", "forum", "wiki") */
@@ -57,6 +60,8 @@ interface SearchEntityDialogProps {
   emptyMessage?: string
   /** Label for subscribe button */
   subscribeLabel?: string
+  /** Label for bookmark button */
+  bookmarkLabel?: string
   /** Optional recommended entities to show when not searching */
   recommendations?: RecommendedEntity[]
   /** Whether recommendations are loading */
@@ -69,6 +74,7 @@ export function SearchEntityDialog({
   open,
   onOpenChange,
   onSubscribe,
+  onBookmark,
   subscribedIds = new Set(),
   entityClass,
   searchEndpoint,
@@ -79,6 +85,7 @@ export function SearchEntityDialog({
   placeholder = 'Search...',
   emptyMessage = 'No results found',
   subscribeLabel = 'Subscribe',
+  bookmarkLabel = 'Bookmark',
   recommendations = [],
   isLoadingRecommendations = false,
   isRecommendationsError = false,
@@ -86,6 +93,7 @@ export function SearchEntityDialog({
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [pendingEntityId, setPendingEntityId] = useState<string | null>(null)
+  const [pendingBookmarkId, setPendingBookmarkId] = useState<string | null>(null)
 
   // Debounce search input
   useEffect(() => {
@@ -99,6 +107,7 @@ export function SearchEntityDialog({
       setSearchQuery('')
       setDebouncedSearch('')
       setPendingEntityId(null)
+      setPendingBookmarkId(null)
     }
   }, [open])
 
@@ -126,6 +135,19 @@ export function SearchEntityDialog({
       console.error('Failed to subscribe:', error)
     } finally {
       setPendingEntityId(null)
+    }
+  }
+
+  const handleBookmark = async (entity: DirectoryEntry) => {
+    if (!onBookmark) return
+    setPendingBookmarkId(entity.id)
+    try {
+      await onBookmark(entity.id, entity.location)
+      onOpenChange(false)
+    } catch (error) {
+      console.error('Failed to bookmark:', error)
+    } finally {
+      setPendingBookmarkId(null)
     }
   }
 
@@ -182,7 +204,9 @@ export function SearchEntityDialog({
           )}
 
           {!debouncedSearch && (() => {
-            const filteredRecommendations = recommendations.filter((rec) => !subscribedIds.has(rec.id))
+            const filteredRecommendations = recommendations.filter((rec) =>
+              !subscribedIds.has(rec.id) && (!rec.fingerprint || !subscribedIds.has(rec.fingerprint))
+            )
             return (
             <div className="p-4">
               {isLoadingRecommendations ? (
@@ -225,19 +249,36 @@ export function SearchEntityDialog({
                                 )}
                               </div>
                             </div>
-                            <Button
-                              size="sm"
-                              variant="secondary"
-                              disabled={isPending}
-                              onClick={() => handleSubscribe({ id: rec.id, name: rec.name, fingerprint: rec.fingerprint })}
-                              className="h-8 px-4 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                            >
-                              {isPending ? (
-                                <Loader2 className="size-4 animate-spin" />
-                              ) : (
-                                subscribeLabel
+                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                              {onBookmark && (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={pendingBookmarkId === rec.id}
+                                  onClick={() => handleBookmark({ id: rec.id, name: rec.name, fingerprint: rec.fingerprint })}
+                                  className="h-8 px-4 rounded-full"
+                                >
+                                  {pendingBookmarkId === rec.id ? (
+                                    <Loader2 className="size-4 animate-spin" />
+                                  ) : (
+                                    bookmarkLabel
+                                  )}
+                                </Button>
                               )}
-                            </Button>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                disabled={isPending}
+                                onClick={() => handleSubscribe({ id: rec.id, name: rec.name, fingerprint: rec.fingerprint })}
+                                className="h-8 px-4 rounded-full"
+                              >
+                                {isPending ? (
+                                  <Loader2 className="size-4 animate-spin" />
+                                ) : (
+                                  subscribeLabel
+                                )}
+                              </Button>
+                            </div>
                           </div>
                         )
                       })}
@@ -250,7 +291,7 @@ export function SearchEntityDialog({
           {results.length > 0 && (
             <div className="p-2 space-y-1">
               {results
-                .filter((entity) => !subscribedIds.has(entity.fingerprint || entity.id))
+                .filter((entity) => !subscribedIds.has(entity.id) && (!entity.fingerprint || !subscribedIds.has(entity.fingerprint)))
                 .map((entity) => {
                   const isPending = pendingEntityId === entity.id
 
@@ -277,19 +318,36 @@ export function SearchEntityDialog({
                           )}
                         </div>
                       </div>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={isPending}
-                        onClick={() => handleSubscribe(entity)}
-                        className="h-8 px-4 rounded-full transition-all opacity-0 group-hover:opacity-100"
-                      >
-                        {isPending ? (
-                          <Loader2 className="size-4 animate-spin" />
-                        ) : (
-                          subscribeLabel
+                      <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                        {onBookmark && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            disabled={pendingBookmarkId === entity.id}
+                            onClick={() => handleBookmark(entity)}
+                            className="h-8 px-4 rounded-full"
+                          >
+                            {pendingBookmarkId === entity.id ? (
+                              <Loader2 className="size-4 animate-spin" />
+                            ) : (
+                              bookmarkLabel
+                            )}
+                          </Button>
                         )}
-                      </Button>
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          disabled={isPending}
+                          onClick={() => handleSubscribe(entity)}
+                          className="h-8 px-4 rounded-full"
+                        >
+                          {isPending ? (
+                            <Loader2 className="size-4 animate-spin" />
+                          ) : (
+                            subscribeLabel
+                          )}
+                        </Button>
+                      </div>
                     </div>
                   )
                 })}
