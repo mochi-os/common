@@ -121,7 +121,7 @@ export function CommentTreeLayout({
 
         {/* Recursive Children - Indented by being in this column */}
         {hasChildren && !isCollapsed && (
-          <div className='w-full'>{children}</div>
+          <div className='w-full mb-2'>{children}</div>
         )}
       </div>
     </div>
