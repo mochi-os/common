@@ -4,15 +4,10 @@ import { Minus, Plus } from 'lucide-react'
 // Grid config - these match the proven Feeds design
 const COL_WIDTH = 'w-5' // 20px
 const AVATAR_SIZE = 'size-5' // 20px
-const LINE_LEFT = 'left-[9px]' // Center of 20px
-const CURVE_WIDTH = 'w-3' // 12px
-
 
 export interface CommentTreeLayoutProps {
   /** Nesting depth (0 = top-level) */
   depth?: number
-  /** Whether this is the last child in its parent's list */
-  isLastChild?: boolean
   /** Whether the node is collapsed */
   isCollapsed: boolean
   /** Toggle collapse state */
@@ -31,7 +26,6 @@ export interface CommentTreeLayoutProps {
 
 export function CommentTreeLayout({
   depth = 0,
-  isLastChild = true,
   isCollapsed,
   onToggleCollapse,
   hasChildren,
@@ -40,7 +34,7 @@ export function CommentTreeLayout({
   children,
   collapsedContent,
 }: CommentTreeLayoutProps) {
-  // Rainbow palette - Solid colors to match the "previous design" reference
+  // Rainbow palette
   const RAINBOW_COLORS = [
     'bg-rose-400',
     'bg-amber-400',
@@ -57,91 +51,75 @@ export function CommentTreeLayout({
     'border-violet-400',
   ]
 
-  // Color logic:
-  // - The "Bend" (vertical line + curve) belongs conceptually to the PARENT's trunk extension.
-  //   So it should use the color of (depth - 1).
-  // - The "Trunk" (dropping down from this avatar) starts the NEXT level.
-  //   So it should use the color of (depth).
-
-  // Color for the line coming from above (parent's level)
-  const parentColorBg = RAINBOW_COLORS[(depth - 1) % RAINBOW_COLORS.length]
-  const parentColorBorder = RAINBOW_BORDERS[(depth - 1) % RAINBOW_BORDERS.length]
-
-  // Color for the line dropping down from this comment (current level)
+  // Color for the line of THIS level
   const selfColorBg = RAINBOW_COLORS[depth % RAINBOW_COLORS.length]
-  // Used for the border of the expand/collapse button
   const selfColorBorder = RAINBOW_BORDERS[depth % RAINBOW_BORDERS.length]
 
   return (
-    <div className='flex'>
-      {/* 1. Bend Column (Only for Depth > 0) */}
-      {depth > 0 && (
-        <div className={`relative ${COL_WIDTH} shrink-0`}>
-          {/* Vertical line for siblings (extends full height if not last child) */}
-          {!isLastChild && (
-            <div
-              className={`${parentColorBg} absolute top-0 bottom-0 ${LINE_LEFT} w-[2px]`}
-            />
-          )}
-          {/* Curved bend connector for THIS comment */}
-          {/* Vertical part of the bend (top half) */}
-          <div
-            className={`${parentColorBg} absolute top-0 ${LINE_LEFT} h-3 w-[2px]`}
-          />
-          {/* Horizontal curve part */}
-          <div
-            className={`${parentColorBorder} absolute top-3 ${LINE_LEFT} h-3 ${CURVE_WIDTH} rounded-bl-xl border-b-[2px] border-l-[2px] border-t-0 border-r-0`}
-          />
-        </div>
-      )}
+    <div className='flex flex-row items-stretch'>
+      {/* 1. Sidebar Column: Line + Connector + Button */}
+      <div className={`relative ${COL_WIDTH} shrink-0`}>
+        {/* Continuous Vertical Line (Full Height) */}
+        {/* It stretches automatically because of flex items-stretch */}
+        {/* Added z-0 to ensure it sits behind the button/connector if overlaps occur, though DOM order usually handles this. */}
+        <div
+          className={`absolute left-[9px] top-0 bottom-0 w-[2px] ${selfColorBg} z-0`}
+        />
 
-      {/* 2. Main Block (Avatar + Content + Replies) */}
-      <div className='flex min-w-0 flex-1 flex-col'>
-        {/* Row: Avatar + Content */}
-        <div className='flex gap-2 pb-2'>
-          {/* Avatar Column */}
-          <div
-            className={`relative ${COL_WIDTH} flex shrink-0 flex-col items-center`}
+        {/* Curved Connector (L-shape) from line to avatar */}
+        {/* Connects top (sibling/parent) to right (avatar) */}
+        {/* Geometry Fix:
+            - Avatar is centered at ~10px vertically (size-5 = 20px).
+            - We want the horizontal line (bottom border) to hit Y=10px.
+            - If div is height 12px, we place it at top -2px. (12 - 2 = 10px).
+            - Width: Needs to reach from left-[9px] to center of next column (30px absolute).
+            - Distance = 21px. w-5 is 20px. Close enough to touch the avatar.
+        */}
+        <div
+          className={`absolute -top-0.5 left-[9px] h-3 w-5 rounded-bl-xl border-l-[2px] border-b-[2px] ${selfColorBorder} border-r-0 border-t-0 z-10`}
+        />
+
+        {/* Collapse/Expand Button */}
+        {hasChildren && (
+          <button
+            type='button'
+            onClick={(e) => {
+              e.stopPropagation()
+              onToggleCollapse()
+            }}
+            // Center the button on the line (left-[9px] + 1px center = 10px).
+            // Button is size-3 (12px). Left = 10 - 6 = 4px.
+            // Top aligned near the curve/avatar center (10px). Top = 10 - 6 = 4px.
+            className={`bg-background hover:bg-muted text-muted-foreground absolute top-[4px] left-[4px] z-20 flex size-3 items-center justify-center rounded-full border transition-colors ${selfColorBorder}`}
+            aria-label={isCollapsed ? 'Expand' : 'Collapse'}
           >
-            <div
-              className={`flex ${AVATAR_SIZE} z-[5] shrink-0 items-center justify-center`}
-            >
-              {avatar}
-            </div>
-            {/* Collapse/Expand Button */}
-            {hasChildren && (
-              <button
-                type='button'
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onToggleCollapse()
-                }}
-                className={`bg-background hover:bg-muted text-muted-foreground z-[5] mt-1 flex size-3 items-center justify-center rounded-sm border transition-colors ${selfColorBorder}`}
-                aria-label={isCollapsed ? 'Expand' : 'Collapse'}
-              >
-                {isCollapsed ? (
-                  <Plus className='size-2' />
-                ) : (
-                  <Minus className='size-2' />
-                )}
-              </button>
+            {isCollapsed ? (
+              <Plus className='size-2' />
+            ) : (
+              <Minus className='size-2' />
             )}
+          </button>
+        )}
+      </div>
 
-            {/* Trunk Line (Down to children) - extends past pb-2 padding */}
-            {hasChildren && !isCollapsed && (
-              <div
-                className={`${selfColorBg} absolute top-4 -bottom-2 ${LINE_LEFT} w-[2px]`}
-              />
-            )}
+      {/* 2. Main Content Column */}
+      <div className='flex-1 mb-1 min-w-0'>
+        {/* Header Row: Avatar + Body */}
+        <div className='flex gap-2 pb-2'>
+          {/* Avatar Area - No longer contains the line */}
+          <div
+            className={`flex ${AVATAR_SIZE} shrink-0 items-center justify-center`}
+          >
+            {avatar}
           </div>
 
-          {/* Content */}
-          <div className='min-w-0 flex-1'>
+          {/* Content Body */}
+          <div className='min-w-0 flex-1 pt-0.5'>
             {isCollapsed ? collapsedContent : content}
           </div>
         </div>
 
-        {/* Replies Block - Nested */}
+        {/* Recursive Children - Indented by being in this column */}
         {hasChildren && !isCollapsed && (
           <div className='w-full'>{children}</div>
         )}
