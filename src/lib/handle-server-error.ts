@@ -29,11 +29,11 @@ export function getErrorMessage(error: unknown, fallback?: string): string {
     if (typeof msg === 'string') return msg
   }
 
-  return fallback ?? 'Something went wrong'
+  return fallback ?? 'An unexpected error occurred'
 }
 
 export function handleServerError(error: unknown) {
-  let errMsg = 'Something went wrong!'
+  let errMsg = 'An unexpected error occurred'
 
   if (
     error &&

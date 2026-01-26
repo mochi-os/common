@@ -151,8 +151,10 @@ apiClient.interceptors.response.use(
       case 502:
       case 503: {
         logDevError('[API] Server error', error)
+        const responseData = error.response?.data as { error?: string; message?: string } | undefined
+        const errorMessage = responseData?.error ?? responseData?.message ?? 'Unable to connect to remote server'
         toast.error('Server error', {
-          description: 'Something went wrong on our end. Please try again later.',
+          description: errorMessage,
         })
         break
       }

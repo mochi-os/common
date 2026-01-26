@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { z } from 'zod'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -87,8 +87,8 @@ export function CreateEntityDialog({
   const isOpen = open ?? internalOpen
   const setIsOpen = onOpenChange ?? setInternalOpen
 
-  // Build schema dynamically
-  const schema = z.object({
+  // Build schema dynamically (memoized to prevent re-validation on every render)
+  const schema = useMemo(() => z.object({
     name: z
       .string()
       .min(1, `${entityLabel} name is required`)
@@ -101,7 +101,7 @@ export function CreateEntityDialog({
     ...Object.fromEntries(
       extraToggles.map((toggle) => [toggle.name, z.boolean()])
     ),
-  })
+  }), [entityLabel, extraToggles])
 
   type FormValues = z.infer<typeof schema>
 
