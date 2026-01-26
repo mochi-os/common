@@ -37,12 +37,14 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { SignOutDialog } from '../sign-out-dialog'
+import { Skeleton } from '../ui/skeleton'
 import type { SidebarData } from './types'
 
 type AppSidebarProps = {
   data: SidebarData
   showNotifications?: boolean
   sidebarFooter?: React.ReactNode
+  isLoading?: boolean
 }
 
 /* -----------------------------------------------------
@@ -308,6 +310,7 @@ export function AppSidebar({
   data,
   showNotifications = true,
   sidebarFooter,
+  isLoading,
 }: AppSidebarProps) {
   const { collapsible } = useLayout()
   const { isMobile } = useSidebar()
@@ -321,38 +324,72 @@ export function AppSidebar({
       )}
 
       <SidebarContent className='overflow-y-auto'>
-        {/* Primary action */}
-        {(() => {
-          const primary = data.navGroups
-            .flatMap((g) => g.items)
-            .find((i) => i.variant === 'primary' && 'onClick' in i)
+        {isLoading ? (
+          <div className='space-y-4 px-2 py-2'>
+            <div className='space-y-2'>
+              <div className='px-2 py-1.5'>
+                <Skeleton className='h-4 w-20' />
+              </div>
+              <div className='space-y-1'>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className='flex items-center gap-2 px-2 py-1'>
+                    <Skeleton className='size-4 rounded-sm' />
+                    <Skeleton className='h-4 w-32' />
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className='space-y-2'>
+              <div className='px-2 py-1.5'>
+                <Skeleton className='h-4 w-16' />
+              </div>
+              <div className='space-y-1'>
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className='flex items-center gap-2 px-2 py-1'>
+                     <Skeleton className='size-4 rounded-sm' />
+                     <Skeleton className='h-4 w-24' />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            {/* Primary action */}
+            {(() => {
+              const primary = data.navGroups
+                .flatMap((g) => g.items)
+                .find((i) => i.variant === 'primary' && 'onClick' in i)
 
-          if (!primary || !('onClick' in primary)) return null
+              if (!primary || !('onClick' in primary)) return null
 
-          return (
-            <SidebarGroup>
-              <SidebarMenu>
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    variant='primary'
-                    onClick={primary.onClick}
-                  >
-                    {primary.icon && <primary.icon className='size-5' />}
-                    <span className='group-data-[collapsible=icon]:hidden'>{primary.title}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </SidebarMenu>
-            </SidebarGroup>
-          )
-        })()}
+              return (
+                <SidebarGroup>
+                  <SidebarMenu>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton
+                        variant='primary'
+                        onClick={primary.onClick}
+                      >
+                        {primary.icon && <primary.icon className='size-5' />}
+                        <span className='group-data-[collapsible=icon]:hidden'>{primary.title}</span>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroup>
+              )
+            })()}
 
-        {data.navGroups.map((group) => (
-          <NavGroup
-            key={group.title}
-            {...group}
-            items={group.items.filter((i) => i.variant !== 'primary')}
-          />
-        ))}
+            {data.navGroups.map((group) => (
+              <NavGroup
+                key={group.title}
+                {...group}
+                items={group.items.filter((i) => i.variant !== 'primary')}
+              />
+            ))}
+          </>
+        )}
       </SidebarContent>
 
       {sidebarFooter && <SidebarFooter>{sidebarFooter}</SidebarFooter>}
