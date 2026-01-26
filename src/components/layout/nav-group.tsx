@@ -34,6 +34,7 @@ import {
   type NavItem,
   type NavLink,
   type NavSubCollapsible,
+  type NavSubItem,
   type NavGroup as NavGroupProps,
 } from './types'
 
@@ -432,7 +433,7 @@ function SidebarMenuCollapsedDropdown({
   )
 }
 
-function checkIsActive(pathname: string, item: NavItem, mainNav = false) {
+function checkIsActive(pathname: string, item: NavItem | NavSubItem, mainNav = false): boolean {
   // Normalize paths for comparison
   const normalizePath = (path: string): string => {
     if (!path) return '/'
@@ -446,32 +447,31 @@ function checkIsActive(pathname: string, item: NavItem, mainNav = false) {
   }
 
   const normalizedPathname = normalizePath(pathname)
-  const normalizedItemUrl = normalizePath(item.url as string)
+  // Check if item has a URL property before accessing it
+  const url = 'url' in item ? item.url : undefined
+  const normalizedItemUrl = normalizePath(url as string)
 
   // Check for exact match
-  if (normalizedPathname === normalizedItemUrl) {
+  if (url && normalizedPathname === normalizedItemUrl) {
     return true
   }
 
   // Check for prefix match (e.g., /abc123/settings matches /abc123)
   // But not for root URL to avoid matching everything
-  if (normalizedItemUrl !== '/' && normalizedPathname.startsWith(normalizedItemUrl + '/')) {
+  if (url && normalizedItemUrl !== '/' && normalizedPathname.startsWith(normalizedItemUrl + '/')) {
     return true
   }
 
-  // Check if any child nav item is active
-  if (item?.items?.length) {
-    const hasActiveChild = item.items.some((i) => {
-      const normalizedChildUrl = normalizePath(i.url as string)
-      return normalizedPathname === normalizedChildUrl
-    })
+  // Check if any child nav item is active (Recursive)
+  if ('items' in item && item.items && Array.isArray(item.items)) {
+    const hasActiveChild = item.items.some((i: any) => checkIsActive(pathname, i))
     if (hasActiveChild) {
       return true
     }
   }
 
   // For main nav items, check if the first segment matches
-  if (mainNav) {
+  if (mainNav && url) {
     const pathnameSegments = normalizedPathname.split('/').filter(Boolean)
     const itemUrlSegments = normalizedItemUrl.split('/').filter(Boolean)
     if (pathnameSegments.length > 0 && itemUrlSegments.length > 0) {
