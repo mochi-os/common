@@ -99,7 +99,7 @@ function formatTimestamp(timestamp: number): string {
  * --------------------------------------------------- */
 function MochiLogo() {
   return (
-    <div className='pt-2'>
+    <div className=''>
       <img src='/images/logo-header.svg' alt='Mochi' className='h-6 w-6' />
     </div>
   )
@@ -110,7 +110,7 @@ function MochiLogo() {
  * --------------------------------------------------- */
 function UserIcon({ unreadCount }: { unreadCount?: number }) {
   return (
-    <div className='relative pt-2 pr-2'>
+    <div className='relative'>
       <CircleUser className='size-5 text-muted-foreground' />
       {!!unreadCount && (
         <span className='absolute right-0 top-0 z-10 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white'>
@@ -244,7 +244,7 @@ function SidebarLogoMenu({
         <SidebarMenuItem>
           <div
             className={cn(
-              'flex items-center',
+              'flex items-center p-2',
               state === 'expanded' ? 'gap-1.5' : 'flex-col gap-0 justify-center'
             )}
           >
@@ -256,7 +256,10 @@ function SidebarLogoMenu({
             {/* User */}
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
-                <SidebarMenuButton size='sm' className='w-auto p-2 overflow-visible'>
+                <SidebarMenuButton
+                  size='sm'
+                  className='w-auto p-2 overflow-visible'
+                >
                   <UserIcon unreadCount={showNotifications ? unreadCount : 0} />
                 </SidebarMenuButton>
               </DropdownMenuTrigger>
@@ -339,7 +342,7 @@ export function AppSidebar({
                 ))}
               </div>
             </div>
-            
+
             <div className='space-y-2'>
               <div className='px-2 py-1.5'>
                 <Skeleton className='h-4 w-16' />
@@ -347,8 +350,8 @@ export function AppSidebar({
               <div className='space-y-1'>
                 {Array.from({ length: 3 }).map((_, i) => (
                   <div key={i} className='flex items-center gap-2 px-2 py-1'>
-                     <Skeleton className='size-4 rounded-sm' />
-                     <Skeleton className='h-4 w-24' />
+                    <Skeleton className='size-4 rounded-sm' />
+                    <Skeleton className='h-4 w-24' />
                   </div>
                 ))}
               </div>
@@ -373,7 +376,9 @@ export function AppSidebar({
                         onClick={primary.onClick}
                       >
                         {primary.icon && <primary.icon className='size-5' />}
-                        <span className='group-data-[collapsible=icon]:hidden'>{primary.title}</span>
+                        <span className='group-data-[collapsible=icon]:hidden'>
+                          {primary.title}
+                        </span>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
                   </SidebarMenu>

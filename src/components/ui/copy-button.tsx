@@ -1,0 +1,56 @@
+import * as React from 'react'
+import { Check, Copy } from 'lucide-react'
+import { type VariantProps } from 'class-variance-authority'
+import { Button, buttonVariants } from './button'
+import { toast } from '../../lib/toast-utils'
+import { cn } from '../../lib/utils'
+
+interface CopyButtonProps
+  extends React.ComponentProps<typeof Button>,
+    VariantProps<typeof buttonVariants> {
+  value: string
+  successMessage?: string
+}
+
+export function CopyButton({
+  value,
+  successMessage = 'Copied to clipboard',
+  className,
+  variant = 'ghost',
+  size = 'icon',
+  ...props
+}: CopyButtonProps) {
+  const [copied, setCopied] = React.useState(false)
+
+  const handleCopy = React.useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(value)
+      setCopied(true)
+      toast.success(successMessage)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      toast.error('Failed to copy')
+    }
+  }, [value, successMessage])
+
+  return (
+    <Button
+      variant={variant}
+      size={size}
+      className={cn('size-8 shrink-0', className)}
+      onClick={(e) => {
+        e.preventDefault()
+        e.stopPropagation()
+        handleCopy()
+      }}
+      {...props}
+    >
+      {copied ? (
+        <Check className="h-3.5 w-3.5 text-green-500" />
+      ) : (
+        <Copy className="h-3.5 w-3.5" />
+      )}
+      <span className="sr-only">Copy</span>
+    </Button>
+  )
+}
