@@ -200,6 +200,7 @@ export function SearchEntityDialog({
                 <Icon className="text-muted-foreground size-8" />
               </div>
               <h3 className="font-semibold text-sm">{emptyMessage}</h3>
+              <p className="text-muted-foreground text-xs mt-1">Try adjusting your search terms</p>
             </div>
           )}
 
@@ -215,7 +216,8 @@ export function SearchEntityDialog({
                 </div>
               ) : isRecommendationsError || filteredRecommendations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
-                  <Search className="size-12 opacity-20" />
+                  <Search className="size-12 opacity-20 mb-3" />
+                  <p className="text-sm font-medium">Type to find {entityClass}s...</p>
                 </div>
               ) : (
                 <div>
