@@ -1,0 +1,68 @@
+import * as React from 'react'
+import { Flame, TrendingUp, Trophy, Clock, Sparkles } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './select'
+
+export type SortType = 'best' | 'hot' | 'new' | 'top' | 'rising'
+
+interface SortOption {
+  value: SortType
+  label: string
+  icon: React.ReactNode
+}
+
+const SORT_OPTIONS: SortOption[] = [
+  { value: 'best', label: 'Best', icon: <Sparkles className="size-4" /> },
+  { value: 'hot', label: 'Hot', icon: <Flame className="size-4" /> },
+  { value: 'new', label: 'New', icon: <Clock className="size-4" /> },
+  { value: 'top', label: 'Top', icon: <Trophy className="size-4" /> },
+  { value: 'rising', label: 'Rising', icon: <TrendingUp className="size-4" /> },
+]
+
+interface SortSelectorProps {
+  value: SortType
+  onValueChange: (value: SortType) => void
+  disabled?: boolean
+  className?: string
+}
+
+export function SortSelector({
+  value,
+  onValueChange,
+  disabled,
+  className,
+}: SortSelectorProps) {
+  const currentOption = SORT_OPTIONS.find((opt) => opt.value === value)
+
+  return (
+    <Select
+      value={value}
+      onValueChange={(v: string) => onValueChange(v as SortType)}
+      disabled={disabled}
+    >
+      <SelectTrigger className={className} size="sm">
+        <SelectValue>
+          <div className="flex items-center gap-2">
+            {currentOption?.icon}
+            <span>{currentOption?.label}</span>
+          </div>
+        </SelectValue>
+      </SelectTrigger>
+      <SelectContent>
+        {SORT_OPTIONS.map((option) => (
+          <SelectItem key={option.value} value={option.value}>
+            <div className="flex items-center gap-2">
+              {option.icon}
+              <span>{option.label}</span>
+            </div>
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  )
+}

@@ -168,15 +168,6 @@ function SidebarMenuCollapsible({
 }) {
   const { setOpenMobile } = useSidebar()
 
-  // Render header - either as a link (if url provided) or just text
-  const headerContent = (
-    <>
-      {item.icon && <item.icon />}
-      <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
-      {item.badge && <NavBadge>{item.badge}</NavBadge>}
-    </>
-  )
-
   // Use controlled mode if `open` prop is provided, otherwise use uncontrolled
   const isControlled = typeof item.open === 'boolean'
   const collapsibleProps = isControlled
@@ -195,9 +186,14 @@ function SidebarMenuCollapsible({
       className='group/collapsible'
     >
       <SidebarMenuItem>
-        <div className='flex items-center'>
-          {item.url ? (
-            item.external ? (
+        {/*
+          If `item.url` is present, we keep the split behavior:
+          - Main part links to URL
+          - Small chevron button toggles collapse
+         */}
+        {item.url ? (
+           <div className='flex items-center'>
+            {item.external ? (
               <SidebarMenuButton
                 asChild
                 isActive={shouldHighlight}
@@ -205,7 +201,9 @@ function SidebarMenuCollapsible({
                 className={cn('flex-1', item.className)}
               >
                 <a href={item.url as string} onClick={() => setOpenMobile(false)}>
-                  {headerContent}
+                  {item.icon && <item.icon />}
+                  <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
+                  {item.badge && <NavBadge>{item.badge}</NavBadge>}
                 </a>
               </SidebarMenuButton>
             ) : (
@@ -216,24 +214,40 @@ function SidebarMenuCollapsible({
                 className={cn('flex-1', item.className)}
               >
                 <Link to={item.url} onClick={() => setOpenMobile(false)}>
-                  {headerContent}
+                  {item.icon && <item.icon />}
+                  <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
+                  {item.badge && <NavBadge>{item.badge}</NavBadge>}
                 </Link>
               </SidebarMenuButton>
-            )
-          ) : (
-            <SidebarMenuButton tooltip={item.title} className={cn('flex-1 cursor-default', item.className)}>
-              {headerContent}
-            </SidebarMenuButton>
-          )}
+            )}
+            <CollapsibleTrigger asChild>
+              <button
+                type='button'
+                className='p-1.5 hover:bg-hover rounded-md transition-colors'
+              >
+                <ChevronRight className='size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
+              </button>
+            </CollapsibleTrigger>
+          </div>
+        ) : (
+          /*
+            If NO URL, the entire row is the collapsible trigger.
+           */
           <CollapsibleTrigger asChild>
-            <button
-              type='button'
-              className='p-1.5 hover:bg-hover rounded-md transition-colors'
+            <SidebarMenuButton
+              tooltip={item.title}
+              className={cn('cursor-pointer', item.className)}
             >
-              <ChevronRight className='size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 rtl:rotate-180' />
-            </button>
+              {item.icon && <item.icon />}
+              <span className='group-data-[collapsible=icon]:hidden'>
+                {item.title}
+              </span>
+              {item.badge && <NavBadge>{item.badge}</NavBadge>}
+             <ChevronRight className='ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden' />
+            </SidebarMenuButton>
           </CollapsibleTrigger>
-        </div>
+        )}
+
         <CollapsibleContent className='CollapsibleContent'>
           <SidebarMenuSub>
             {item.items.map((subItem) => {
@@ -308,44 +322,52 @@ function SidebarMenuSubCollapsible({
     ? item.open && checkIsActive(pathname, item)
     : checkIsActive(pathname, item)
 
-  const headerContent = (
-    <>
-      {item.icon && <item.icon />}
-      <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
-      {item.badge && <NavBadge>{item.badge}</NavBadge>}
-    </>
-  )
-
   return (
     <SidebarMenuSubItem>
       <Collapsible {...collapsibleProps} className='group/subcollapsible'>
-        <div className='flex items-center'>
-          {item.url ? (
-            <SidebarMenuSubButton
-              asChild
-              isActive={shouldHighlight}
-              className='flex-1'
-            >
-              <Link to={item.url} onClick={() => setOpenMobile(false)}>
-                {headerContent}
-              </Link>
-            </SidebarMenuSubButton>
-          ) : (
-            <SidebarMenuSubButton className='flex-1 cursor-default'>
-              {headerContent}
-            </SidebarMenuSubButton>
-          )}
+        {/*
+          If `item.url` is present, split behavior:
+          - Link toggles nav
+          - Chevron toggles collapse
+         */}
+        {item.url ? (
+          <div className='flex items-center'>
+             <SidebarMenuSubButton
+                asChild
+                isActive={shouldHighlight}
+                className='flex-1'
+              >
+                <Link to={item.url} onClick={() => setOpenMobile(false)}>
+                  {item.icon && <item.icon />}
+                  <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
+                  {item.badge && <NavBadge>{item.badge}</NavBadge>}
+                </Link>
+              </SidebarMenuSubButton>
+            <CollapsibleTrigger asChild>
+              <button
+                type='button'
+                className='p-1 hover:bg-hover rounded-md transition-colors'
+              >
+                <ChevronRight className='size-3 transition-transform duration-200 group-data-[state=open]/subcollapsible:rotate-90 rtl:rotate-180' />
+              </button>
+            </CollapsibleTrigger>
+          </div>
+        ) : (
+          /*
+            If NO URL, full row toggle
+           */
           <CollapsibleTrigger asChild>
-            <button
-              type='button'
-              className='p-1 hover:bg-hover rounded-md transition-colors'
-            >
-              <ChevronRight className='size-3 transition-transform duration-200 group-data-[state=open]/subcollapsible:rotate-90 rtl:rotate-180' />
-            </button>
+             <SidebarMenuSubButton className='flex-1 cursor-pointer'>
+                {item.icon && <item.icon />}
+                <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
+                {item.badge && <NavBadge>{item.badge}</NavBadge>}
+                <ChevronRight className='ml-auto size-3 transition-transform duration-200 group-data-[state=open]/subcollapsible:rotate-90 rtl:rotate-180' />
+              </SidebarMenuSubButton>
           </CollapsibleTrigger>
-        </div>
+        )}
+
         <CollapsibleContent>
-          <SidebarMenuSub className='ml-2 border-l pl-2'>
+          <SidebarMenuSub>
             {item.items.map((subSubItem) => {
               // Handle action sub-sub-items
               if (isNavAction(subSubItem)) {

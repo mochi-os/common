@@ -9,18 +9,18 @@ type MainProps = React.HTMLAttributes<HTMLElement> & {
 }
 
 const spacingYClasses = {
-  xs: 'py-2',     // --content-spacing-xs
-  sm: 'py-4',     // --content-spacing-sm
+  xs: 'py-2', // --content-spacing-xs
+  sm: 'py-4', // --content-spacing-sm
   default: 'py-6', // --content-spacing
-  lg: 'py-8',     // --content-spacing-lg
-  xl: 'py-12',    // --content-spacing-xl
+  lg: 'py-8', // --content-spacing-lg
+  xl: 'py-12', // --content-spacing-xl
 }
 
 export function Main({
   fixed,
   className,
   fluid,
-  spacingY = 'default',
+  spacingY = 'sm',
   ...props
 }: MainProps) {
   return (
@@ -35,7 +35,7 @@ export function Main({
 
         // If layout is not fluid, set the max-width
         !fluid &&
-          '@7xl/content:mx-auto @7xl/content:w-full @7xl/content:max-w-7xl',
+        '@6xl/content:mx-auto @6xl/content:w-full @6xl/content:max-w-6xl',
         className
       )}
       {...props}

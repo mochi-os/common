@@ -43,16 +43,16 @@ function ResponsiveDialog({
   shouldCloseOnInteractOutside = true,
   ...props
 }: RootResponsiveDialogProps & { shouldCloseOnInteractOutside?: boolean }) {
-  const { isDesktop } = useScreenSize()
-  const ResponsiveDialogRoot = isDesktop ? Dialog : Drawer
+  const { isMobile } = useScreenSize()
+  const ResponsiveDialogRoot = !isMobile ? Dialog : Drawer
 
   return (
     <ResponsiveDialogContext.Provider value={{ shouldCloseOnInteractOutside }}>
       <ResponsiveDialogRoot
         {...props}
         // Always allow mobile drawers to be dismissible for better UX
-        // The shouldCloseOnInteractOutside setting only affects desktop dialogs
-        {...(!isDesktop && { dismissible: true })}
+        // The shouldCloseOnInteractOutside setting only affects desktop/tablet dialogs
+        {... (isMobile && { dismissible: true })}
       >
         {children}
       </ResponsiveDialogRoot>
@@ -65,8 +65,8 @@ function ResponsiveDialogTrigger({
   children,
   ...props
 }: BaseProps & { className?: string; asChild?: boolean }) {
-  const { isDesktop } = useScreenSize()
-  const ResponsiveDialogTriggerComponent = isDesktop
+  const { isMobile } = useScreenSize()
+  const ResponsiveDialogTriggerComponent = !isMobile
     ? DialogTrigger
     : DrawerTrigger
 
@@ -82,8 +82,8 @@ function ResponsiveDialogClose({
   children,
   ...props
 }: BaseProps & { className?: string; asChild?: boolean }) {
-  const { isDesktop } = useScreenSize()
-  const ResponsiveDialogCloseComponent = isDesktop ? DialogClose : DrawerClose
+  const { isMobile } = useScreenSize()
+  const ResponsiveDialogCloseComponent = !isMobile ? DialogClose : DrawerClose
 
   return (
     <ResponsiveDialogCloseComponent className={className} {...props}>
@@ -99,8 +99,8 @@ function ResponsiveDialogContent({
 }: BaseProps & { className?: string } & React.ComponentProps<
     typeof DialogContent
   >) {
-  const { isDesktop } = useScreenSize()
-  const ResponsiveDialogContentComponent = isDesktop
+  const { isMobile } = useScreenSize()
+  const ResponsiveDialogContentComponent = !isMobile
     ? DialogContent
     : DrawerContent
   const { shouldCloseOnInteractOutside } = React.useContext(
@@ -111,7 +111,7 @@ function ResponsiveDialogContent({
     <ResponsiveDialogContentComponent
       className={className}
       {...props}
-      {...(isDesktop && {
+      {...(!isMobile && {
         onInteractOutside: (e: any) => {
           if (!shouldCloseOnInteractOutside) {
             e.preventDefault()
@@ -130,8 +130,8 @@ function ResponsiveDialogDescription({
   children,
   ...props
 }: BaseProps & { className?: string }) {
-  const { isDesktop } = useScreenSize()
-  const ResponsiveDialogDescriptionComponent = isDesktop
+  const { isMobile } = useScreenSize()
+  const ResponsiveDialogDescriptionComponent = !isMobile
     ? DialogDescription
     : DrawerDescription
 
@@ -147,8 +147,8 @@ function ResponsiveDialogHeader({
   children,
   ...props
 }: BaseProps & { className?: string }) {
-  const { isDesktop } = useScreenSize()
-  const ResponsiveDialogHeaderComponent = isDesktop
+  const { isMobile } = useScreenSize()
+  const ResponsiveDialogHeaderComponent = !isMobile
     ? DialogHeader
     : DrawerHeader
 
@@ -164,8 +164,8 @@ function ResponsiveDialogTitle({
   children,
   ...props
 }: BaseProps & { className?: string }) {
-  const { isDesktop } = useScreenSize()
-  const ResponsiveDialogTitleComponent = isDesktop ? DialogTitle : DrawerTitle
+  const { isMobile } = useScreenSize()
+  const ResponsiveDialogTitleComponent = !isMobile ? DialogTitle : DrawerTitle
 
   return (
     <ResponsiveDialogTitleComponent className={className} {...props}>
@@ -179,8 +179,8 @@ function ResponsiveDialogFooter({
   children,
   ...props
 }: BaseProps & { className?: string }) {
-  const { isDesktop } = useScreenSize()
-  const ResponsiveDialogFooterComponent = isDesktop
+  const { isMobile } = useScreenSize()
+  const ResponsiveDialogFooterComponent = !isMobile
     ? DialogFooter
     : DrawerFooter
 

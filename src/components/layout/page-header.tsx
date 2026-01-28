@@ -21,8 +21,8 @@ export function PageHeader({
 
   return (
     <header className='border-border bg-background sticky top-0 z-10 border-b'>
-      {/* Search bar on mobile - full width row */}
-      {isMobile && searchBar && (
+      {/* Search bar - full width row below top row on mobile, above on desktop or just integrated */}
+      {searchBar && (
         <div className='border-b px-4 py-2'>{searchBar}</div>
       )}
 
