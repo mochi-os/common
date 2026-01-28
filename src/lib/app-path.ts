@@ -24,17 +24,13 @@ function isEntityId(s: string): boolean {
   return /^[1-9A-HJ-NP-Za-km-z]{9}$/.test(s) || /^[1-9A-HJ-NP-Za-km-z]{50,51}$/.test(s)
 }
 
-// Cached values (computed once at startup)
-let cachedAppPath: string | null = null
-let cachedRouterBasepath: string | null = null
-let cachedApiBasepath: string | null = null
 
 // Known app paths - if the first path segment isn't one of these and isn't an entity ID,
 // we're likely on a subdomain with entity routing
 const KNOWN_APPS = [
   'wikis', 'wiki', 'forums', 'forum', 'feeds', 'feed', 'chat', 'files',
   'login', 'home', 'notifications', 'people', 'friends', 'settings', 'publisher',
-  'apps', 'recommendations', 'repositories',
+  'apps', 'recommendations', 'repositories', 'projects',
 ]
 
 // Check if we're on a domain with entity routing (subdomain or custom domain)
@@ -57,21 +53,16 @@ export function isDomainEntityRouting(): boolean {
 // Get the app path (first URL segment, e.g., /wiki)
 // For direct entity routing (/<entity>/) or subdomain entity routing, returns empty string
 export function getAppPath(): string {
-  if (cachedAppPath === null) {
-    // Domain entity routing: no app path
-    if (isDomainEntityRouting()) {
-      cachedAppPath = ''
-    } else {
-      const pathname = window.location.pathname
-      const match = pathname.match(/^\/([^/]+)/)
-      if (match && !isEntityId(match[1])) {
-        cachedAppPath = '/' + match[1]
-      } else {
-        cachedAppPath = ''
-      }
-    }
+  // Domain entity routing: no app path
+  if (isDomainEntityRouting()) {
+    return ''
   }
-  return cachedAppPath
+  const pathname = window.location.pathname
+  const match = pathname.match(/^\/([^/]+)/)
+  if (match && !isEntityId(match[1])) {
+    return '/' + match[1]
+  }
+  return ''
 }
 
 // Get the router basepath
@@ -80,28 +71,22 @@ export function getAppPath(): string {
 // Direct entity: /<entity-id>/ (e.g., /abc123/)
 // Subdomain entity: / (e.g., docs.mochi-os.org/)
 export function getRouterBasepath(): string {
-  if (cachedRouterBasepath === null) {
-    // Domain entity routing: basepath is just /
-    if (isDomainEntityRouting()) {
-      cachedRouterBasepath = '/'
-    } else {
-      const pathname = window.location.pathname
-      // Check for direct entity routing: /<entity>/
-      const directMatch = pathname.match(/^\/([^/]+)/)
-      if (directMatch && isEntityId(directMatch[1])) {
-        cachedRouterBasepath = `/${directMatch[1]}/`
-      } else {
-        // Check for /<app>/<entity>/ pattern
-        const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
-        if (match && !CLASS_ROUTES.includes(match[2])) {
-          cachedRouterBasepath = `${match[1]}/${match[2]}/`
-        } else {
-          cachedRouterBasepath = getAppPath() + '/'
-        }
-      }
-    }
+  // Domain entity routing: basepath is just /
+  if (isDomainEntityRouting()) {
+    return '/'
   }
-  return cachedRouterBasepath
+  const pathname = window.location.pathname
+  // Check for direct entity routing: /<entity>/
+  const directMatch = pathname.match(/^\/([^/]+)/)
+  if (directMatch && isEntityId(directMatch[1])) {
+    return `/${directMatch[1]}/`
+  }
+  // Check for /<app>/<entity>/ pattern
+  const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
+  if (match && !CLASS_ROUTES.includes(match[2])) {
+    return `${match[1]}/${match[2]}/`
+  }
+  return getAppPath() + '/'
 }
 
 // Get the API basepath
@@ -110,28 +95,22 @@ export function getRouterBasepath(): string {
 // Direct entity: /<entity-id>/-/ (e.g., /abc123/-/)
 // Subdomain entity: /-/ (e.g., docs.mochi-os.org/-/)
 export function getApiBasepath(): string {
-  if (cachedApiBasepath === null) {
-    // Domain entity routing: API calls go to /-/
-    if (isDomainEntityRouting()) {
-      cachedApiBasepath = '/-/'
-    } else {
-      const pathname = window.location.pathname
-      // Check for direct entity routing: /<entity>/
-      const directMatch = pathname.match(/^\/([^/]+)/)
-      if (directMatch && isEntityId(directMatch[1])) {
-        cachedApiBasepath = `/${directMatch[1]}/-/`
-      } else {
-        // Check for /<app>/<entity>/ pattern
-        const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
-        if (match && !CLASS_ROUTES.includes(match[2])) {
-          cachedApiBasepath = `${match[1]}/${match[2]}/-/`
-        } else {
-          cachedApiBasepath = getAppPath() + '/'
-        }
-      }
-    }
+  // Domain entity routing: API calls go to /-/
+  if (isDomainEntityRouting()) {
+    return '/-/'
   }
-  return cachedApiBasepath
+  const pathname = window.location.pathname
+  // Check for direct entity routing: /<entity>/
+  const directMatch = pathname.match(/^\/([^/]+)/)
+  if (directMatch && isEntityId(directMatch[1])) {
+    return `/${directMatch[1]}/-/`
+  }
+  // Check for /<app>/<entity>/ pattern
+  const match = pathname.match(/^(\/[^/]+)\/([^/]+)/)
+  if (match && !CLASS_ROUTES.includes(match[2])) {
+    return `${match[1]}/${match[2]}/-/`
+  }
+  return getAppPath() + '/'
 }
 
 // Get the auth login URL from environment or default
@@ -142,3 +121,4 @@ export function getAuthLoginUrl(): string {
     '/'
   )
 }
+
