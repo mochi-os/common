@@ -20,14 +20,14 @@ export function PageHeader({
   const { isMobile } = useScreenSize()
 
   return (
-    <header className='border-border bg-background sticky top-0 z-10 border-b'>
+    <header className='bg-background sticky top-0 z-10'>
       {/* Search bar - full width row below top row on mobile, above on desktop or just integrated */}
       {searchBar && (
         <div className='border-b px-4 py-2'>{searchBar}</div>
       )}
 
       {/* Title and actions row */}
-      <div className='flex h-[52px] items-center justify-between px-4 md:h-[56px] md:px-6'>
+      <div className='flex h-[44px] items-center justify-between px-4 md:h-[48px] md:px-6'>
         <div>
           <div className='flex items-center gap-2 md:gap-3'>
             {icon}

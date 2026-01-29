@@ -211,7 +211,7 @@ function Sidebar({
 
   return (
     <div
-      className='group peer text-sidebar-foreground hidden h-full flex-1 md:block'
+      className='group peer text-sidebar-foreground relative hidden h-full md:block'
       data-state={state}
       data-collapsible={state === 'collapsed' ? collapsible : ''}
       data-variant={variant}
@@ -233,7 +233,7 @@ function Sidebar({
       <div
         data-slot='sidebar-container'
         className={cn(
-          'inset-y-0 z-10 hidden h-full w-(--sidebar-width) overflow-visible transition-[inset-inline,width] duration-200 ease-linear md:flex',
+          'absolute inset-y-0 z-10 hidden h-full w-(--sidebar-width) overflow-visible transition-[inset-inline,width] duration-200 ease-linear md:flex',
           side === 'left'
             ? 'start-0 group-data-[collapsible=offcanvas]:-start-[calc(var(--sidebar-width))]'
             : 'end-0 group-data-[collapsible=offcanvas]:-end-[calc(var(--sidebar-width))]',
@@ -320,7 +320,7 @@ function SidebarInset({ className, ...props }: React.ComponentProps<'div'>) {
     <div
       data-slot='sidebar-inset'
       className={cn(
-        'bg-background relative w-full flex-1 flex-col',
+        'bg-background relative w-full flex flex-1 flex-col',
         'md:peer-data-[variant=inset]:m-4 md:peer-data-[variant=inset]:ms-0 md:peer-data-[variant=inset]:rounded-xl md:peer-data-[variant=inset]:shadow-sm md:peer-data-[variant=inset]:peer-data-[state=collapsed]:ms-2',
         className
       )}

@@ -115,20 +115,12 @@ export function AuthenticatedLayout({
       {hasSidebar ? (
         <>
           {/* Desktop sidebar */}
-          <div
-            className={cn(
-              'relative hidden h-full flex-shrink-0 overflow-visible md:flex',
-              'w-(--sidebar-width) has-data-[state=collapsed]:w-(--sidebar-width-icon)',
-              'transition-[width] duration-200 ease-linear'
-            )}
-          >
-            <AppSidebar
-              data={sidebarData}
-              showNotifications={showNotifications}
-              sidebarFooter={sidebarFooter}
-              isLoading={isLoadingSidebar}
-            />
-          </div>
+          <AppSidebar
+            data={sidebarData}
+            showNotifications={showNotifications}
+            sidebarFooter={sidebarFooter}
+            isLoading={isLoadingSidebar}
+          />
 
           {/* Mobile TopBar */}
           <header className='fixed top-0 left-0 right-0 z-[60] h-12 border-b bg-background md:hidden overflow-visible'>
