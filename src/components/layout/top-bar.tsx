@@ -8,6 +8,7 @@ import {
   LogOut,
   PanelLeft,
   Settings,
+  BellOff,
 } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
@@ -37,6 +38,7 @@ import {
   DrawerTrigger,
 } from '../ui/drawer'
 import { SignOutDialog } from '../sign-out-dialog'
+import { EmptyState } from '../ui/empty-state'
 
 type TopBarProps = {
   showNotifications?: boolean
@@ -134,9 +136,12 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
 
   if (!unread.length) {
     return (
-      <div className='px-2 py-3 text-center text-sm text-muted-foreground'>
-        No new notifications
-      </div>
+      <EmptyState
+        icon={BellOff}
+        title="You're all caught up!"
+        description='No unread notifications'
+        className='py-8 bg-transparent'
+      />
     )
   }
 

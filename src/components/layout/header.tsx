@@ -56,7 +56,7 @@ export function Header({
         <div
           className={cn(
             'flex h-full w-full items-center gap-3 sm:gap-4',
-            '@6xl/content:mx-auto @6xl/content:max-w-6xl',
+            '@7xl/content:mx-auto @7xl/content:max-w-7xl',
             compact ? 'px-4 py-2' : 'p-4'
           )}
         >

@@ -6,8 +6,6 @@ interface PageHeaderProps {
   title: ReactNode
   description?: string
   actions?: ReactNode
-  /** Optional search bar to show in full-width row above title on mobile */
-  searchBar?: ReactNode
 }
 
 export function PageHeader({
@@ -15,17 +13,11 @@ export function PageHeader({
   title,
   description,
   actions,
-  searchBar,
 }: PageHeaderProps) {
   const { isMobile } = useScreenSize()
 
   return (
     <header className='border-border bg-background sticky top-0 z-10 border-b'>
-      {/* Search bar - full width row below top row on mobile, above on desktop or just integrated */}
-      {searchBar && (
-        <div className='border-b px-4 py-2'>{searchBar}</div>
-      )}
-
       {/* Title and actions row */}
       <div className='flex h-[52px] items-center justify-between px-4 md:h-[56px] md:px-6'>
         <div>
