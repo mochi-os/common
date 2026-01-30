@@ -18,8 +18,9 @@ export function PageHeader({
 
   return (
     <header className='border-border bg-background sticky top-0 z-10 border-b'>
+
       {/* Title and actions row */}
-      <div className='flex h-[52px] items-center justify-between px-4 md:h-[56px] md:px-6'>
+      <div className='flex h-[44px] items-center justify-between px-4 md:h-[48px] md:px-6'>
         <div>
           <div className='flex items-center gap-2 md:gap-3'>
             {icon}
