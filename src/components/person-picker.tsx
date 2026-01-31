@@ -50,6 +50,10 @@ export interface PersonPickerProps {
   disabled?: boolean
   /** Additional CSS classes */
   className?: string
+  /** Controlled open state */
+  open?: boolean
+  /** Callback when open state changes */
+  onOpenChange?: (open: boolean) => void
 }
 
 export function PersonPicker({
@@ -64,8 +68,12 @@ export function PersonPicker({
   emptyMessage = 'No people found',
   disabled = false,
   className,
+  open: controlledOpen,
+  onOpenChange,
 }: PersonPickerProps) {
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen ?? internalOpen
+  const setOpen = onOpenChange ?? setInternalOpen
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
 
@@ -203,8 +211,8 @@ export function PersonPicker({
     }
   }
 
-  // Get display text for trigger button
-  const displayText = useMemo(() => {
+  // Get display info for trigger button
+  const displayInfo = useMemo(() => {
     if (selectedIds.length === 0) return null
 
     const selectedPeople = selectedIds
@@ -214,20 +222,13 @@ export function PersonPicker({
     if (selectedPeople.length === 0) {
       // Try to find in local if allPeople hasn't loaded yet
       const localPerson = local.find((p) => p.id === selectedIds[0])
-      if (localPerson) return localPerson.name
-      return `${selectedIds.length} selected`
+      if (localPerson) return { names: [localPerson.name], count: 1 }
+      return { names: [], count: selectedIds.length }
     }
 
-    if (mode === 'single') {
-      return selectedPeople[0]?.name
-    }
-
-    if (selectedPeople.length === 1) {
-      return selectedPeople[0].name
-    }
-
-    return `${selectedPeople.length} people`
-  }, [selectedIds, allPeople, local, mode])
+    const names = selectedPeople.map((p) => p.name)
+    return { names, count: selectedPeople.length }
+  }, [selectedIds, allPeople, local])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -239,15 +240,28 @@ export function PersonPicker({
           disabled={disabled}
           className={cn(
             'w-full justify-between font-normal',
-            !displayText && 'text-muted-foreground',
+            !displayInfo && 'text-muted-foreground',
             className
           )}
         >
-          <span className="truncate">
-            {displayText || placeholder}
-          </span>
+          {displayInfo ? (
+            <span className="flex items-center gap-1 min-w-0 flex-1">
+              <span className="truncate">
+                {displayInfo.names.length > 0
+                  ? displayInfo.names.slice(0, 2).join(', ')
+                  : `${displayInfo.count} selected`}
+              </span>
+              {displayInfo.count > 2 && (
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  +{displayInfo.count - 2}
+                </span>
+              )}
+            </span>
+          ) : (
+            <span className="truncate">{placeholder}</span>
+          )}
           <div className="flex items-center gap-1 shrink-0">
-            {displayText && (
+            {displayInfo && (
               <span
                 role="button"
                 tabIndex={0}
