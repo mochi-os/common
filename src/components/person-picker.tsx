@@ -104,7 +104,7 @@ export function PersonPicker({
     queryKey: ['person-picker', 'friends'],
     queryFn: async () => {
       const response = await requestHelpers.get<FriendsResponse>(
-        `${apiBasePath}/people/list`
+        `${apiBasePath}/people/-/friends`
       )
       return response.friends || []
     },
@@ -117,7 +117,7 @@ export function PersonPicker({
     queryKey: ['person-picker', 'directory', debouncedSearch],
     queryFn: async () => {
       const response = await requestHelpers.get<DirectorySearchResponse | Person[]>(
-        `${apiBasePath}/people/search?search=${encodeURIComponent(debouncedSearch)}`
+        `${apiBasePath}/people/-/users/search?search=${encodeURIComponent(debouncedSearch)}`
       )
       return Array.isArray(response) ? response : (response.results || [])
     },
