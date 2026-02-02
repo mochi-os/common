@@ -24,12 +24,59 @@ export function CopyButton({
 
   const handleCopy = React.useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(value)
-      setCopied(true)
-      toast.success(successMessage)
-      setTimeout(() => setCopied(false), 2000)
+      // Try modern Clipboard API first
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(value)
+        setCopied(true)
+        toast.success(successMessage)
+        setTimeout(() => setCopied(false), 2000)
+      } else {
+        // Fallback for non-secure contexts or older browsers
+        const textArea = document.createElement('textarea')
+        textArea.value = value
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+        
+        if (successful) {
+          setCopied(true)
+          toast.success(successMessage)
+          setTimeout(() => setCopied(false), 2000)
+        } else {
+          toast.error('Failed to copy')
+        }
+      }
     } catch (err) {
-      toast.error('Failed to copy')
+      // Final fallback attempt
+      try {
+        const textArea = document.createElement('textarea')
+        textArea.value = value
+        textArea.style.position = 'fixed'
+        textArea.style.left = '-999999px'
+        textArea.style.top = '-999999px'
+        document.body.appendChild(textArea)
+        textArea.focus()
+        textArea.select()
+        
+        const successful = document.execCommand('copy')
+        document.body.removeChild(textArea)
+        
+        if (successful) {
+          setCopied(true)
+          toast.success(successMessage)
+          setTimeout(() => setCopied(false), 2000)
+        } else {
+          toast.error('Failed to copy')
+        }
+      } catch (fallbackErr) {
+        toast.error('Failed to copy')
+      }
     }
   }, [value, successMessage])
 
