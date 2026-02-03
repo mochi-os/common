@@ -17,7 +17,7 @@ export function PageHeader({
   const { isMobile } = useScreenSize()
 
   return (
-    <header className='border-border bg-background sticky top-0 z-10 border-b'>
+    <header className='bg-background sticky top-0 z-10'>
 
       {/* Title and actions row */}
       <div className={`flex items-center justify-between px-4 md:px-6 ${description ? 'py-2' : 'h-[44px] md:h-[48px]'}`}>
