@@ -5,7 +5,7 @@ import { cn } from '../../lib/utils'
 interface SectionProps {
   title: string
   description?: string
-  children: React.ReactNode
+  children?: React.ReactNode
   className?: string
   contentClassName?: string
   action?: React.ReactNode
@@ -19,18 +19,24 @@ export function Section({
   contentClassName,
   action,
 }: SectionProps) {
+  const hasContent = children !== undefined && children !== null && children !== false && !(Array.isArray(children) && children.length === 0)
+  const isContentHidden = contentClassName?.includes('hidden')
+  const showContent = hasContent && !isContentHidden
+
   return (
     <Card className={cn('shadow-md', className)}>
-      <CardHeader className='border-b/60 border-b pb-4 flex flex-row items-start justify-between space-y-0'>
+      <CardHeader className={cn('flex flex-row items-start justify-between space-y-0', showContent ? 'border-b/60 border-b pb-4' : 'pb-4')}>
         <div className="space-y-1.5">
           <CardTitle className="text-lg leading-tight">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </div>
         {action}
       </CardHeader>
-      <CardContent className={cn('py-2', contentClassName)}>
-        {children}
-      </CardContent>
+      {showContent && (
+        <CardContent className={cn('py-2', contentClassName)}>
+          {children}
+        </CardContent>
+      )}
     </Card>
   )
 }
