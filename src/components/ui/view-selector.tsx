@@ -1,25 +1,13 @@
-import * as React from 'react'
-import { PanelTop, Rows } from 'lucide-react'
+import { MoreHorizontal } from 'lucide-react'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from './select'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from './dropdown-menu'
+import { Switch } from './switch'
 
 export type ViewMode = 'card' | 'compact'
-
-interface ViewOption {
-  value: ViewMode
-  label: string
-  icon: React.ElementType
-}
-
-const VIEW_OPTIONS: ViewOption[] = [
-  { value: 'card', label: 'Card', icon: PanelTop },
-  { value: 'compact', label: 'Compact', icon: Rows },
-]
 
 interface ViewSelectorProps {
   value: ViewMode
@@ -34,38 +22,39 @@ export function ViewSelector({
   disabled,
   className,
 }: ViewSelectorProps) {
-  const currentOption = VIEW_OPTIONS.find((opt) => opt.value === value)
-  const Icon = currentOption?.icon
+  const isCompact = value === 'compact'
 
   return (
-    <Select
-      value={value}
-      onValueChange={(v: string) => onValueChange(v as ViewMode)}
-      disabled={disabled}
-    >
-      <SelectTrigger className={className} size="sm">
-        <SelectValue>
-          <div className="flex items-center gap-2">
-            {Icon && <Icon className="size-4" />}
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        className={className}
+        disabled={disabled}
+        asChild
+      >
+        <button
+          type="button"
+          className="inline-flex items-center justify-center rounded-md p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-50 disabled:pointer-events-none"
+        >
+          <MoreHorizontal className="size-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end">
+        <DropdownMenuItem
+          onSelect={(e) => {
+            e.preventDefault()
+            onValueChange(isCompact ? 'card' : 'compact')
+          }}
+        >
+          <div className="flex items-center justify-between w-full gap-4">
+            <span>Compact view</span>
+            <Switch
+              checked={isCompact}
+              onCheckedChange={(checked) => onValueChange(checked ? 'compact' : 'card')}
+              onClick={(e) => e.stopPropagation()}
+            />
           </div>
-        </SelectValue>
-      </SelectTrigger>
-      <SelectContent align="end" className="min-w-[140px]">
-        <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-          View
-        </div>
-        {VIEW_OPTIONS.map((option) => {
-          const OptionIcon = option.icon
-          return (
-            <SelectItem key={option.value} value={option.value}>
-              <div className="flex items-center gap-2">
-                <OptionIcon className="size-4" />
-                <span>{option.label}</span>
-              </div>
-            </SelectItem>
-          )
-        })}
-      </SelectContent>
-    </Select>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
