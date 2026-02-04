@@ -34,11 +34,13 @@ const greenMarkerIcon = L.divIcon({
 
 // Calculate curved arc points between two coordinates
 // Uses great circle for long distances, quadratic bezier for short distances
+// Returns { points, destLon } where destLon is the unwrapped destination longitude
+// (may be outside -180 to 180 range when crossing date line)
 function greatCircleArc(
   lat1: number, lon1: number,
   lat2: number, lon2: number,
   numPoints = 300
-): [number, number][] {
+): { points: [number, number][]; destLon: number } {
   const toRad = (deg: number) => deg * Math.PI / 180
   const toDeg = (rad: number) => rad * 180 / Math.PI
 
@@ -55,7 +57,7 @@ function greatCircleArc(
 
   // If points are very close, just return straight line
   if (d < 0.0001) {
-    return [[lat1, lon1], [lat2, lon2]]
+    return { points: [[lat1, lon1], [lat2, lon2]], destLon: lon2 }
   }
 
   // For short distances (< ~500km), use a gentle quadratic bezier curve
@@ -86,11 +88,13 @@ function greatCircleArc(
       const lon = (1 - t) * (1 - t) * lon1 + 2 * (1 - t) * t * ctrlLon + t * t * lon2
       points.push([lat, lon])
     }
-    return points
+    return { points, destLon: lon2 }
   }
 
   // For long distances, use great circle arc
   const points: [number, number][] = []
+  let prevLon = lon1
+  let finalLon = lon2
   for (let i = 0; i <= numPoints; i++) {
     const f = i / numPoints
     const A = Math.sin((1 - f) * d) / Math.sin(d)
@@ -99,10 +103,20 @@ function greatCircleArc(
     const y = A * Math.cos(φ1) * Math.sin(λ1) + B * Math.cos(φ2) * Math.sin(λ2)
     const z = A * Math.sin(φ1) + B * Math.sin(φ2)
     const lat = toDeg(Math.atan2(z, Math.sqrt(x * x + y * y)))
-    const lon = toDeg(Math.atan2(y, x))
+    let lon = toDeg(Math.atan2(y, x))
+
+    // Unwrap longitude to handle date line crossing
+    // If longitude jumps by more than 180°, adjust it to continue smoothly
+    while (lon - prevLon > 180) lon -= 360
+    while (lon - prevLon < -180) lon += 360
+    prevLon = lon
+
+    // Track the final unwrapped longitude for marker/bounds placement
+    if (i === numPoints) finalLon = lon
+
     points.push([lat, lon])
   }
-  return points
+  return { points, destLon: finalLon }
 }
 
 // Get smart zoom level based on place category
@@ -211,10 +225,11 @@ export function MapView({
     // Add custom attribution control without Leaflet prefix
     L.control.attribution({ prefix: false }).addTo(map)
 
-    // Add tile layer (OpenStreetMap)
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    // Add tile layer (CARTO Voyager)
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png', {
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OSM</a>',
-      maxZoom: 19,
+      subdomains: 'abcd',
+      maxZoom: 20,
     }).addTo(map)
 
     // Style the attribution to be more subtle
@@ -225,31 +240,38 @@ export function MapView({
       attrib.style.padding = '0 4px'
     }
 
-    // Add destination marker (green when travelling, blue for single point/checkin)
-    const destMarker = L.marker([lat, lon], { icon: hasOrigin ? greenMarkerIcon : blueMarkerIcon, interactive }).addTo(map)
-    if (name && interactive) {
-      destMarker.bindPopup(name)
-    }
-
     if (hasOrigin && originLat != null && originLon != null) {
       // Two-point display: show origin, destination, and line
+      // Calculate arc first to get unwrapped destination longitude (for date line crossing)
+      const { points: arcPoints, destLon } = greatCircleArc(originLat, originLon, lat, lon)
+
+      // Add origin marker
       const originMarker = L.marker([originLat, originLon], { icon: blueMarkerIcon, interactive }).addTo(map)
       if (originName && interactive) {
         originMarker.bindPopup(originName)
       }
 
-      // Draw great circle arc between points
-      const arcPoints = greatCircleArc(originLat, originLon, lat, lon)
+      // Add destination marker at unwrapped longitude (consistent with arc)
+      const destMarker = L.marker([lat, destLon], { icon: greenMarkerIcon, interactive }).addTo(map)
+      if (name && interactive) {
+        destMarker.bindPopup(name)
+      }
+
+      // Draw great circle arc
       L.polyline(arcPoints, { color: '#3b82f6', weight: 2, opacity: 0.7, smoothFactor: 0 }).addTo(map)
 
-      // Fit map to show both points with padding
+      // Fit map to show both points (using unwrapped destination)
       const bounds = L.latLngBounds([
         [originLat, originLon],
-        [lat, lon],
+        [lat, destLon],
       ])
       map.fitBounds(bounds, { padding: [30, 30] })
     } else {
       // Single point display
+      const destMarker = L.marker([lat, lon], { icon: blueMarkerIcon, interactive }).addTo(map)
+      if (name && interactive) {
+        destMarker.bindPopup(name)
+      }
       map.setView([lat, lon], effectiveZoom)
     }
 
