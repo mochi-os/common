@@ -19,6 +19,9 @@ export interface Person {
   fingerprint?: string
 }
 
+// Module-level cache for selected people's info (persists across component remounts)
+const selectedPeopleGlobalCache = new Map<string, Person>()
+
 interface FriendsResponse {
   friends: Person[]
 }
@@ -76,6 +79,8 @@ export function PersonPicker({
   const setOpen = onOpenChange ?? setInternalOpen
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  // Force re-render when global cache updates
+  const [cacheVersion, setCacheVersion] = useState(0)
 
   // Normalize value to array for internal use
   const selectedIds = useMemo(() => {
@@ -200,6 +205,13 @@ export function PersonPicker({
   const isLoading = isLoadingFriends || isLoadingDirectory
 
   const handleSelect = (personId: string) => {
+    // Cache the selected person's info in global cache so it persists across remounts
+    const person = allPeople.find((p) => p.id === personId)
+    if (person && !selectedPeopleGlobalCache.has(personId)) {
+      selectedPeopleGlobalCache.set(personId, person)
+      setCacheVersion((v) => v + 1)
+    }
+
     if (mode === 'single') {
       onChange(personId)
       setOpen(false)
@@ -216,19 +228,21 @@ export function PersonPicker({
     if (selectedIds.length === 0) return null
 
     const selectedPeople = selectedIds
-      .map((id) => allPeople.find((p) => p.id === id) || local.find((p) => p.id === id))
+      .map((id) =>
+        allPeople.find((p) => p.id === id) ||
+        local.find((p) => p.id === id) ||
+        selectedPeopleGlobalCache.get(id)
+      )
       .filter(Boolean) as Person[]
 
     if (selectedPeople.length === 0) {
-      // Try to find in local if allPeople hasn't loaded yet
-      const localPerson = local.find((p) => p.id === selectedIds[0])
-      if (localPerson) return { names: [localPerson.name], count: 1 }
       return { names: [], count: selectedIds.length }
     }
 
     const names = selectedPeople.map((p) => p.name)
     return { names, count: selectedPeople.length }
-  }, [selectedIds, allPeople, local])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedIds, allPeople, local, cacheVersion])
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -303,6 +317,20 @@ export function PersonPicker({
 
         {/* Results */}
         <div className="max-h-64 overflow-y-auto p-1">
+          {/* None option for single mode when value is selected */}
+          {mode === 'single' && selectedIds.length > 0 && !searchQuery && (
+            <div
+              onClick={() => {
+                onChange('')
+                setOpen(false)
+              }}
+              className="flex items-center gap-2 px-2 py-1.5 rounded-sm cursor-pointer hover:bg-accent hover:text-accent-foreground text-muted-foreground"
+            >
+              <div className="size-4 shrink-0" />
+              <span className="text-sm">None</span>
+            </div>
+          )}
+
           {isLoading && debouncedSearch && (
             <div className="flex items-center justify-center py-6">
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
