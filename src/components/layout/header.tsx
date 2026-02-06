@@ -4,7 +4,6 @@ import { cn } from '../../lib/utils'
 type HeaderProps = React.HTMLAttributes<HTMLElement> & {
   fixed?: boolean
   compact?: boolean
-  ref?: React.Ref<HTMLElement>
 }
 
 export function Header({

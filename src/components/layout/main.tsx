@@ -5,7 +5,6 @@ type MainProps = React.HTMLAttributes<HTMLElement> & {
   fluid?: boolean
   /** Use consistent vertical spacing tokens for content stacking */
   spacingY?: 'xs' | 'sm' | 'default' | 'lg' | 'xl'
-  ref?: React.Ref<HTMLElement>
 }
 
 const spacingYClasses = {
