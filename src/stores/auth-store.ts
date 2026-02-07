@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { removeCookie, getCookie } from '../lib/cookies'
+import { readProfileCookie } from '../lib/profile-cookie'
 
 const TOKEN_COOKIE = 'token'
 
@@ -53,15 +54,17 @@ export const useAuthStore = create<AuthState>()((set, get) => {
     initialize: () => {
       const cookieToken = getCookie(TOKEN_COOKIE) || ''
       const storeToken = get().token
+      const profile = readProfileCookie()
 
       if (cookieToken !== storeToken) {
         set({
           token: cookieToken,
           isAuthenticated: Boolean(cookieToken),
           isInitialized: true,
+          name: profile.name || '',
         })
       } else {
-        set({ isInitialized: true })
+        set({ isInitialized: true, name: profile.name || '' })
       }
     },
   }
