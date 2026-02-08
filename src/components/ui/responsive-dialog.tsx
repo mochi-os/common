@@ -110,7 +110,7 @@ function ResponsiveDialogContent({
   return (
     <ResponsiveDialogContentComponent
       className={className}
-      {...props}
+      {...(props as any)}
       {...(!isMobile && {
         onInteractOutside: (e: any) => {
           if (!shouldCloseOnInteractOutside) {
