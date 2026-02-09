@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { removeCookie, getCookie } from '../lib/cookies'
-import { requestHelpers } from '../lib/request'
+
 
 const TOKEN_COOKIE = 'token'
 
@@ -67,36 +67,11 @@ export const useAuthStore = create<AuthState>()((set, get) => {
       }
     },
 
+    // @deprecated Use authManager.loadIdentity() instead
     loadIdentity: async () => {
-      const { token, name } = get()
-      if (!token || name) return
-
-      try {
-        const data = await requestHelpers.get<{ user: any; identity?: any }>('/_/identity')
-        if (data.identity) {
-          set({ identity: data.identity.id, name: data.identity.name })
-        } else if (data.user) {
-          set({ identity: '', name: data.user.email })
-        }
-      } catch (error) {
-        if (requestHelpers.isAuthError(error)) {
-          removeCookie(TOKEN_COOKIE)
-          set({
-            token: '',
-            identity: '',
-            name: '',
-            isAuthenticated: false,
-            isLoading: false,
-            isInitialized: true,
-          })
-          
-          if (typeof window !== 'undefined') {
-             const returnUrl = encodeURIComponent(window.location.href)
-             const loginUrl = (import.meta as any).env.VITE_AUTH_LOGIN_URL || '/login'
-             window.location.href = `${loginUrl}?redirect=${returnUrl}`
-          }
-        }
-      }
+      // Delegate to centralized manager to avoid fragmentation
+      const { authManager } = await import('../lib/auth-manager')
+      await authManager.loadIdentity()
     },
   }
 })

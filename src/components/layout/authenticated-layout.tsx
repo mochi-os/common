@@ -12,6 +12,7 @@ import { SearchProvider } from '../../context/search-provider'
 import { SidebarInset, SidebarProvider } from '../ui/sidebar'
 import { TopBar } from './top-bar'
 import { AppSidebar } from './app-sidebar'
+import { useVerifySession } from '../../hooks/use-verify-session'
 
 import {
   RightPanel,
@@ -65,6 +66,8 @@ export function AuthenticatedLayout({
   rightPanelDefaultOpen = true,
   isLoadingSidebar,
 }: AuthenticatedLayoutProps) {
+  useVerifySession()
+
   useEffect(() => {
     if (title) document.title = title
   }, [title])

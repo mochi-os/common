@@ -10,7 +10,7 @@ export function useAuth() {
 
   const setLoading = useAuthStore((state) => state.setLoading)
   const setProfile = useAuthStore((state) => state.setProfile)
-  const clearAuth = useAuthStore((state) => state.clearAuth)
+
   const initialize = useAuthStore((state) => state.initialize)
 
   return {
@@ -25,7 +25,16 @@ export function useAuth() {
     setLoading,
     setProfile,
     initialize,
-    logout: clearAuth,
+    
+    logout: async () => {
+      const { authManager } = await import('../lib/auth-manager')
+      authManager.logout()
+    },
+
+    loadIdentity: async () => {
+      const { authManager } = await import('../lib/auth-manager')
+      return authManager.loadIdentity()
+    },
   }
 }
 

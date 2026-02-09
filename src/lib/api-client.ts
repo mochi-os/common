@@ -12,6 +12,13 @@ const logDevError = (message: string, error: unknown) => {
   }
 }
 
+
+let logoutHandler: ((reason?: string) => void) | null = null
+
+export const setLogoutHandler = (handler: (reason?: string) => void) => {
+  logoutHandler = handler
+}
+
 export const apiClient = axios.create({
   timeout: 30000,
   withCredentials: true,
@@ -104,19 +111,22 @@ apiClient.interceptors.response.use(
         // Don't redirect if user was never authenticated (anonymous access)
         const hadSession = getCookie('token') || useAuthStore.getState().token
 
+
+
         if (!isAuthEndpoint && hadSession) {
-          removeCookie('token')
-
-          useAuthStore.getState().clearAuth()
-
-          toast.error('Session expired', {
-            description: 'Please log in again to continue.',
-          })
-
-          const currentUrl = window.location.href
-          const authLoginUrl = getAuthLoginUrl()
-          window.location.href = `${authLoginUrl}?reauth=1&redirect=${encodeURIComponent(currentUrl)}`
+          if (logoutHandler) {
+             logoutHandler('Session expired')
+          } else {
+            // Fallback if no handler registered
+            removeCookie('token')
+            useAuthStore.getState().clearAuth()
+            toast.error('Session expired')
+            const currentUrl = window.location.href
+            const authLoginUrl = getAuthLoginUrl()
+            window.location.href = `${authLoginUrl}?reauth=1&redirect=${encodeURIComponent(currentUrl)}`
+          }
         }
+
         break
       }
 
