@@ -229,6 +229,12 @@ export const requestHelpers = {
       url,
       ...config,
     }),
+  isAuthError: (error: unknown): boolean => {
+    return (
+      (isAxiosError(error) && error.response?.status === 401) ||
+      (error instanceof ApiError && error.status === 401)
+    )
+  },
 }
 
 export default request
