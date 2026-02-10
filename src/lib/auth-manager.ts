@@ -3,6 +3,7 @@ import { authEndpoints } from './auth-endpoints'
 import { requestHelpers } from './request'
 import { removeCookie } from './cookies'
 import { getAuthLoginUrl } from './app-path'
+import { mergeProfileCookie } from './profile-cookie'
 
 class AuthManager {
   private static instance: AuthManager
@@ -37,23 +38,22 @@ class AuthManager {
     }
 
     try {
-      // 2. Best-effort backend notification
-      // We don't await this or let it fail the logout
-      requestHelpers.post(authEndpoints.logout).catch((err) => {
-        if (import.meta.env.DEV) {
-          console.warn('[AuthManager] Backend logout warning:', err)
-        }
-      })
-    } catch {
-      // Ignore
+      // 2. Notify backend and give it a brief window to clear HttpOnly session cookie.
+      await Promise.race([
+        requestHelpers.post(authEndpoints.logout),
+        new Promise((resolve) => setTimeout(resolve, 1500)),
+      ])
+    } catch (err) {
+      if (import.meta.env.DEV) {
+        console.warn('[AuthManager] Backend logout warning:', err)
+      }
     }
 
     // 3. Clear local state (Atomic)
     removeCookie('token')
     useAuthStore.getState().clearAuth()
 
-    // 4. Redirect (Full reload to clear memory)
-    // 4. Redirect (Full reload to clear memory)
+    // 4. Redirect (full reload clears in-memory state)
     const loginUrl = getAuthLoginUrl()
     if (redirectUrl) {
       window.location.href = `${loginUrl}?redirect=${encodeURIComponent(redirectUrl)}`
@@ -74,12 +74,16 @@ class AuthManager {
     }
   }
 
-  public async loadIdentity(): Promise<void> {
+  public async loadIdentity(force = false): Promise<void> {
     const store = useAuthStore.getState()
     const { token, name } = store
 
-    // Optimization: Don't verify if already verified or missing token
-    if (!token || (name && !this.isVerifying)) {
+    if (!token) {
+      return
+    }
+
+    // Optimization: Skip non-forced checks when profile is already known.
+    if (!force && name) {
       return
     }
 
@@ -87,13 +91,27 @@ class AuthManager {
     this.isVerifying = true
 
     try {
-      const data = await requestHelpers.get<{ user: any; identity?: any }>(authEndpoints.identity)
+      const data = await requestHelpers.get<{
+        user?: { email?: string; name?: string }
+        identity?: { id?: string; name?: string; privacy?: 'public' | 'private' }
+      }>(authEndpoints.identity)
       
       if (data.identity) {
-        store.setProfile(data.identity.id, data.identity.name)
+        const identityId = data.identity.id ?? ''
+        const identityName = data.identity.name ?? ''
+        store.setProfile(identityId, identityName)
+        mergeProfileCookie({
+          email: data.user?.email,
+          name: identityName || null,
+        })
       } else if (data.user) {
         // Fallback for some auth providers
-        store.setProfile('', data.user.email)
+        const displayName = data.user.name || data.user.email || ''
+        store.setProfile('', displayName)
+        mergeProfileCookie({
+          email: data.user.email,
+          name: displayName || null,
+        })
       }
     } catch (error) {
       if (requestHelpers.isAuthError(error)) {

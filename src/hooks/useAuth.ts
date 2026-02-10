@@ -31,9 +31,9 @@ export function useAuth() {
       authManager.logout()
     },
 
-    loadIdentity: async () => {
+    loadIdentity: async (force?: boolean) => {
       const { authManager } = await import('../lib/auth-manager')
-      return authManager.loadIdentity()
+      return authManager.loadIdentity(force)
     },
   }
 }
