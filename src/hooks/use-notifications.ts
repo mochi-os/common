@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestHelpers } from '../lib/request'
 import type { Notification } from '../components/notifications-dropdown'
+import { useAuthStore } from '../stores/auth-store'
 
 export interface NotificationCount {
   count: number
@@ -48,9 +49,12 @@ async function markAllAsRead(): Promise<void> {
 
 // Query hooks
 export function useNotificationsQuery() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+
   return useQuery<NotificationsListResponse>({
     queryKey: notificationKeys.list(),
     queryFn: fetchNotifications,
+    enabled: isAuthenticated,
   })
 }
 
@@ -161,8 +165,11 @@ function disconnectWebSocket() {
 
 export function useNotificationWebSocket() {
   const queryClient = useQueryClient()
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
 
   useEffect(() => {
+    if (!isAuthenticated) return
+
     // Store queryClient reference for message handling
     wsState.queryClientRef = queryClient
     wsState.subscriberCount++
@@ -181,7 +188,7 @@ export function useNotificationWebSocket() {
         wsState.queryClientRef = null
       }
     }
-  }, [queryClient])
+  }, [queryClient, isAuthenticated])
 }
 
 // Combined hook for easy consumption
