@@ -21,9 +21,14 @@ export const notificationKeys = {
 }
 
 // API functions
+const EMPTY_RESPONSE: NotificationsListResponse = { data: [], count: 0, total: 0 }
+
 async function fetchNotifications(): Promise<NotificationsListResponse> {
   const response = await requestHelpers.getRaw<NotificationsListResponse>('/notifications/-/list')
-  return response ?? { data: [], count: 0, total: 0 }
+  if (!response || !Array.isArray(response.data)) {
+    return EMPTY_RESPONSE
+  }
+  return response
 }
 
 async function markAsRead(id: string): Promise<void> {
