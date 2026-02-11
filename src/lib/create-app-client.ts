@@ -2,7 +2,7 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { getAppPath, getCookie, useAuthStore } from '@mochi/common'
+import { getAppPath, isDomainEntityRouting, getCookie, useAuthStore } from '@mochi/common'
 
 export interface AppClientOptions {
   /**
@@ -36,11 +36,15 @@ export function createAppClient({
   client.interceptors.request.use((config: InternalAxiosRequestConfig) => {
     // If baseURL is not already set and we have an appName or can getAppPath
     if (!config.baseURL) {
-      const appPath = getAppPath()
-      if (appPath) {
-        config.baseURL = appPath + '/'
-      } else if (appName) {
-        config.baseURL = `/${appName}/`
+      if (isDomainEntityRouting()) {
+        config.baseURL = '/'
+      } else {
+        const appPath = getAppPath()
+        if (appPath) {
+          config.baseURL = appPath + '/'
+        } else if (appName) {
+          config.baseURL = `/${appName}/`
+        }
       }
     }
 
