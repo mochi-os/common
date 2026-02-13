@@ -54,12 +54,15 @@ type AppSidebarProps = {
  * --------------------------------------------------- */
 function CollapseBtn() {
   const { toggleSidebar, state } = useSidebar()
+  const label = state === 'expanded' ? 'Collapse sidebar' : 'Expand sidebar'
 
   return (
     <Button
       data-sidebar='trigger'
       variant='outline'
       size='icon'
+      title={label}
+      aria-label={label}
       className={cn(
         'absolute -right-3 top-1/2 -translate-y-1/2 z-50',
         'h-6 w-6 rounded-full border bg-background shadow-md',
@@ -73,7 +76,7 @@ function CollapseBtn() {
       ) : (
         <ChevronRight className='h-3 w-3' />
       )}
-      <span className='sr-only'>Toggle Sidebar</span>
+      <span className='sr-only'>{label}</span>
     </Button>
   )
 }
