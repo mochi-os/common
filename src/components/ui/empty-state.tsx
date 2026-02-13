@@ -6,6 +6,8 @@ interface EmptyStateProps {
   title: string
   description?: string
   className?: string
+  childrenLayout?: 'row' | 'column'
+  childrenClassName?: string
   children?: React.ReactNode
 }
 
@@ -14,6 +16,8 @@ export function EmptyState({
   title,
   description,
   className,
+  childrenLayout = 'row',
+  childrenClassName,
   children,
 }: EmptyStateProps) {
   return (
@@ -28,7 +32,17 @@ export function EmptyState({
       {description && (
         <p className='text-muted-foreground text-xs'>{description}</p>
       )}
-      {children && <div className='mt-4 flex justify-center gap-2'>{children}</div>}
+      {children && (
+        <div
+          className={cn(
+            'mt-4 flex justify-center gap-2',
+            childrenLayout === 'column' && 'flex-col items-center gap-4',
+            childrenClassName
+          )}
+        >
+          {children}
+        </div>
+      )}
     </div>
   )
 }
