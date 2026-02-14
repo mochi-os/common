@@ -105,6 +105,7 @@ export * from './components/select-dropdown'
 export * from './components/sign-out-dialog'
 export * from './components/skip-to-main'
 export * from './components/theme-switch'
+export * from './components/colour-picker'
 export * from './components/comment-tree-layout'
 
 // Context Providers
