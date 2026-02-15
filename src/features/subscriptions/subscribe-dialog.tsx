@@ -16,6 +16,7 @@ import { Skeleton } from '../../components/ui/skeleton'
 import { requestHelpers } from '../../lib/request'
 import { getErrorMessage } from '../../lib/handle-server-error'
 import { toast } from '../../lib/toast-utils'
+import { NOTIFICATIONS_PATH } from '../../lib/app-path'
 import { useDestinations } from '../../hooks/use-destinations'
 import { usePush } from '../../hooks/use-push'
 import type { SubscribeDialogProps, DestinationToggle, SubscriptionItem } from './types'
@@ -123,7 +124,7 @@ export function SubscribeDialog({
         try {
           await push.subscribe()
           // Fetch fresh accounts list to get the new browser account ID
-          const res = await fetch('/notifications/-/accounts/list?capability=notify', {
+          const res = await fetch(`${NOTIFICATIONS_PATH}/-/accounts/list?capability=notify`, {
             credentials: 'include',
           })
           if (res.ok) {

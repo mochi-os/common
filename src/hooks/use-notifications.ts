@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { requestHelpers } from '../lib/request'
 import type { Notification } from '../components/notifications-dropdown'
 import { useAuthStore } from '../stores/auth-store'
+import { NOTIFICATIONS_PATH } from '../lib/app-path'
 
 export interface NotificationCount {
   count: number
@@ -25,7 +26,7 @@ export const notificationKeys = {
 const EMPTY_RESPONSE: NotificationsListResponse = { data: [], count: 0, total: 0 }
 
 async function fetchNotifications(): Promise<NotificationsListResponse> {
-  const response = await requestHelpers.getRaw<NotificationsListResponse>('/notifications/-/list')
+  const response = await requestHelpers.getRaw<NotificationsListResponse>(`${NOTIFICATIONS_PATH}/-/list`)
   if (!response || !Array.isArray(response.data)) {
     return EMPTY_RESPONSE
   }
@@ -36,7 +37,7 @@ async function markAsRead(id: string): Promise<void> {
   const formData = new URLSearchParams()
   formData.append('id', id)
 
-  await requestHelpers.post('/notifications/-/read', formData.toString(), {
+  await requestHelpers.post(`${NOTIFICATIONS_PATH}/-/read`, formData.toString(), {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
     },
@@ -44,7 +45,7 @@ async function markAsRead(id: string): Promise<void> {
 }
 
 async function markAllAsRead(): Promise<void> {
-  await requestHelpers.post('/notifications/-/read/all', {})
+  await requestHelpers.post(`${NOTIFICATIONS_PATH}/-/read/all`, {})
 }
 
 // Query hooks

@@ -121,7 +121,6 @@ export * from './context/search-provider'
 
 // Stores
 export * from './stores/auth-store'
-export * from './stores/domain-context-store'
 export * from './stores/page-title-store'
 
 // Hooks
@@ -147,7 +146,7 @@ export * from './hooks/use-debounce'
 // Lib utilities
 export * from './lib/create-app-client'
 export * from './lib/api-client'
-export { getAppPath, getRouterBasepath, getApiBasepath, getAuthLoginUrl, isDomainEntityRouting } from './lib/app-path'
+export { getAppPath, getRouterBasepath, getApiBasepath, getAuthLoginUrl, isDomainEntityRouting, getEntityFingerprint, getEntityClass, NOTIFICATIONS_PATH } from './lib/app-path'
 export * from './lib/auth-endpoints'
 export * from './lib/auth-manager'
 export * from './lib/cookies'

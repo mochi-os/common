@@ -4,6 +4,7 @@ import { requestHelpers } from '../lib/request'
 import { handlePermissionError } from '../lib/permission-utils'
 import * as push from '../lib/push'
 import { getBrowserName } from '../lib/push'
+import { NOTIFICATIONS_PATH } from '../lib/app-path'
 
 // All push API calls go to notifications app
 const NOTIFICATIONS_APP = 'notifications'
@@ -57,7 +58,7 @@ export function usePush() {
     queryKey: ['accounts', 'vapid'],
     queryFn: async () => {
       const res = await requestHelpers.getRaw<VapidKeyResponse>(
-        '/notifications/-/accounts/vapid'
+        `${NOTIFICATIONS_PATH}/-/accounts/vapid`
       )
       return res?.data?.key || ''
     },
@@ -96,7 +97,7 @@ export function usePush() {
 
       try {
         await requestHelpers.post(
-          '/notifications/-/accounts/add',
+          `${NOTIFICATIONS_PATH}/-/accounts/add`,
           formData.toString(),
           {
             headers: {
@@ -126,7 +127,7 @@ export function usePush() {
         try {
           // Find the account by endpoint (stored as identifier for browser accounts)
           const res = await requestHelpers.getRaw<AccountsListResponse>(
-            '/notifications/-/accounts/list?capability=notify'
+            `${NOTIFICATIONS_PATH}/-/accounts/list?capability=notify`
           )
           const accounts = res?.data || []
           const account = accounts.find(
@@ -138,7 +139,7 @@ export function usePush() {
             formData.append('id', String(account.id))
 
             await requestHelpers.post(
-              '/notifications/-/accounts/remove',
+              `${NOTIFICATIONS_PATH}/-/accounts/remove`,
               formData.toString(),
               {
                 headers: {
