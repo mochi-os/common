@@ -22,7 +22,7 @@ export function PageHeader({
   return (
     <header className='bg-background sticky top-0 z-10'>
       {/* Title and actions row */}
-      <div className={`flex items-center justify-between px-4 md:px-6 ${description ? 'py-2' : 'h-[44px] md:h-[48px]'}`}>
+      <div className={`flex items-start justify-between gap-3 px-4 py-2 md:items-center md:px-6 ${description ? '' : 'md:min-h-[48px]'}`}>
         <div className='min-w-0 flex-1'>
           <div className='flex items-center gap-2 md:gap-2.5'>
             {/* Back button remains opt-in and icon-only via `PageHeader.back`. */}
@@ -40,7 +40,7 @@ export function PageHeader({
             <p className='text-muted-foreground mt-0.5 truncate text-sm'>{description}</p>
           )}
         </div>
-        {actions && <div className='flex items-center gap-2'>{actions}</div>}
+        {actions && <div className='flex shrink-0 items-center gap-2'>{actions}</div>}
       </div>
     </header>
   )

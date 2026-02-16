@@ -164,6 +164,12 @@ export * as push from './lib/push'
 
 // Types
 export type { PlaceData, PostData, TravellingData, PhotonPlace } from './types/places'
+export * from './types/settings'
+export * from './types/users'
+
+// Hooks
+export * from './hooks/settings/use-preferences'
+export * from './hooks/settings/use-system-settings'
 
 // Error pages
 export * from './features/errors/forbidden'
