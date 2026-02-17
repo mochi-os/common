@@ -109,7 +109,7 @@ function NotificationItem({
       type='button'
       onClick={() => onClick?.(notification)}
       className={cn(
-        'flex w-full items-start gap-2 px-2 py-2 text-left text-sm rounded-md transition-colors hover:bg-muted',
+        'flex w-full items-start gap-2 rounded-md px-2 py-2 text-left text-sm transition-colors hover:bg-interactive-hover active:bg-interactive-active',
         isUnread && 'bg-muted/50'
       )}
     >
@@ -156,14 +156,14 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
         <div className='flex gap-1'>
           <button
             onClick={markAllAsRead}
-            className='p-1 hover:bg-muted rounded'
+            className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'
           >
             <Check className='size-4' />
           </button>
           <a
             href='/notifications/'
             onClick={onClose}
-            className='p-1 hover:bg-muted rounded'
+            className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'
           >
             <ExternalLink className='size-4' />
           </a>
@@ -265,13 +265,13 @@ export function TopBar({
           <div className='flex items-center gap-1'>
             <a
               href='/settings'
-              className='flex items-center justify-center p-1.5 hover:bg-muted rounded-md transition-colors'
+              className='flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-interactive-hover active:bg-interactive-active'
             >
               <Settings className='size-4' />
             </a>
             <button
               onClick={() => setSignOutOpen(true)}
-              className='flex items-center justify-center p-1.5 hover:bg-destructive/10 rounded-md transition-colors text-destructive'
+              className='text-destructive flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-destructive/15 active:bg-destructive/20'
             >
               <LogOut className='size-4 text-destructive' />
             </button>
@@ -301,7 +301,7 @@ export function TopBar({
         {showSidebarTrigger && isMobile && (
           <button
             onClick={toggleSidebar}
-            className='p-1 rounded hover:bg-muted'
+            className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'
           >
             <PanelLeft className='size-5 text-muted-foreground' />
           </button>
@@ -317,7 +317,7 @@ export function TopBar({
           {isMobile ? (
             <Drawer open={menuOpen} onOpenChange={setMenuOpen}>
               <DrawerTrigger asChild>
-                <button className='p-1 rounded hover:bg-muted'>
+                <button className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'>
                   <UserIcon unreadCount={showNotifications ? unreadCount : 0} />
                 </button>
               </DrawerTrigger>
@@ -331,7 +331,7 @@ export function TopBar({
           ) : (
             <DropdownMenu open={menuOpen} onOpenChange={setMenuOpen}>
               <DropdownMenuTrigger asChild>
-                <button className='p-1 rounded hover:bg-muted'>
+                <button className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'>
                   <UserIcon unreadCount={showNotifications ? unreadCount : 0} />
                 </button>
               </DropdownMenuTrigger>

@@ -4,20 +4,21 @@ import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '../../lib/utils'
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all duration-200 ease-out hover:scale-[1.02] disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-[background-color,color,border-color,box-shadow] duration-150 ease-out disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*=\'size-\'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive',
   {
     variants: {
       variant: {
         default:
-          'bg-primary text-primary-foreground border border-border hover:brightness-110 hover:shadow-md',
+          'bg-primary text-primary-foreground border border-primary/30 shadow-sm hover:bg-primary/90 hover:shadow-md active:bg-primary/80',
         destructive:
-          'bg-destructive text-destructive-foreground border border-transparent hover:brightness-110 hover:shadow-md',
+          'bg-destructive text-destructive-foreground border border-destructive/50 shadow-sm hover:bg-destructive/90 hover:shadow-md active:bg-destructive/80',
         warning:
-          'bg-warning text-warning-foreground border border-transparent hover:brightness-110 hover:shadow-md',
+          'bg-warning text-warning-foreground border border-warning/50 shadow-sm hover:bg-warning/90 hover:shadow-md active:bg-warning/80',
         outline:
-          'border bg-background hover:bg-hover dark:bg-input/30 dark:border-input dark:hover:bg-hover',
-        secondary: 'bg-secondary text-secondary-foreground hover:bg-hover',
-        ghost: 'hover:bg-hover dark:hover:bg-hover',
+          'border border-border bg-background hover:border-border-strong hover:bg-interactive-hover active:bg-interactive-active dark:bg-surface-1',
+        secondary:
+          'border border-border/70 bg-secondary text-secondary-foreground hover:bg-interactive-hover active:bg-interactive-active',
+        ghost: 'hover:bg-interactive-hover active:bg-interactive-active',
         link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {

@@ -38,12 +38,12 @@ export function DataChip({
     <div className={cn('flex items-center gap-1.5 overflow-hidden group/chip', className)}>
       <div
         className={cn(
-          'bg-muted/50 text-foreground/80 font-mono text-[13px] px-2 py-0.5 rounded-md border flex items-center gap-1.5 transition-colors group-hover/chip:bg-muted group-hover/chip:text-foreground max-w-full',
+          'bg-surface-2 text-foreground/90 font-mono text-[13px] px-2 py-0.5 rounded-md border border-border flex items-center gap-1.5 transition-[background-color,color,border-color] group-hover/chip:bg-surface-3 group-hover/chip:border-border-strong group-hover/chip:text-foreground max-w-full',
           chipClassName
         )}
       >
         {icon}
-        {label && <span className='text-muted-foreground/60 font-sans font-normal'>{label}:</span>}
+        {label && <span className='text-muted-foreground font-sans font-normal'>{label}:</span>}
         <span
           className={cn(
             'min-w-0',
