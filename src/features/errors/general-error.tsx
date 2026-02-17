@@ -5,12 +5,14 @@ type GeneralErrorProps = React.HTMLAttributes<HTMLDivElement> & {
   minimal?: boolean
   error?: unknown
   reset?: () => void
+  mode?: 'fullscreen' | 'inline'
 }
 
 export function GeneralError({
   className,
   minimal = false,
   error,
+  mode = 'fullscreen',
 }: GeneralErrorProps) {
 
   // Extract error details directly from the error object
@@ -49,14 +51,26 @@ export function GeneralError({
     !message.includes('status code') &&
     !message.includes('Request failed')
   const heading = isDescriptiveMessage ? message : statusCode.toString()
+  const showHeading = !minimal
+  const showMessage = minimal || !isDescriptiveMessage
 
   return (
-    <div className={cn('h-svh w-full', className)}>
-      <div className='m-auto flex h-full w-full flex-col items-center justify-center gap-2'>
-        {!minimal && (
+    <div
+      className={cn(
+        mode === 'fullscreen' ? 'h-svh w-full' : 'w-full',
+        className
+      )}
+    >
+      <div
+        className={cn(
+          'flex w-full flex-col items-center justify-center gap-2',
+          mode === 'fullscreen' && 'm-auto h-full'
+        )}
+      >
+        {showHeading && (
           <h1 className='text-4xl leading-tight font-bold text-center'>{heading}</h1>
         )}
-        {!isDescriptiveMessage && (
+        {showMessage && (
           <p className='text-muted-foreground text-center'>
             {message}
           </p>

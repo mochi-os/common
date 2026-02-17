@@ -22,6 +22,7 @@ export function useQueryWithError<
         error={query.error} 
         minimal 
         reset={query.refetch}
+        mode='inline'
       />
     ) : null,
   }
@@ -49,6 +50,7 @@ export function useInfiniteQueryWithError<
         error={query.error} 
         minimal 
         reset={query.refetch}
+        mode='inline'
       />
     ) : null,
   }
