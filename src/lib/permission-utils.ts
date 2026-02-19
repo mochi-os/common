@@ -1,21 +1,23 @@
 // Permission error handling utilities
 
 export interface PermissionError {
+  app: string
   permission: string
   restricted: boolean
 }
 
 // Check if an error response is a permission error
-// Backend returns: { error: "permission_required", permission: string, restricted: boolean }
+// Backend returns: { error: "permission_required", app: string, permission: string, restricted: boolean }
 export function isPermissionError(responseData: unknown): PermissionError | null {
   if (
     responseData &&
     typeof responseData === 'object' &&
     'error' in responseData
   ) {
-    const data = responseData as { error?: string; permission?: string; restricted?: boolean }
+    const data = responseData as { error?: string; app?: string; permission?: string; restricted?: boolean }
     if (data.error === 'permission_required' && data.permission) {
       return {
+        app: data.app || '',
         permission: data.permission,
         restricted: data.restricted ?? false,
       }
@@ -49,7 +51,7 @@ export function redirectToPermissionRequest(
 // Returns true if the error was handled, false otherwise
 export function handlePermissionError(
   responseData: unknown,
-  appId: string,
+  appId?: string,
   options?: {
     returnUrl?: string
     onRestricted?: (permission: string) => void
@@ -60,8 +62,11 @@ export function handlePermissionError(
     return false
   }
 
+  // Use app ID from error response, fall back to provided appId, then URL path
+  const resolvedAppId = permError.app || appId || getCurrentAppId()
+
   if (!permError.restricted) {
-    redirectToPermissionRequest(appId, permError.permission, options?.returnUrl)
+    redirectToPermissionRequest(resolvedAppId, permError.permission, options?.returnUrl)
     return true
   }
 
