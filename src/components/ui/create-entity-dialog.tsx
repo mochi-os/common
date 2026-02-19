@@ -193,6 +193,27 @@ export function CreateEntityDialog({
 
             {(showPrivacyToggle || extraToggles.length > 0) && (
               <div className="space-y-3">
+                {showPrivacyToggle && (
+                  <FormField
+                    control={form.control}
+                    name="allowSearch"
+                    render={({ field }) => (
+                      <FormItem className="flex items-center justify-between rounded-lg border px-4 py-3">
+                        <FormLabel className="text-sm font-medium">
+                          {privacyLabel}
+                        </FormLabel>
+                        <FormControl>
+                          <Switch
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                            disabled={isPending}
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  />
+                )}
+
                 {extraToggles.map((toggle) => (
                   <FormField
                     key={toggle.name}
@@ -214,27 +235,6 @@ export function CreateEntityDialog({
                     )}
                   />
                 ))}
-
-                {showPrivacyToggle && (
-                  <FormField
-                    control={form.control}
-                    name="allowSearch"
-                    render={({ field }) => (
-                      <FormItem className="flex items-center justify-between rounded-lg border px-4 py-3">
-                        <FormLabel className="text-sm font-medium">
-                          {privacyLabel}
-                        </FormLabel>
-                        <FormControl>
-                          <Switch
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                            disabled={isPending}
-                          />
-                        </FormControl>
-                      </FormItem>
-                    )}
-                  />
-                )}
               </div>
             )}
 

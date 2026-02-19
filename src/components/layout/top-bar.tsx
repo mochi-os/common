@@ -8,7 +8,7 @@ import {
   LogOut,
   PanelLeft,
   Settings,
-  BellOff,
+
 } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
@@ -38,7 +38,6 @@ import {
   DrawerTrigger,
 } from '../ui/drawer'
 import { SignOutDialog } from '../sign-out-dialog'
-import { EmptyState } from '../ui/empty-state'
 
 type TopBarProps = {
   showNotifications?: boolean
@@ -133,18 +132,6 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
   const [expanded, setExpanded] = useState(false)
 
   const unread = notifications.filter((n) => n.read === 0)
-
-  if (!unread.length) {
-    return (
-      <EmptyState
-        icon={BellOff}
-        title="You're all caught up!"
-        description='No unread notifications'
-        className='py-8 bg-transparent'
-      />
-    )
-  }
-
   const visible = expanded ? unread : unread.slice(0, 3)
 
   return (
@@ -154,12 +141,14 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
           Notifications
         </span>
         <div className='flex gap-1'>
-          <button
-            onClick={markAllAsRead}
-            className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'
-          >
-            <Check className='size-4' />
-          </button>
+          {unread.length > 0 && (
+            <button
+              onClick={markAllAsRead}
+              className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'
+            >
+              <Check className='size-4' />
+            </button>
+          )}
           <a
             href='/notifications/'
             onClick={onClose}
@@ -170,27 +159,35 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
         </div>
       </div>
 
-      <ScrollArea className={expanded ? 'max-h-64' : ''}>
-        <div className='space-y-0.5 px-1'>
-          {visible.map((n) => (
-            <NotificationItem
-              key={n.id}
-              notification={n}
-              onClick={(notif) => {
-                markAsRead(notif.id)
-                notif.link && (window.location.href = notif.link)
-              }}
-            />
-          ))}
+      {unread.length === 0 ? (
+        <div className='px-2 py-4 text-center text-sm text-muted-foreground'>
+          All caught up
         </div>
-      </ScrollArea>
+      ) : (
+        <>
+          <ScrollArea className={expanded ? 'max-h-64' : ''}>
+            <div className='space-y-0.5 px-1'>
+              {visible.map((n) => (
+                <NotificationItem
+                  key={n.id}
+                  notification={n}
+                  onClick={(notif) => {
+                    markAsRead(notif.id)
+                    notif.link && (window.location.href = notif.link)
+                  }}
+                />
+              ))}
+            </div>
+          </ScrollArea>
 
-      {unread.length > 3 && !expanded && (
-        <div className='flex justify-center pt-1'>
-          <button onClick={() => setExpanded(true)}>
-            <ChevronDown className='size-4' />
-          </button>
-        </div>
+          {unread.length > 3 && !expanded && (
+            <div className='flex justify-center pt-1'>
+              <button onClick={() => setExpanded(true)}>
+                <ChevronDown className='size-4' />
+              </button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -273,7 +270,7 @@ export function TopBar({
               onClick={() => setSignOutOpen(true)}
               className='text-destructive flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-destructive/15 active:bg-destructive/20'
             >
-              <LogOut className='size-4 text-destructive' />
+              <LogOut className='size-4' />
             </button>
           </div>
         </div>
