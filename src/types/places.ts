@@ -13,9 +13,15 @@ export interface TravellingData {
   destination: PlaceData
 }
 
+export interface MemoryData {
+  year: number
+  years_ago: number
+}
+
 export interface PostData {
   checkin?: PlaceData
   travelling?: TravellingData
+  memory?: MemoryData
 }
 
 // Photon API response types
