@@ -162,8 +162,17 @@ function NotificationItem({
   )
 }
 
-function NotificationsSection({ onClose }: { onClose: () => void }) {
-  const { notifications, markAsRead, markAllAsRead } = useNotifications()
+function NotificationsSection({
+  onClose,
+  notifications,
+  markAsRead,
+  markAllAsRead,
+}: {
+  onClose: () => void
+  notifications: Notification[]
+  markAsRead: (id: string) => void
+  markAllAsRead: () => void
+}) {
   const [expanded, setExpanded] = useState(false)
 
   const unread = notifications.filter((n) => n.read === 0)
@@ -238,7 +247,7 @@ function SidebarLogoMenu({
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [signOutOpen, setSignOutOpen] = useDialogState()
-  const { notifications } = useNotifications()
+  const { notifications, markAsRead, markAllAsRead } = useNotifications()
   const { state } = useSidebar()
 
   const unreadCount = notifications.filter((n) => n.read === 0).length
@@ -298,7 +307,12 @@ function SidebarLogoMenu({
                 {showNotifications && (
                   <>
                     <DropdownMenuSeparator />
-                    <NotificationsSection onClose={() => setMenuOpen(false)} />
+                    <NotificationsSection
+                      onClose={() => setMenuOpen(false)}
+                      notifications={notifications}
+                      markAsRead={markAsRead}
+                      markAllAsRead={markAllAsRead}
+                    />
                   </>
                 )}
               </DropdownMenuContent>

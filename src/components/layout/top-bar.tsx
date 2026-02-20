@@ -126,8 +126,17 @@ function NotificationItem({
   )
 }
 
-function NotificationsSection({ onClose }: { onClose: () => void }) {
-  const { notifications, markAsRead, markAllAsRead } = useNotifications()
+function NotificationsSection({
+  onClose,
+  notifications,
+  markAsRead,
+  markAllAsRead,
+}: {
+  onClose: () => void
+  notifications: Notification[]
+  markAsRead: (id: string) => void
+  markAllAsRead: () => void
+}) {
   const [expanded, setExpanded] = useState(false)
 
   const unread = notifications.filter((n) => n.read === 0)
@@ -203,7 +212,7 @@ export function TopBar({
   const { theme } = useTheme()
   const { isMobile } = useScreenSize()
   const { toggleSidebar } = useSidebar()
-  const { notifications } = useNotifications()
+  const { notifications, markAsRead, markAllAsRead } = useNotifications()
 
   const name = useAuthStore((s) => s.name)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -274,7 +283,12 @@ export function TopBar({
       {showNotifications && (
         <>
           <DropdownMenuSeparator />
-          <NotificationsSection onClose={() => setMenuOpen(false)} />
+          <NotificationsSection
+            onClose={() => setMenuOpen(false)}
+            notifications={notifications}
+            markAsRead={markAsRead}
+            markAllAsRead={markAllAsRead}
+          />
         </>
       )}
     </>
