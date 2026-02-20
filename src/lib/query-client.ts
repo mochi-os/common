@@ -4,6 +4,13 @@ import { AxiosError } from 'axios'
 import { toast } from './toast-utils'
 
 export interface CreateQueryClientOptions {
+  /**
+   * @deprecated No-op. Previously navigated to /500 on query errors, but this
+   * prevented section-scoped error display. 5xx errors now show an inline
+   * GeneralError within the section that owns the query. The /500 page is
+   * still reachable via explicit throws in TanStack Router loaders. This field
+   * will be removed in a future cleanup.
+   */
   onServerError?: () => void
   onForbidden?: () => void
 }
@@ -47,7 +54,6 @@ export function createQueryClient(options: CreateQueryClientOptions = {}): Query
         if (error instanceof AxiosError) {
           if (error.response?.status === 500) {
             toast.error('Internal server error')
-            options.onServerError?.()
           }
           if (error.response?.status === 403) {
             options.onForbidden?.()
