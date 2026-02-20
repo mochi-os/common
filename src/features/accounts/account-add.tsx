@@ -126,7 +126,7 @@ export function AccountAdd({
             )}
 
             {selectedProvider &&
-              selectedProvider.fields.map((field) => (
+              [...selectedProvider.fields].sort((a, b) => a.name === 'label' ? -1 : b.name === 'label' ? 1 : 0).map((field) => (
                 <div key={field.name} className="grid gap-2">
                   <Label htmlFor={field.name}>{field.label}</Label>
                   <Input
