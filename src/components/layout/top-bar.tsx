@@ -137,13 +137,13 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
     <div className='py-1'>
       <div className='flex items-center justify-between px-2 pb-1'>
         <span className='text-xs font-medium text-muted-foreground'>
-          Notifications
+          Notifications: {unread.length}
         </span>
         <div className='flex gap-1'>
           {unread.length > 0 && (
             <button
               onClick={markAllAsRead}
-              className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'
+              className='rounded p-1.5 hover:bg-interactive-hover active:bg-interactive-active'
             >
               <Check className='size-4' />
             </button>
@@ -151,18 +151,14 @@ function NotificationsSection({ onClose }: { onClose: () => void }) {
           <a
             href='/notifications/'
             onClick={onClose}
-            className='rounded p-1 hover:bg-interactive-hover active:bg-interactive-active'
+            className='rounded p-1.5 hover:bg-interactive-hover active:bg-interactive-active'
           >
             <ExternalLink className='size-4' />
           </a>
         </div>
       </div>
 
-      {unread.length === 0 ? (
-        <div className='px-2 py-4 text-center text-sm text-muted-foreground'>
-          All caught up
-        </div>
-      ) : (
+      {unread.length > 0 && (
         <>
           <ScrollArea className={expanded ? 'max-h-64' : ''}>
             <div className='space-y-0.5 px-1'>
@@ -258,7 +254,7 @@ export function TopBar({
           <div className='grid text-sm'>
             <span className='font-semibold'>{name || 'User'}</span>
           </div>
-          <div className='flex items-center gap-1'>
+          <div className='flex items-center gap-1 ml-4'>
             <a
               href='/settings'
               className='flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-interactive-hover active:bg-interactive-active'
@@ -267,7 +263,7 @@ export function TopBar({
             </a>
             <button
               onClick={() => setSignOutOpen(true)}
-              className='text-destructive flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-destructive/15 active:bg-destructive/20'
+              className='text-foreground flex items-center justify-center rounded-md p-1.5 transition-colors hover:bg-interactive-hover active:bg-interactive-active'
             >
               <LogOut className='size-4' />
             </button>
