@@ -50,16 +50,34 @@ export function AccountAdd({
     [providersList]
   )
 
+  // Pre-populate non-required text fields that have a placeholder value
+  const getDefaultFields = (provider: Provider | undefined) => {
+    if (!provider) return {}
+    const defaults: Record<string, string> = {}
+    for (const field of provider.fields) {
+      if (!field.required && field.type === 'text' && field.placeholder) {
+        defaults[field.name] = field.placeholder
+      }
+    }
+    return defaults
+  }
+
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
-      setSelectedType(availableProviders.length === 1 ? availableProviders[0].type : '')
-      setFields({})
+      const type = availableProviders.length === 1 ? availableProviders[0].type : ''
+      setSelectedType(type)
+      setFields(getDefaultFields(providersList.find((p) => p.type === type)))
       setAddToExisting(true)
     }
   }, [open, availableProviders])
 
   const selectedProvider = providersList.find((p) => p.type === selectedType)
+
+  // Reset fields with defaults when provider type changes
+  useEffect(() => {
+    setFields(getDefaultFields(selectedProvider))
+  }, [selectedType])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -119,12 +137,13 @@ export function AccountAdd({
                     onChange={(e) =>
                       handleFieldChange(field.name, e.target.value)
                     }
+                    placeholder={field.placeholder || undefined}
                     required={field.required}
                   />
                 </div>
               ))}
 
-            {selectedType && (
+            {selectedProvider && selectedProvider.capabilities.includes('notify') && (
               <div className="flex items-center justify-between rounded-lg border p-4">
                 <div className="font-medium">Add to existing notifications</div>
                 <Switch
