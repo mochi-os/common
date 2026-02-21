@@ -56,6 +56,10 @@ export interface AccountsHookResult {
   isLoading: boolean
   isProvidersLoading: boolean
   isAccountsLoading: boolean
+  /** Error from the providers query, if it failed */
+  providersError: unknown
+  /** Error from the accounts list query, if it failed */
+  accountsError: unknown
   add: (type: string, fields: Record<string, string>, addToExisting?: boolean) => Promise<Account>
   remove: (id: number) => Promise<boolean>
   update: (id: number, fields: Record<string, string>) => Promise<boolean>

@@ -36,6 +36,7 @@ export function useAccounts(
   const {
     data: providersData,
     isLoading: isProvidersLoading,
+    error: providersError,
   } = useQuery({
     queryKey: ['accounts', 'providers', appBase, capability],
     queryFn: async () => {
@@ -55,6 +56,7 @@ export function useAccounts(
   const {
     data: accountsData,
     isLoading: isAccountsLoading,
+    error: accountsError,
     refetch,
   } = useQuery({
     queryKey: ['accounts', 'list', appBase, capability],
@@ -216,6 +218,8 @@ export function useAccounts(
     isLoading: isProvidersLoading || isAccountsLoading,
     isProvidersLoading,
     isAccountsLoading,
+    providersError,
+    accountsError,
     add: async (type: string, fields: Record<string, string>, addToExisting = true) => {
       const result = await addMutation.mutateAsync({ type, fields, addToExisting })
       if (!result) throw new Error('Failed to add account')

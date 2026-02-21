@@ -1,5 +1,7 @@
 import { cn } from '../../lib/utils'
 import { ApiError } from '../../lib/request'
+import { Button } from '../../components/ui/button'
+import { RotateCcw } from 'lucide-react'
 
 type GeneralErrorProps = React.HTMLAttributes<HTMLDivElement> & {
   minimal?: boolean
@@ -12,6 +14,7 @@ export function GeneralError({
   className,
   minimal = false,
   error,
+  reset,
   mode = 'fullscreen',
 }: GeneralErrorProps) {
 
@@ -74,6 +77,18 @@ export function GeneralError({
           <p className='text-muted-foreground text-center'>
             {message}
           </p>
+        )}
+        {reset && (
+          <Button
+            type='button'
+            onClick={reset}
+            variant='outline'
+            size='sm'
+            className='mt-2'
+          >
+            <RotateCcw className='h-4 w-4' />
+            Try again
+          </Button>
         )}
       </div>
     </div>
