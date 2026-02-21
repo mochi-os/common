@@ -25,15 +25,15 @@ export function Section({
 
   return (
     <Card className={cn('shadow-md', className)}>
-      <CardHeader className={cn('flex flex-row items-start justify-between space-y-0', showContent ? 'border-b/60 border-b pb-4' : 'pb-4')}>
-        <div className="space-y-1.5">
+      <CardHeader className={cn('flex flex-row items-start justify-between space-y-0', showContent ? 'border-b/60 border-b pb-2' : 'pb-2')}>
+        <div className="space-y-1">
           <CardTitle className="text-lg leading-tight">{title}</CardTitle>
           {description && <CardDescription>{description}</CardDescription>}
         </div>
         {action}
       </CardHeader>
       {showContent && (
-        <CardContent className={cn('py-2', contentClassName)}>
+        <CardContent className={cn('py-1', contentClassName)}>
           {children}
         </CardContent>
       )}
@@ -50,8 +50,8 @@ interface FieldRowProps {
 
 export function FieldRow({ label, children, className, description }: FieldRowProps) {
   return (
-    <div className={cn('grid grid-cols-1 items-start gap-2 border-b border-border/40 py-3 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-5 last:border-0', className)}>
-      <div className='sm:pt-1'>
+    <div className={cn('grid grid-cols-1 items-center gap-2 border-b border-border/40 py-2 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-5 last:border-0', className)}>
+      <div>
         <dt className='text-muted-foreground text-sm font-medium leading-none sm:leading-tight'>
           {label}
         </dt>
@@ -61,7 +61,7 @@ export function FieldRow({ label, children, className, description }: FieldRowPr
           </p>
         )}
       </div>
-      <dd className='flex min-w-0 items-start gap-2 py-0.5'>
+      <dd className='flex min-w-0 items-center gap-2'>
         {children}
       </dd>
     </div>
