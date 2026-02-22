@@ -109,6 +109,7 @@ export * from './components/skip-to-main'
 export * from './components/theme-switch'
 export * from './components/colour-picker'
 export * from './components/comment-tree-layout'
+export * from './components/post-tags'
 
 // Context Providers
 export * from './context/direction-provider'
