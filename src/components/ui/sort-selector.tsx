@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Flame, TrendingUp, Trophy, Clock, Sparkles } from 'lucide-react'
+import { Flame, Star, Trophy, Clock } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from './select'
 
-export type SortType = 'best' | 'hot' | 'new' | 'top' | 'rising'
+export type SortType = 'relevant' | 'new' | 'hot' | 'top'
 
 interface SortOption {
   value: SortType
@@ -17,11 +17,10 @@ interface SortOption {
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'best', label: 'Best', icon: <Sparkles className="size-4" /> },
-  { value: 'hot', label: 'Hot', icon: <Flame className="size-4" /> },
+  { value: 'relevant', label: 'Relevant', icon: <Star className="size-4" /> },
   { value: 'new', label: 'New', icon: <Clock className="size-4" /> },
+  { value: 'hot', label: 'Hot', icon: <Flame className="size-4" /> },
   { value: 'top', label: 'Top', icon: <Trophy className="size-4" /> },
-  { value: 'rising', label: 'Rising', icon: <TrendingUp className="size-4" /> },
 ]
 
 interface SortSelectorProps {

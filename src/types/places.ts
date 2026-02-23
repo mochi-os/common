@@ -18,10 +18,18 @@ export interface MemoryData {
   years_ago: number
 }
 
+export interface RssData {
+  title: string
+  link: string
+  html: string
+  image?: string
+}
+
 export interface PostData {
   checkin?: PlaceData
   travelling?: TravellingData
   memory?: MemoryData
+  rss?: RssData
 }
 
 // Photon API response types

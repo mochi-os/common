@@ -5,6 +5,7 @@ import { Popover, PopoverTrigger, PopoverContent } from './ui/popover'
 export interface PostTag {
   id: string
   label: string
+  qid?: string
 }
 
 interface PostTagsTooltipProps {
@@ -12,17 +13,21 @@ interface PostTagsTooltipProps {
   onRemove?: (tagId: string) => void
   onFilter?: (label: string) => void
   onAdd?: (label: string) => Promise<void> | void
+  onInterestUp?: (qid: string) => void
+  onInterestDown?: (qid: string) => void
 }
 
 interface PostTagsProps {
   tags: PostTag[]
   onRemove?: (tagId: string) => void
   onFilter?: (label: string) => void
+  onInterestUp?: (qid: string) => void
+  onInterestDown?: (qid: string) => void
 }
 
 const TAG_PATTERN = /^[a-z0-9 /\-]+$/
 
-export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd }: PostTagsTooltipProps) {
+export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd, onInterestUp, onInterestDown }: PostTagsTooltipProps) {
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
@@ -66,14 +71,13 @@ export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd }: PostTagsToo
         </button>
       </PopoverTrigger>
       <PopoverContent
-        className='w-auto min-w-[140px] max-w-[240px] p-2'
+        className='w-auto min-w-[160px] max-w-[320px] p-2'
         align='start'
-        onClick={(e) => {
-          e.preventDefault()
-          e.stopPropagation()
-        }}
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onClick={(e) => e.stopPropagation()}
       >
-        <PostTags tags={tags} onRemove={onRemove} onFilter={onFilter} />
+        <PostTags tags={tags} onRemove={onRemove} onFilter={onFilter} onInterestUp={onInterestUp} onInterestDown={onInterestDown} />
         {onAdd && (
           <div className={tags.length > 0 ? 'mt-1.5 border-t pt-1.5' : ''}>
             <input
@@ -97,7 +101,7 @@ export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd }: PostTagsToo
   )
 }
 
-export function PostTags({ tags, onRemove, onFilter }: PostTagsProps) {
+export function PostTags({ tags, onRemove, onFilter, onInterestUp, onInterestDown }: PostTagsProps) {
   if (!tags.length) return null
 
   return (
@@ -105,11 +109,11 @@ export function PostTags({ tags, onRemove, onFilter }: PostTagsProps) {
       {tags.map((tag) => (
         <div
           key={tag.id}
-          className='group/tag flex items-center justify-between gap-4 text-muted-foreground text-xs'
+          className='group/tag flex items-center gap-1 text-muted-foreground text-xs'
         >
           <button
             type='button'
-            className='hover:underline'
+            className='hover:underline truncate text-left'
             onClick={(e) => {
               e.preventDefault()
               e.stopPropagation()
@@ -118,27 +122,33 @@ export function PostTags({ tags, onRemove, onFilter }: PostTagsProps) {
           >
             #{tag.label}
           </button>
-          <span className='inline-flex items-center opacity-0 group-hover/tag:opacity-100 transition-opacity'>
-            <button
-              type='button'
-              className='text-muted-foreground/60 hover:text-foreground transition-colors'
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-              }}
-            >
-              <Plus className='size-4' />
-            </button>
-            <button
-              type='button'
-              className='text-muted-foreground/60 hover:text-foreground transition-colors'
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-              }}
-            >
-              <Minus className='size-4' />
-            </button>
+          <span className='ml-auto inline-flex shrink-0 items-center opacity-0 group-hover/tag:opacity-100 transition-opacity'>
+            {tag.qid && onInterestUp && (
+              <button
+                type='button'
+                className='text-muted-foreground/60 hover:text-foreground transition-colors'
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onInterestUp(tag.qid!)
+                }}
+              >
+                <Plus className='size-4' />
+              </button>
+            )}
+            {tag.qid && onInterestDown && (
+              <button
+                type='button'
+                className='text-muted-foreground/60 hover:text-foreground transition-colors'
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onInterestDown(tag.qid!)
+                }}
+              >
+                <Minus className='size-4' />
+              </button>
+            )}
             <button
               type='button'
               className='text-muted-foreground/60 hover:text-foreground transition-colors'
