@@ -1,10 +1,17 @@
-import axios, { type AxiosError, type InternalAxiosRequestConfig } from 'axios'
+/// <reference path="../types/axios.d.ts" />
+import axios, {
+  type AxiosError,
+  type AxiosRequestConfig,
+  type InternalAxiosRequestConfig,
+} from 'axios'
 import { toast } from './toast-utils'
 import { useAuthStore } from '../stores/auth-store'
 import { getCookie, removeCookie } from './cookies'
 import { getApiBasepath, getAuthLoginUrl } from './app-path'
 
 const devConsole = globalThis.console
+const DEFAULT_TOAST_DEDUPE_TTL_MS = 10_000
+const toastDedupeMap = new Map<string, number>()
 
 const logDevError = (message: string, error: unknown) => {
   if (import.meta.env.DEV) {
@@ -12,6 +19,99 @@ const logDevError = (message: string, error: unknown) => {
   }
 }
 
+function getRequestMethod(config?: AxiosRequestConfig): string {
+  return config?.method?.toUpperCase() ?? 'UNKNOWN'
+}
+
+function getRequestUrl(config?: AxiosRequestConfig): string {
+  const base = config?.baseURL ?? ''
+  const url = config?.url ?? ''
+  return `${base}${url}` || '<unknown>'
+}
+
+function shouldShowGlobalErrorToast(config?: AxiosRequestConfig): boolean {
+  const explicit = config?.mochi?.showGlobalErrorToast
+  if (typeof explicit === 'boolean') {
+    return explicit
+  }
+
+  const method = config?.method?.toUpperCase()
+  if (!method) {
+    return true
+  }
+
+  // Query-style requests should render inline section errors instead.
+  return method !== 'GET' && method !== 'HEAD'
+}
+
+function getToastDedupeKey(
+  config: AxiosRequestConfig | undefined,
+  statusKey: string,
+  message: string
+): string {
+  const customKey = config?.mochi?.toastDedupeKey
+  if (customKey) {
+    return customKey
+  }
+
+  const normalizedMessage = message.trim().toLowerCase()
+  return `${getRequestMethod(config)}|${getRequestUrl(config)}|${statusKey}|${normalizedMessage}`
+}
+
+function shouldEmitDedupedToast(
+  config: AxiosRequestConfig | undefined,
+  statusKey: string,
+  message: string
+): boolean {
+  const ttlMs = config?.mochi?.toastDedupeTtlMs ?? DEFAULT_TOAST_DEDUPE_TTL_MS
+  const dedupeKey = getToastDedupeKey(config, statusKey, message)
+  const now = Date.now()
+  const lastShownAt = toastDedupeMap.get(dedupeKey)
+
+  if (lastShownAt !== undefined && now - lastShownAt < ttlMs) {
+    return false
+  }
+
+  toastDedupeMap.set(dedupeKey, now)
+
+  // Opportunistic cleanup to keep the map bounded.
+  if (toastDedupeMap.size > 500) {
+    for (const [key, timestamp] of toastDedupeMap.entries()) {
+      if (now - timestamp > DEFAULT_TOAST_DEDUPE_TTL_MS * 2) {
+        toastDedupeMap.delete(key)
+      }
+    }
+  }
+
+  return true
+}
+
+function maybeToastGlobalError({
+  config,
+  statusKey,
+  title,
+  description,
+}: {
+  config?: AxiosRequestConfig
+  statusKey: string
+  title: string
+  description?: string
+}): void {
+  if (!shouldShowGlobalErrorToast(config)) {
+    return
+  }
+
+  const dedupeMessage = description ?? title
+  if (!shouldEmitDedupedToast(config, statusKey, dedupeMessage)) {
+    return
+  }
+
+  if (description) {
+    toast.error(title, { description })
+    return
+  }
+  toast.error(title)
+}
 
 let logoutHandler: ((reason?: string) => void) | null = null
 
@@ -23,7 +123,7 @@ export const apiClient = axios.create({
   timeout: 30000,
   withCredentials: true,
   headers: {
-    'Accept': 'application/json',
+    Accept: 'application/json',
     'Content-Type': 'application/json',
   },
 })
@@ -83,7 +183,11 @@ apiClient.interceptors.response.use(
     ) {
       const errorData = responseData as { error?: string; status?: number }
       if (errorData.error && errorData.status && errorData.status >= 400) {
-        toast.error(errorData.error || 'An error occurred')
+        maybeToastGlobalError({
+          config: response.config,
+          statusKey: `app-${errorData.status}`,
+          title: errorData.error || 'An error occurred',
+        })
 
         if (import.meta.env.DEV) {
           devConsole?.error?.(
@@ -111,11 +215,9 @@ apiClient.interceptors.response.use(
         // Don't redirect if user was never authenticated (anonymous access)
         const hadSession = getCookie('token') || useAuthStore.getState().token
 
-
-
         if (!isAuthEndpoint && hadSession) {
           if (logoutHandler) {
-             logoutHandler('Session expired')
+            logoutHandler('Session expired')
           } else {
             // Fallback if no handler registered
             removeCookie('token')
@@ -144,9 +246,17 @@ apiClient.interceptors.response.use(
       case 500: {
         logDevError('[API] Server error', error)
         // Extract error message from backend response
-        const responseData = error.response?.data as { error?: string; message?: string } | undefined
-        const errorMessage = responseData?.error ?? responseData?.message ?? 'An unexpected error occurred'
-        toast.error('Server error', {
+        const responseData = error.response?.data as
+          | { error?: string; message?: string }
+          | undefined
+        const errorMessage =
+          responseData?.error ??
+          responseData?.message ??
+          'An unexpected error occurred'
+        maybeToastGlobalError({
+          config: error.config,
+          statusKey: '500',
+          title: 'Server error',
           description: errorMessage,
         })
         if (import.meta.env.DEV) {
@@ -161,9 +271,17 @@ apiClient.interceptors.response.use(
       case 502:
       case 503: {
         logDevError('[API] Server error', error)
-        const responseData = error.response?.data as { error?: string; message?: string } | undefined
-        const errorMessage = responseData?.error ?? responseData?.message ?? 'Unable to connect to remote server'
-        toast.error('Server error', {
+        const responseData = error.response?.data as
+          | { error?: string; message?: string }
+          | undefined
+        const errorMessage =
+          responseData?.error ??
+          responseData?.message ??
+          'Unable to connect to remote server'
+        maybeToastGlobalError({
+          config: error.config,
+          statusKey: String(status),
+          title: 'Server error',
           description: errorMessage,
         })
         break
@@ -176,7 +294,10 @@ apiClient.interceptors.response.use(
             logDevError('[API] Request canceled', error)
           } else {
             logDevError('[API] Network error', error)
-            toast.error('Network error', {
+            maybeToastGlobalError({
+              config: error.config,
+              statusKey: 'network',
+              title: 'Network error',
               description: 'Please check your internet connection and try again.',
             })
           }

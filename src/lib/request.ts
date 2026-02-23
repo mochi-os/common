@@ -1,3 +1,4 @@
+/// <reference path="../types/axios.d.ts" />
 import {
   isAxiosError,
   type AxiosError,
