@@ -1,5 +1,5 @@
 import { cn } from '../../lib/utils'
-import { ApiError } from '../../lib/request'
+import { normalizeError } from '../../lib/error-normalizer'
 import { Button } from '../../components/ui/button'
 import { RotateCcw } from 'lucide-react'
 
@@ -17,40 +17,12 @@ export function GeneralError({
   reset,
   mode = 'fullscreen',
 }: GeneralErrorProps) {
-
-  // Extract error details directly from the error object
-  let statusCode = 500
-  let message = 'Unknown error'
-
-  if (error instanceof ApiError) {
-    statusCode = error.status || 500
-    // Show the actual error message from the backend
-    const errorData = error.data as { error?: string } | undefined
-    message = errorData?.error || error.message || 'Unknown error'
-  } else if (error instanceof Error) {
-    // Check if error has ApiError-like properties (class might not survive serialization)
-    const anyError = error as { status?: number; data?: { error?: string } }
-    if (anyError.status) {
-      statusCode = anyError.status
-    }
-    if (anyError.data?.error) {
-      message = anyError.data.error
-    } else {
-      message = error.message || 'Unknown error'
-    }
-  } else if (typeof error === 'string') {
-    message = error
-  } else if (error && typeof error === 'object') {
-    // Handle plain objects with error info
-    const objError = error as { error?: string; message?: string; status?: number }
-    if (objError.status) {
-      statusCode = objError.status
-    }
-    message = objError.error || objError.message || 'Unknown error'
-  }
+  const normalized = normalizeError(error)
+  const statusCode = normalized.status ?? 500
+  const message = normalized.message
 
   // Use the error message as the heading if it's descriptive
-  const isDescriptiveMessage = message !== 'Unknown error' &&
+  const isDescriptiveMessage = message !== 'An unexpected error occurred' &&
     !message.includes('status code') &&
     !message.includes('Request failed')
   const heading = isDescriptiveMessage ? message : statusCode.toString()
