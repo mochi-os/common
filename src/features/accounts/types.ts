@@ -27,6 +27,7 @@ export interface Account {
   created: number
   verified: number
   enabled: number
+  default: string
 }
 
 export interface ProviderField {
