@@ -44,7 +44,7 @@ export function SortSelector({
       onValueChange={(v: string) => onValueChange(v as SortType)}
       disabled={disabled}
     >
-      <SelectTrigger className={className} size="sm">
+      <SelectTrigger className={className}>
         <SelectValue>
           <div className="flex items-center gap-2">
             {currentOption?.icon}

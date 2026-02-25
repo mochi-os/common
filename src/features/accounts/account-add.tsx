@@ -24,9 +24,10 @@ interface AccountAddProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   providers: Provider[]
-  onAdd: (type: string, fields: Record<string, string>, addToExisting: boolean) => Promise<void>
+  onAdd: (type: string, fields: Record<string, string>, addToExisting: boolean, setAsDefault?: boolean) => Promise<void>
   isAdding: boolean
   appBase: string
+  hasExistingAiAccount?: boolean
 }
 
 export function AccountAdd({
@@ -36,10 +37,12 @@ export function AccountAdd({
   onAdd,
   isAdding,
   appBase: _appBase,
+  hasExistingAiAccount = false,
 }: AccountAddProps) {
   const [selectedType, setSelectedType] = useState<string>('')
   const [fields, setFields] = useState<Record<string, string>>({})
   const [addToExisting, setAddToExisting] = useState(true)
+  const [setAsDefault, setSetAsDefault] = useState(false)
 
   // Ensure providers is always an array (defensive check)
   const providersList = Array.isArray(providers) ? providers : []
@@ -62,6 +65,8 @@ export function AccountAdd({
     return defaults
   }
 
+  const isAiType = (type: string) => type === 'claude' || type === 'openai'
+
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
@@ -69,6 +74,7 @@ export function AccountAdd({
       setSelectedType(type)
       setFields(getDefaultFields(providersList.find((p) => p.type === type)))
       setAddToExisting(true)
+      setSetAsDefault(isAiType(type) && !hasExistingAiAccount)
     }
   }, [open, availableProviders])
 
@@ -77,11 +83,12 @@ export function AccountAdd({
   // Reset fields with defaults when provider type changes
   useEffect(() => {
     setFields(getDefaultFields(selectedProvider))
+    setSetAsDefault(isAiType(selectedType) && !hasExistingAiAccount)
   }, [selectedType])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    await onAdd(selectedType, fields, addToExisting)
+    await onAdd(selectedType, fields, addToExisting, isAiType(selectedType) ? setAsDefault : undefined)
   }
 
   const handleFieldChange = (name: string, value: string) => {
@@ -149,6 +156,17 @@ export function AccountAdd({
                 <Switch
                   checked={addToExisting}
                   onCheckedChange={setAddToExisting}
+                />
+              </div>
+            )}
+
+            {selectedProvider && isAiType(selectedType) && (
+              <div className="flex items-center justify-between">
+                <Label htmlFor="set-default">Default AI account</Label>
+                <Switch
+                  id="set-default"
+                  checked={setAsDefault}
+                  onCheckedChange={setSetAsDefault}
                 />
               </div>
             )}
