@@ -15,6 +15,7 @@ import { Input } from './ui/input'
 import { ScrollArea } from './ui/scroll-area'
 import { cn } from '../lib/utils'
 import { requestHelpers } from '../lib/request'
+import { GeneralError } from '../features/errors/general-error'
 
 interface DirectoryEntry {
     id: string
@@ -64,6 +65,10 @@ interface SearchEntityDialogProps {
     isLoadingRecommendations?: boolean
     /** Whether recommendations failed to load */
     isRecommendationsError?: boolean
+    /** Recommendations query error object for inline retry rendering */
+    recommendationsError?: Error | null
+    /** Retry callback for recommendations query */
+    onRetryRecommendations?: () => void
 }
 
 export function SearchEntityDialog({
@@ -83,6 +88,8 @@ export function SearchEntityDialog({
     recommendations = [],
     isLoadingRecommendations = false,
     isRecommendationsError = false,
+    recommendationsError = null,
+    onRetryRecommendations,
 }: SearchEntityDialogProps) {
     const [searchQuery, setSearchQuery] = useState('')
     const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -193,6 +200,13 @@ export function SearchEntityDialog({
                                     <div className="flex items-center justify-center py-8">
                                         <Loader2 className="text-muted-foreground size-5 animate-spin" />
                                     </div>
+                                ) : recommendationsError ? (
+                                    <GeneralError
+                                        error={recommendationsError}
+                                        minimal
+                                        mode='inline'
+                                        reset={onRetryRecommendations}
+                                    />
                                 ) : isRecommendationsError || filteredRecommendations.length === 0 ? (
                                     <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                                         <Search className="size-12 opacity-20 mb-3" />

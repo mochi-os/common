@@ -10,6 +10,7 @@ import { requestHelpers } from '../lib/request'
 import { usePageTitle } from '../hooks/use-page-title'
 import { Header } from './layout/header'
 import { Main } from './layout/main'
+import { GeneralError } from '../features/errors/general-error'
 
 interface DirectoryEntry {
   id: string
@@ -53,6 +54,10 @@ interface FindEntityPageProps {
   isLoadingRecommendations?: boolean
   /** Whether recommendations failed to load */
   isRecommendationsError?: boolean
+  /** Recommendations query error object for inline retry rendering */
+  recommendationsError?: Error | null
+  /** Retry callback for recommendations query */
+  onRetryRecommendations?: () => void
 }
 
 export function FindEntityPage({
@@ -69,6 +74,8 @@ export function FindEntityPage({
   recommendations = [],
   isLoadingRecommendations = false,
   isRecommendationsError = false,
+  recommendationsError = null,
+  onRetryRecommendations,
 }: FindEntityPageProps) {
   usePageTitle(title)
 
@@ -166,6 +173,13 @@ export function FindEntityPage({
                 <div className="flex items-center justify-center py-8">
                   <Loader2 className="text-muted-foreground size-5 animate-spin" />
                 </div>
+              ) : recommendationsError ? (
+                <GeneralError
+                  error={recommendationsError}
+                  minimal
+                  mode='inline'
+                  reset={onRetryRecommendations}
+                />
               ) : isRecommendationsError || filteredRecommendations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                   <Search className="size-12 opacity-20 mb-3" />

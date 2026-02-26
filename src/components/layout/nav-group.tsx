@@ -149,7 +149,7 @@ function SidebarMenuLink({
         tooltip={item.title}
         className={item.className}
       >
-        <Link to={item.url} onClick={() => setOpenMobile(false)}>
+        <Link to={item.url} preload={false} onClick={() => setOpenMobile(false)}>
           {item.icon && <item.icon />}
           <span>{item.title}</span>
           {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -213,7 +213,7 @@ function SidebarMenuCollapsible({
                 tooltip={item.title}
                 className={cn('flex-1', item.className)}
               >
-                <Link to={item.url} onClick={() => setOpenMobile(false)}>
+                <Link to={item.url} preload={false} onClick={() => setOpenMobile(false)}>
                   {item.icon && <item.icon />}
                   <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
                   {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -286,7 +286,11 @@ function SidebarMenuCollapsible({
                     asChild
                     isActive={'url' in subItem ? checkIsActive(pathname, subItem) : false}
                   >
-                    <Link to={'url' in subItem ? subItem.url : '#'} onClick={() => setOpenMobile(false)}>
+                    <Link
+                      to={'url' in subItem ? subItem.url : '#'}
+                      preload={false}
+                      onClick={() => setOpenMobile(false)}
+                    >
                       {subItem.icon && <subItem.icon />}
                       <span className='group-data-[collapsible=icon]:hidden'>{subItem.title}</span>
                       {subItem.badge && <NavBadge>{subItem.badge}</NavBadge>}
@@ -337,7 +341,7 @@ function SidebarMenuSubCollapsible({
                 isActive={shouldHighlight}
                 className='flex-1'
               >
-                <Link to={item.url} onClick={() => setOpenMobile(false)}>
+                <Link to={item.url} preload={false} onClick={() => setOpenMobile(false)}>
                   {item.icon && <item.icon />}
                   <span className='group-data-[collapsible=icon]:hidden'>{item.title}</span>
                   {item.badge && <NavBadge>{item.badge}</NavBadge>}
@@ -394,7 +398,11 @@ function SidebarMenuSubCollapsible({
                     asChild
                     isActive={'url' in subSubItem ? checkIsActive(pathname, subSubItem) : false}
                   >
-                    <Link to={'url' in subSubItem ? subSubItem.url : '#'} onClick={() => setOpenMobile(false)}>
+                    <Link
+                      to={'url' in subSubItem ? subSubItem.url : '#'}
+                      preload={false}
+                      onClick={() => setOpenMobile(false)}
+                    >
                       {subSubItem.icon && <subSubItem.icon />}
                       <span className='group-data-[collapsible=icon]:hidden'>{subSubItem.title}</span>
                       {subSubItem.badge && <NavBadge>{subSubItem.badge}</NavBadge>}
@@ -440,6 +448,7 @@ function SidebarMenuCollapsedDropdown({
             <DropdownMenuItem key={`${sub.title}-${sub.url}`} asChild>
               <Link
                 to={sub.url}
+                preload={false}
                 className={`${checkIsActive(pathname, sub) ? 'bg-secondary' : ''}`}
               >
                 {sub.icon && <sub.icon />}

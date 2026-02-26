@@ -13,6 +13,7 @@ import { Input } from '../../components/ui/input'
 import { Label } from '../../components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../../components/ui/tabs'
 import { Card, CardContent } from '../../components/ui/card'
+import { GeneralError } from '../errors/general-error'
 import {
   Select,
   SelectContent,
@@ -32,8 +33,12 @@ export interface AccessDialogProps {
   // Data fetching
   userSearchResults?: UserSearchResult[]
   userSearchLoading?: boolean
+  userSearchError?: Error | null
+  onRetryUserSearch?: () => void
   onUserSearch?: (query: string) => void
   groups?: Group[]
+  groupsError?: Error | null
+  onRetryGroups?: () => void
 }
 
 export function AccessDialog({
@@ -44,8 +49,12 @@ export function AccessDialog({
   defaultLevel,
   userSearchResults = [],
   userSearchLoading = false,
+  userSearchError = null,
+  onRetryUserSearch,
   onUserSearch,
   groups = [],
+  groupsError = null,
+  onRetryGroups,
 }: AccessDialogProps) {
   const [userSearch, setUserSearch] = useState('')
   const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null)
@@ -111,10 +120,15 @@ export function AccessDialog({
     onOpenChange(false)
   }
 
-  const canAdd =
+  const hasBlockingError =
+    (activeTab === 'user' && userSearch.length >= 1 && !!userSearchError) ||
+    (activeTab === 'group' && !!groupsError)
+
+  const canAdd = !hasBlockingError && (
     (activeTab === 'user' && selectedUser) ||
     (activeTab === 'group' && selectedGroup) ||
     (activeTab === 'special' && selectedSpecial)
+  )
 
   const getSelectedName = () => {
     if (activeTab === 'user' && selectedUser) return selectedUser.name
@@ -176,6 +190,13 @@ export function AccessDialog({
                 <p className="text-muted-foreground text-center text-sm">
                   Searching...
                 </p>
+              ) : userSearchError ? (
+                <GeneralError
+                  error={userSearchError}
+                  minimal
+                  mode='inline'
+                  reset={onRetryUserSearch}
+                />
               ) : !userSearchResults.length ? (
                 <p className="text-muted-foreground text-center text-sm">
                   No users found
@@ -204,7 +225,14 @@ export function AccessDialog({
           <TabsContent value="group" className="mt-4">
             <div className="space-y-4">
               <Label>Select group</Label>
-              {groups.length === 0 ? (
+              {groupsError ? (
+                <GeneralError
+                  error={groupsError}
+                  minimal
+                  mode='inline'
+                  reset={onRetryGroups}
+                />
+              ) : groups.length === 0 ? (
                 <p className="text-muted-foreground text-center text-sm">
                   No groups available
                 </p>
