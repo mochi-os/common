@@ -1,12 +1,52 @@
+/// <reference path="../types/axios.d.ts" />
 import {
   isAxiosError,
-  type AxiosError,
   type AxiosRequestConfig,
   type AxiosResponse,
 } from 'axios'
 import apiClient from './api-client'
+import { normalizeError } from './error-normalizer'
 
 const devConsole = globalThis.console
+
+function getStatusErrorEnvelope(payload: unknown): {
+  status: number
+  error: string
+} | null {
+  if (!payload || typeof payload !== 'object') {
+    return null
+  }
+
+  const envelope = payload as { status?: unknown; error?: unknown }
+  const rawStatus = envelope.status
+  const status =
+    typeof rawStatus === 'number'
+      ? rawStatus
+      : typeof rawStatus === 'string'
+        ? Number(rawStatus)
+        : NaN
+
+  const error =
+    typeof envelope.error === 'string' ? envelope.error.trim() : ''
+
+  if (!Number.isFinite(status) || status < 400 || !error) {
+    return null
+  }
+
+  return { status, error }
+}
+
+function getErrorPayload(error: unknown): unknown {
+  if (isAxiosError(error)) {
+    return error.response?.data
+  }
+
+  if (error && typeof error === 'object' && 'data' in error) {
+    return (error as { data?: unknown }).data
+  }
+
+  return undefined
+}
 
 export interface ApiErrorParams {
   message: string
@@ -34,39 +74,25 @@ export class ApiError extends Error {
 const buildApiError = (
   error: unknown,
   fallbackMessage: string,
-  requestConfig: AxiosRequestConfig
+  _requestConfig: AxiosRequestConfig
 ): ApiError => {
-  if (isAxiosError(error)) {
-    const axiosError = error as AxiosError<{ message?: string; error?: string }>
-    const status = axiosError.response?.status
-    const responseData = axiosError.response?.data
-    // Backend may return either {"message": "..."} or {"error": "..."}
-    const message =
-      responseData?.error ??
-      responseData?.message ??
-      axiosError.message ??
-      `${requestConfig.method ?? 'request'} ${requestConfig.url} failed`
-
-    return new ApiError({
-      message,
-      status,
-      data: responseData,
-      cause: error,
-    })
-  }
-
   if (error instanceof ApiError) {
     return error
   }
 
-  if (error instanceof Error) {
-    return new ApiError({
-      message: error.message || fallbackMessage,
-      cause: error,
-    })
-  }
+  const normalized = normalizeError(error, fallbackMessage)
+  const payload = getErrorPayload(error)
 
-  return new ApiError({ message: fallbackMessage, data: error })
+  return new ApiError({
+    message: normalized.message,
+    ...(normalized.status !== undefined ? { status: normalized.status } : {}),
+    ...(payload !== undefined
+      ? { data: payload }
+      : error instanceof Error
+        ? {}
+        : { data: error }),
+    cause: error,
+  })
 }
 
 const logRequestError = (
@@ -119,9 +145,27 @@ export async function request<TResponse>(
     const response: AxiosResponse<TResponse> =
       await apiClient.request<TResponse>(requestConfig)
 
+    const responseData = response.data as unknown
+
+    // Conservative root-level app-envelope handling:
+    // treat as error only when status is present and >= 400.
+    const rootEnvelopeError = getStatusErrorEnvelope(responseData)
+    if (rootEnvelopeError) {
+      const normalized = normalizeError(
+        { status: rootEnvelopeError.status, data: responseData },
+        rootEnvelopeError.error
+      )
+      const apiError = new ApiError({
+        message: normalized.message,
+        status: rootEnvelopeError.status,
+        data: responseData,
+      })
+      logRequestError(apiError, requestConfig)
+      throw apiError
+    }
+
     // Unwrap the data envelope if present
     // Backend returns {"data": {...}} format
-    const responseData = response.data as unknown
     let unwrappedData = responseData
 
     if (
@@ -136,24 +180,19 @@ export async function request<TResponse>(
     // Some backends return HTTP 200 with error details in the response body
     // Only throw if status >= 400; responses like {error: "not_found"} without
     // a status are valid data responses, not errors
-    if (
-      unwrappedData &&
-      typeof unwrappedData === 'object' &&
-      'error' in unwrappedData &&
-      'status' in unwrappedData
-    ) {
-      const errorData = unwrappedData as { error?: string; status?: number }
-      // Throw if there's an error field with a status >= 400
-      if (errorData.error && errorData.status && errorData.status >= 400) {
-        // Throw an error for application-level errors
-        const apiError = new ApiError({
-          message: errorData.error,
-          status: errorData.status,
-          data: unwrappedData,
-        })
-        logRequestError(apiError, requestConfig)
-        throw apiError
-      }
+    const unwrappedEnvelopeError = getStatusErrorEnvelope(unwrappedData)
+    if (unwrappedEnvelopeError) {
+      const normalized = normalizeError(
+        { status: unwrappedEnvelopeError.status, data: unwrappedData },
+        unwrappedEnvelopeError.error
+      )
+      const apiError = new ApiError({
+        message: normalized.message,
+        status: unwrappedEnvelopeError.status,
+        data: unwrappedData,
+      })
+      logRequestError(apiError, requestConfig)
+      throw apiError
     }
 
     return unwrappedData as TResponse

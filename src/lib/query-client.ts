@@ -1,6 +1,7 @@
 // Shared QueryClient factory with sensible defaults to prevent caching issues
 import { QueryCache, QueryClient } from '@tanstack/react-query'
 import { AxiosError } from 'axios'
+import { ApiError } from './request'
 import { toast } from './toast-utils'
 
 export interface CreateQueryClientOptions {
@@ -15,23 +16,53 @@ export interface CreateQueryClientOptions {
   onForbidden?: () => void
 }
 
-export function createQueryClient(options: CreateQueryClientOptions = {}): QueryClient {
+const MAX_QUERY_RETRIES_PROD = 1
+const NON_RETRYABLE_STATUSES = new Set([401, 403, 404])
+
+function getErrorStatus(error: unknown): number | undefined {
+  if (error instanceof AxiosError) {
+    return error.response?.status
+  }
+  if (error instanceof ApiError) {
+    return error.status
+  }
+  if (error && typeof error === 'object') {
+    const anyError = error as {
+      status?: number
+      response?: { status?: number }
+    }
+    return anyError.response?.status ?? anyError.status
+  }
+  return undefined
+}
+
+function isRetryableQueryError(error: unknown): boolean {
+  const status = getErrorStatus(error)
+  if (status === undefined) {
+    // Network/no-response failures are retryable.
+    return true
+  }
+  if (NON_RETRYABLE_STATUSES.has(status)) {
+    return false
+  }
+  return status >= 500
+}
+
+export function createQueryClient(
+  options: CreateQueryClientOptions = {}
+): QueryClient {
   return new QueryClient({
     defaultOptions: {
       queries: {
         retry: (failureCount, error) => {
           if (import.meta.env.DEV) console.log({ failureCount, error })
 
-          // Don't retry in dev
-          if (failureCount >= 0 && import.meta.env.DEV) return false
-          // Max 3 retries in prod
-          if (failureCount > 3 && import.meta.env.PROD) return false
+          // Don't retry in dev.
+          if (import.meta.env.DEV) return false
 
-          // Don't retry auth errors
-          return !(
-            error instanceof AxiosError &&
-            [401, 403, 404].includes(error.response?.status ?? 0)
-          )
+          // In prod, only retry retryable failures with a strict max retry count.
+          if (!isRetryableQueryError(error)) return false
+          return failureCount < MAX_QUERY_RETRIES_PROD
         },
         refetchOnWindowFocus: import.meta.env.PROD,
         // Don't cache data - always refetch to avoid stale auth states
@@ -51,13 +82,8 @@ export function createQueryClient(options: CreateQueryClientOptions = {}): Query
     },
     queryCache: new QueryCache({
       onError: (error) => {
-        if (error instanceof AxiosError) {
-          if (error.response?.status === 500) {
-            toast.error('Internal server error')
-          }
-          if (error.response?.status === 403) {
-            options.onForbidden?.()
-          }
+        if (getErrorStatus(error) === 403) {
+          options.onForbidden?.()
         }
       },
     }),
