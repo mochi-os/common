@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import {
   Check,
-  ChevronDown,
   CircleUser,
   ExternalLink,
   LogIn,
@@ -137,10 +136,7 @@ function NotificationsSection({
   markAsRead: (id: string) => void
   markAllAsRead: () => void
 }) {
-  const [expanded, setExpanded] = useState(false)
-
   const unread = notifications.filter((n) => n.read === 0)
-  const visible = expanded ? unread : unread.slice(0, 3)
 
   return (
     <div className='py-1'>
@@ -168,30 +164,20 @@ function NotificationsSection({
       </div>
 
       {unread.length > 0 && (
-        <>
-          <ScrollArea className={expanded ? 'max-h-64' : ''}>
-            <div className='space-y-0.5 px-1'>
-              {visible.map((n) => (
-                <NotificationItem
-                  key={n.id}
-                  notification={n}
-                  onClick={(notif) => {
-                    markAsRead(notif.id)
-                    notif.link && (window.location.href = notif.link)
-                  }}
-                />
-              ))}
-            </div>
-          </ScrollArea>
-
-          {unread.length > 3 && !expanded && (
-            <div className='flex justify-center pt-1'>
-              <button onClick={() => setExpanded(true)}>
-                <ChevronDown className='size-4' />
-              </button>
-            </div>
-          )}
-        </>
+        <ScrollArea className='max-h-[calc(100vh-8rem)]'>
+          <div className='space-y-0.5 px-1'>
+            {unread.map((n) => (
+              <NotificationItem
+                key={n.id}
+                notification={n}
+                onClick={(notif) => {
+                  markAsRead(notif.id)
+                  notif.link && (window.location.href = notif.link)
+                }}
+              />
+            ))}
+          </div>
+        </ScrollArea>
       )}
     </div>
   )
