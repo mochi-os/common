@@ -92,12 +92,8 @@ export function NavUser() {
         />
       </div>
       <DropdownMenuSeparator />
-      <DropdownMenuItem
-        onClick={() => setOpen(true)}
-        variant='destructive'
-        className='text-destructive focus:text-destructive hover:bg-destructive/10 hover:text-destructive [&_svg]:hover:text-destructive'
-      >
-        <LogOut className='text-destructive' />
+      <DropdownMenuItem onClick={() => setOpen(true)}>
+        <LogOut className='size-4' />
         Log out
       </DropdownMenuItem>
     </>
@@ -161,9 +157,9 @@ export function NavUser() {
 
                   <button
                     onClick={() => setOpen(true)}
-                    className='flex items-center gap-2 px-2 py-1.5 text-sm text-destructive hover:bg-destructive/10 rounded-md'
+                    className='flex items-center gap-2 px-2 py-1.5 text-sm hover:bg-interactive-hover rounded-md'
                   >
-                    <LogOut size={16} className='text-destructive' />
+                    <LogOut size={16} />
                     Log out
                   </button>
                 </div>
@@ -210,12 +206,8 @@ export function NavUserDropdownContent() {
         />
       </div>
       <DropdownMenuSeparator />
-      <DropdownMenuItem
-        onClick={() => setOpen(true)}
-        variant='destructive'
-        className='text-destructive focus:text-destructive hover:bg-destructive/10 hover:text-destructive [&_svg]:hover:text-destructive'
-      >
-        <LogOut className='text-destructive' />
+      <DropdownMenuItem onClick={() => setOpen(true)}>
+        <LogOut className='size-4' />
         Log out
       </DropdownMenuItem>
       <SignOutDialog open={!!open} onOpenChange={setOpen} />
