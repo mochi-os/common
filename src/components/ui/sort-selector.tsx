@@ -1,5 +1,5 @@
 import * as React from 'react'
-import { Flame, Star, Trophy, Clock } from 'lucide-react'
+import { Flame, Sparkles, Star, Trophy, Clock } from 'lucide-react'
 import {
   Select,
   SelectContent,
@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from './select'
 
-export type SortType = 'relevant' | 'new' | 'hot' | 'top'
+export type SortType = 'relevant' | 'ai' | 'interests' | 'new' | 'hot' | 'top'
 
 interface SortOption {
   value: SortType
@@ -17,7 +17,8 @@ interface SortOption {
 }
 
 const SORT_OPTIONS: SortOption[] = [
-  { value: 'relevant', label: 'Relevant', icon: <Star className="size-4" /> },
+  { value: 'ai', label: 'AI', icon: <Sparkles className="size-4" /> },
+  { value: 'interests', label: 'Interests', icon: <Star className="size-4" /> },
   { value: 'new', label: 'New', icon: <Clock className="size-4" /> },
   { value: 'hot', label: 'Hot', icon: <Flame className="size-4" /> },
   { value: 'top', label: 'Top', icon: <Trophy className="size-4" /> },
@@ -36,11 +37,13 @@ export function SortSelector({
   disabled,
   className,
 }: SortSelectorProps) {
-  const currentOption = SORT_OPTIONS.find((opt) => opt.value === value)
+  // Map legacy 'relevant' to 'interests' for display
+  const effectiveValue = value === 'relevant' ? 'interests' : value
+  const currentOption = SORT_OPTIONS.find((opt) => opt.value === effectiveValue) ?? SORT_OPTIONS[0]
 
   return (
     <Select
-      value={value}
+      value={effectiveValue}
       onValueChange={(v: string) => onValueChange(v as SortType)}
       disabled={disabled}
     >
