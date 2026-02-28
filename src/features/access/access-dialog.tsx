@@ -22,6 +22,7 @@ import {
 } from '../../components/ui/select'
 import type { AccessLevel, UserSearchResult, Group } from './types'
 import { SPECIAL_SUBJECTS } from './types'
+import { GeneralError } from '../../components/general-error'
 
 export interface AccessDialogProps {
   open: boolean
@@ -32,8 +33,12 @@ export interface AccessDialogProps {
   // Data fetching
   userSearchResults?: UserSearchResult[]
   userSearchLoading?: boolean
+  userSearchError?: unknown
+  onRetryUserSearch?: () => void
   onUserSearch?: (query: string) => void
   groups?: Group[]
+  groupsError?: unknown
+  onRetryGroups?: () => void
 }
 
 export function AccessDialog({
@@ -44,8 +49,12 @@ export function AccessDialog({
   defaultLevel,
   userSearchResults = [],
   userSearchLoading = false,
+  userSearchError,
+  onRetryUserSearch,
   onUserSearch,
   groups = [],
+  groupsError,
+  onRetryGroups,
 }: AccessDialogProps) {
   const [userSearch, setUserSearch] = useState('')
   const [selectedUser, setSelectedUser] = useState<UserSearchResult | null>(null)
@@ -172,6 +181,13 @@ export function AccessDialog({
                 <p className="text-muted-foreground text-center text-sm">
                   Type to search users
                 </p>
+              ) : userSearchError ? (
+                <GeneralError
+                  error={userSearchError}
+                  minimal
+                  mode='inline'
+                  reset={onRetryUserSearch}
+                />
               ) : userSearchLoading ? (
                 <p className="text-muted-foreground text-center text-sm">
                   Searching...
@@ -204,7 +220,14 @@ export function AccessDialog({
           <TabsContent value="group" className="mt-4">
             <div className="space-y-4">
               <Label>Select group</Label>
-              {groups.length === 0 ? (
+              {groupsError ? (
+                <GeneralError
+                  error={groupsError}
+                  minimal
+                  mode='inline'
+                  reset={onRetryGroups}
+                />
+              ) : groups.length === 0 ? (
                 <p className="text-muted-foreground text-center text-sm">
                   No groups available
                 </p>
