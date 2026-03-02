@@ -22,7 +22,7 @@ import {
 } from '../../components/ui/select'
 import type { AccessLevel, UserSearchResult, Group } from './types'
 import { SPECIAL_SUBJECTS } from './types'
-import { GeneralError } from '../../components/general-error'
+import { GeneralError } from '../errors/general-error'
 
 export interface AccessDialogProps {
   open: boolean

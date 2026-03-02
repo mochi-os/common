@@ -10,7 +10,7 @@ import { requestHelpers } from '../lib/request'
 import { usePageTitle } from '../hooks/use-page-title'
 import { Header } from './layout/header'
 import { Main } from './layout/main'
-import { GeneralError } from './general-error'
+import { GeneralError } from '../features/errors/general-error'
 
 interface DirectoryEntry {
   id: string

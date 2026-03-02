@@ -39,6 +39,9 @@ interface DestinationsResponse {
 export interface UseDestinationsResult {
   destinations: Destination[]
   isLoading: boolean
+  isError: boolean
+  error: Error | null
+  refetch: () => void
 }
 
 // Hook to fetch available notification destinations
@@ -46,7 +49,7 @@ export interface UseDestinationsResult {
 export function useDestinations(appBase: string = ''): UseDestinationsResult {
   const appId = getAppIdFromBase(appBase)
 
-  const { data: destinationsData, isLoading } = useQuery({
+  const { data: destinationsData, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['destinations', appBase],
     queryFn: async () => {
       try {
@@ -93,5 +96,8 @@ export function useDestinations(appBase: string = ''): UseDestinationsResult {
   return {
     destinations,
     isLoading,
+    isError,
+    error: error as Error | null,
+    refetch,
   }
 }
