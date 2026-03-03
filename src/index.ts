@@ -153,6 +153,7 @@ export { getAppPath, getRouterBasepath, getApiBasepath, getAuthLoginUrl, isDomai
 export * from './lib/auth-endpoints'
 export * from './lib/auth-manager'
 export * from './lib/cookies'
+export { extractStatus } from './lib/error-normalizer'
 export * from './lib/handle-server-error'
 export * from './lib/query-client'
 export * from './lib/request'
