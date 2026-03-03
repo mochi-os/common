@@ -145,6 +145,7 @@ export * from './hooks/use-lightbox-hash'
 export * from './hooks/use-accounts'
 export * from './hooks/use-destinations'
 export * from './hooks/use-debounce'
+export * from './hooks/use-reset-selection-on-entity-change'
 
 // Lib utilities
 export * from './lib/create-app-client'
