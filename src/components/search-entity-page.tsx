@@ -185,7 +185,6 @@ export function FindEntityPage({
               ) : filteredRecommendations.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-8 text-center text-muted-foreground">
                   <Search className="size-12 opacity-20 mb-3" />
-                  <p className="text-sm font-medium">Type to find {entityClass}s...</p>
                 </div>
               ) : (
                 <div>
