@@ -145,6 +145,7 @@ export * from './hooks/use-lightbox-hash'
 export * from './hooks/use-accounts'
 export * from './hooks/use-destinations'
 export * from './hooks/use-debounce'
+export * from './hooks/use-reset-selection-on-entity-change'
 
 // Lib utilities
 export * from './lib/create-app-client'
@@ -153,6 +154,7 @@ export { getAppPath, getRouterBasepath, getApiBasepath, getAuthLoginUrl, isDomai
 export * from './lib/auth-endpoints'
 export * from './lib/auth-manager'
 export * from './lib/cookies'
+export { extractStatus } from './lib/error-normalizer'
 export * from './lib/handle-server-error'
 export * from './lib/query-client'
 export * from './lib/request'
@@ -162,6 +164,7 @@ export * from './lib/places-api'
 export * from './lib/attachment-utils'
 export * from './lib/toast-utils'
 export * from './lib/permission-utils'
+export * from './lib/safe-navigation'
 export * as push from './lib/push'
 
 // Types
