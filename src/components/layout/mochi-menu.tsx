@@ -41,9 +41,7 @@ function UserIcon({ unreadCount }: { unreadCount?: number }) {
     <div className='relative'>
       <CircleUser className='size-6 text-muted-foreground' />
       {!!unreadCount && (
-        <span className='absolute -right-1.5 -top-1.5 z-10 flex h-4 min-w-[1rem] items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white'>
-          {unreadCount > 9 ? '9+' : unreadCount}
-        </span>
+        <span className='absolute -right-0.5 -top-0.5 z-10 h-3 w-3 rounded-full bg-red-500' />
       )}
     </div>
   )
