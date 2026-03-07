@@ -56,6 +56,8 @@ export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd, onInterestUp,
     }
   }
 
+  if (tags.length === 0 && !onAdd) return null
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
