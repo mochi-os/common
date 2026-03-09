@@ -1,7 +1,8 @@
 // Routing helpers that read server-injected meta tags
 // The Mochi server injects <meta name="mochi:*"> tags into HTML responses
 // to communicate routing context. On dev servers these are absent and we
-// fall back to URL parsing.
+// fall back to URL parsing. In shell mode (sandboxed iframe), meta tags
+// are not injected — context comes from the URL path.
 
 // Read a server-injected meta tag value (null when absent)
 function getMeta(name: string): string | null {
@@ -11,6 +12,13 @@ function getMeta(name: string): string | null {
 // Check whether a server-injected meta tag is present
 function hasMeta(name: string): boolean {
   return document.querySelector(`meta[name="${name}"]`) !== null
+}
+
+// Read the app-scoped token injected by the server into the HTML.
+// In shell mode, tokens come via postMessage — this returns '' and the
+// auth store handles initialization via initializeFromShell().
+export function getAppToken(): string {
+  return getMeta('mochi:token') ?? ''
 }
 
 // Canonical path for cross-app API calls to the notifications app

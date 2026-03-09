@@ -4,6 +4,7 @@ import { Outlet } from '@tanstack/react-router'
 import { cn } from '../../lib/utils'
 import { getCookie } from '../../lib/cookies'
 import { isDomainEntityRouting } from '../../lib/app-path'
+import { isInShell } from '../../lib/shell-bridge'
 import { useAuthStore } from '../../stores/auth-store'
 
 import { LayoutProvider } from '../../context/layout-provider'
@@ -66,7 +67,9 @@ export function AuthenticatedLayout({
   rightPanelDefaultOpen = true,
   isLoadingSidebar,
 }: AuthenticatedLayoutProps) {
-  useVerifySession()
+  // Skip session verification when in shell — shell guarantees authentication
+  const inShell = isInShell()
+  useVerifySession(!inShell)
 
   useEffect(() => {
     if (title) document.title = title
@@ -74,6 +77,9 @@ export function AuthenticatedLayout({
 
   const isLoggedIn = useAuthStore((state) => state.isAuthenticated)
   const isLogoutInProgress = useAuthStore((state) => state.isLogoutInProgress)
+
+  // When in shell, suppress notifications in the app (menu app handles them)
+  const effectiveShowNotifications = inShell ? false : showNotifications
 
   const defaultOpen = getCookie('sidebar_state') !== 'false'
   const hasSidebar = !!(sidebarData && sidebarData.navGroups.length > 0)
@@ -134,7 +140,7 @@ export function AuthenticatedLayout({
           {/* Desktop sidebar */}
           <AppSidebar
             data={sidebarData}
-            showNotifications={showNotifications}
+            showNotifications={effectiveShowNotifications}
             sidebarFooter={sidebarFooter}
             isLoading={isLoadingSidebar}
           />
@@ -143,7 +149,7 @@ export function AuthenticatedLayout({
           <header className='fixed top-0 left-0 right-0 z-[60] h-12 border-b bg-background md:hidden overflow-visible'>
             <div className='flex h-full items-center px-2 overflow-visible'>
               <TopBar
-                showNotifications={showNotifications}
+                showNotifications={effectiveShowNotifications}
                 showSidebarTrigger
               />
             </div>
