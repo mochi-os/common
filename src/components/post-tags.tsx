@@ -122,43 +122,39 @@ export function PostTags({ tags, onRemove, onFilter, onInterestUp, onInterestDow
           >
             #{tag.label}{tag.relevance ? ` (${tag.relevance})` : ''}
           </button>
-          <span className='ml-auto inline-flex shrink-0 items-center opacity-0 group-hover/tag:opacity-100 transition-opacity'>
-            {onInterestUp && (
-              <button
-                type='button'
-                className='text-muted-foreground/60 hover:text-foreground transition-colors'
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onInterestUp(tag.qid || tag.label, !tag.qid)
-                }}
-              >
-                <Plus className='size-4' />
-              </button>
-            )}
-            {onInterestDown && (
-              <button
-                type='button'
-                className='text-muted-foreground/60 hover:text-foreground transition-colors'
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  onInterestDown(tag.qid || tag.label, !tag.qid)
-                }}
-              >
-                <Minus className='size-4' />
-              </button>
-            )}
+          <span className='ml-auto inline-flex shrink-0 items-center gap-0.5'>
             <button
               type='button'
-              className='text-muted-foreground/60 hover:text-foreground transition-colors'
+              className='text-muted-foreground hover:bg-accent hover:text-foreground rounded p-0.5 transition-colors'
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onInterestUp?.(tag.qid || tag.label, !tag.qid)
+              }}
+            >
+              <Plus className='size-3.5' />
+            </button>
+            <button
+              type='button'
+              className='text-muted-foreground hover:bg-accent hover:text-foreground rounded p-0.5 transition-colors'
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                onInterestDown?.(tag.qid || tag.label, !tag.qid)
+              }}
+            >
+              <Minus className='size-3.5' />
+            </button>
+            <button
+              type='button'
+              className='text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded p-0.5 transition-colors'
               onClick={(e) => {
                 e.preventDefault()
                 e.stopPropagation()
                 onRemove?.(tag.id)
               }}
             >
-              <X className='size-4' />
+              <X className='size-3.5' />
             </button>
           </span>
         </div>

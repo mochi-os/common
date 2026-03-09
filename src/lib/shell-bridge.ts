@@ -110,6 +110,110 @@ export function onShellMessage(listener: (msg: ShellMessage) => void): () => voi
   }
 }
 
+/** Safely read document.cookie (returns '' in sandboxed iframes) */
+export function safeCookieGet(): string {
+  try {
+    return document.cookie
+  } catch {
+    return ''
+  }
+}
+
+/** Safely write document.cookie (no-op in sandboxed iframes) */
+export function safeCookieSet(value: string): void {
+  try {
+    document.cookie = value
+  } catch {
+    // Sandboxed iframe — cannot set cookies
+  }
+}
+
+/**
+ * Install a global click handler that intercepts cross-app <a> clicks
+ * and routes them through shellNavigateExternal() instead of letting
+ * the iframe navigate directly (which would fail — no cookies).
+ */
+let linkInterceptorInstalled = false
+export function installShellLinkInterceptor(): void {
+  if (linkInterceptorInstalled || !isInShell()) return
+  linkInterceptorInstalled = true
+
+  const currentApp = window.location.pathname.match(/^\/([^/]+)/)?.[1] || ''
+
+  document.addEventListener('click', (event) => {
+    // Find the nearest <a> element
+    const target = (event.target as HTMLElement).closest?.('a')
+    if (!target) return
+
+    const href = target.getAttribute('href')
+    if (!href) return
+
+    // Only intercept absolute-path links to other apps
+    if (!href.startsWith('/')) return
+
+    const linkApp = href.match(/^\/([^/]+)/)?.[1] || ''
+    if (!linkApp || linkApp === currentApp || linkApp.startsWith('_')) return
+
+    // Cross-app link — route through shell
+    event.preventDefault()
+    event.stopPropagation()
+    shellNavigateExternal(href)
+  }, true) // capture phase to intercept before app handlers
+}
+
+/**
+ * Monkey-patch history.pushState and history.replaceState so that
+ * client-side navigation inside the iframe (e.g. TanStack Router)
+ * is relayed to the shell to keep the URL bar in sync.
+ */
+let navigationSyncInstalled = false
+export function installShellNavigationSync(): void {
+  if (navigationSyncInstalled || !isInShell()) return
+  navigationSyncInstalled = true
+
+  const origPushState = history.pushState.bind(history)
+  const origReplaceState = history.replaceState.bind(history)
+
+  const notifyShell = () => {
+    const path = window.location.pathname + window.location.search + window.location.hash
+    window.parent.postMessage({ type: 'navigate', path }, '*')
+  }
+
+  history.pushState = function (...args: Parameters<typeof history.pushState>) {
+    origPushState(...args)
+    notifyShell()
+  }
+
+  history.replaceState = function (...args: Parameters<typeof history.replaceState>) {
+    origReplaceState(...args)
+    notifyShell()
+  }
+
+  // Also catch popstate (back/forward within iframe)
+  window.addEventListener('popstate', () => notifyShell())
+}
+
+/**
+ * Add auth token to a URL for resource requests (images, downloads) in sandboxed iframes.
+ * In shell mode, <img src> and <a href> can't send Bearer headers or cookies,
+ * so the token is added as a query parameter.
+ * Outside the shell, returns the URL unchanged.
+ */
+export function authenticatedUrl(url: string): string {
+  if (!isInShell() || !shellInitData) return url
+
+  // Only add token to same-origin URLs (relative paths or same host)
+  // External URLs (https://other-server.com/...) don't need our token
+  if (/^https?:\/\//i.test(url)) return url
+
+  const token = shellInitData.token
+  if (!token) return url
+
+  const rawToken = token.startsWith('Bearer ') ? token.slice(7) : token
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}token=${encodeURIComponent(rawToken)}`
+}
+
 // Global message listener — routes shell messages to registered listeners
 if (typeof window !== 'undefined') {
   window.addEventListener('message', (event: MessageEvent) => {

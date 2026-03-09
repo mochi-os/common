@@ -24,6 +24,7 @@ type AppSidebarProps = {
   showNotifications?: boolean
   sidebarFooter?: React.ReactNode
   isLoading?: boolean
+  hideMenu?: boolean
 }
 
 function CollapseBtn() {
@@ -60,13 +61,14 @@ export function AppSidebar({
   showNotifications = true,
   sidebarFooter,
   isLoading,
+  hideMenu,
 }: AppSidebarProps) {
   const { collapsible } = useLayout()
   const { isMobile, state } = useSidebar()
 
   return (
     <Sidebar collapsible={collapsible} variant='sidebar'>
-      {!isMobile && (
+      {!isMobile && !hideMenu && (
         <SidebarHeader>
           <SidebarMenu>
             <SidebarMenuItem>

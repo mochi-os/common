@@ -73,8 +73,11 @@ export const useAuthStore = create<AuthState>()((set, get) => {
     },
 
     initialize: () => {
-      // In shell mode, initialization is handled by initializeFromShell()
-      if (isInShell()) return
+      // In shell mode, initialization is async — kick off initializeFromShell()
+      if (isInShell()) {
+        get().initializeFromShell()
+        return
+      }
 
       const metaToken = getAppToken()
       const storeToken = get().token
