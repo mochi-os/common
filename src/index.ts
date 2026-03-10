@@ -148,7 +148,7 @@ export * from './hooks/use-debounce'
 // Lib utilities
 export * from './lib/create-app-client'
 export * from './lib/api-client'
-export { getAppPath, getAppToken, getRouterBasepath, getApiBasepath, getAuthLoginUrl, isDomainEntityRouting, getEntityFingerprint, getEntityClass, NOTIFICATIONS_PATH } from './lib/app-path'
+export { getAppPath, getRouterBasepath, getApiBasepath, getAuthLoginUrl, isDomainEntityRouting, getEntityFingerprint, getEntityClass, NOTIFICATIONS_PATH } from './lib/app-path'
 export { isInShell, initShellBridge, shellNavigate, shellNavigateExternal, shellSetTitle, onShellMessage, getShellInitData, safeCookieGet, safeCookieSet, installShellLinkInterceptor, installShellNavigationSync, authenticatedUrl } from './lib/shell-bridge'
 export * as shellStorage from './lib/shell-storage'
 export * from './lib/auth-endpoints'

@@ -1,7 +1,6 @@
 import { create } from 'zustand'
-import { clearProfileCookie, readProfileCookie } from '../lib/profile-cookie'
-import { getAppToken } from '../lib/app-path'
-import { isInShell, initShellBridge, onShellMessage } from '../lib/shell-bridge'
+import { clearProfileCookie } from '../lib/profile-cookie'
+import { initShellBridge, onShellMessage } from '../lib/shell-bridge'
 
 interface AuthState {
   token: string
@@ -19,22 +18,19 @@ interface AuthState {
   startLogoutTransition: () => void
   endLogoutTransition: () => void
   clearAuth: () => void
-  initialize: () => void
-  initializeFromShell: () => Promise<void>
+  initialize: () => Promise<void>
   loadIdentity: (force?: boolean) => Promise<void>
 }
 
-export const useAuthStore = create<AuthState>()((set, get) => {
-  const initialToken = isInShell() ? '' : getAppToken()
-
+export const useAuthStore = create<AuthState>()((set) => {
   return {
-    token: initialToken,
+    token: '',
     identity: '',
     name: '',
     isLoading: false,
-    isInitialized: !isInShell() && Boolean(initialToken),
+    isInitialized: false,
     isLogoutInProgress: false,
-    isAuthenticated: Boolean(initialToken),
+    isAuthenticated: false,
 
     setLoading: (isLoading) => {
       set({ isLoading })
@@ -72,39 +68,10 @@ export const useAuthStore = create<AuthState>()((set, get) => {
       })
     },
 
-    initialize: () => {
-      // In shell mode, initialization is async — kick off initializeFromShell()
-      if (isInShell()) {
-        get().initializeFromShell()
-        return
-      }
-
-      const metaToken = getAppToken()
-      const storeToken = get().token
-      const profile = readProfileCookie()
-      const profileName = profile.name || ''
-
-      if (metaToken !== storeToken) {
-        set({
-          token: metaToken,
-          identity: '',
-          name: metaToken ? profileName : '',
-          isAuthenticated: Boolean(metaToken),
-          isInitialized: true,
-          isLogoutInProgress: false,
-        })
-      } else {
-        set({
-          identity: metaToken ? get().identity : '',
-          name: metaToken ? profileName : '',
-          isInitialized: true,
-          isLogoutInProgress: false,
-        })
-      }
-    },
-
-    // Initialize from shell postMessage — used when running inside sandboxed iframe
-    initializeFromShell: async () => {
+    initialize: async () => {
+      // Token is always delivered via postMessage from the shell.
+      // initShellBridge() handles both shell mode (waits for init message)
+      // and non-shell mode (returns immediately with empty token for public pages).
       const data = await initShellBridge()
       set({
         token: data.token,
@@ -115,11 +82,13 @@ export const useAuthStore = create<AuthState>()((set, get) => {
       })
 
       // Listen for token refreshes from shell
-      onShellMessage((msg) => {
-        if (msg.type === 'token-refresh' && typeof msg.token === 'string') {
-          set({ token: msg.token, isAuthenticated: Boolean(msg.token) })
-        }
-      })
+      if (data.inShell) {
+        onShellMessage((msg) => {
+          if (msg.type === 'token-refresh' && typeof msg.token === 'string') {
+            set({ token: msg.token, isAuthenticated: Boolean(msg.token) })
+          }
+        })
+      }
     },
 
     // @deprecated Use authManager.loadIdentity() instead

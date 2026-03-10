@@ -68,17 +68,19 @@ export function AppSidebar({
 
   return (
     <Sidebar collapsible={collapsible} variant='sidebar'>
-      {!isMobile && !hideMenu && (
-        <SidebarHeader>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <MochiMenu
-                direction={state === 'expanded' ? 'horizontal' : 'vertical'}
-                showNotifications={showNotifications}
-                className='p-2'
-              />
-            </SidebarMenuItem>
-          </SidebarMenu>
+      {!isMobile && (
+        <SidebarHeader className={hideMenu ? 'min-h-10' : undefined}>
+          {!hideMenu && (
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <MochiMenu
+                  direction={state === 'expanded' ? 'horizontal' : 'vertical'}
+                  showNotifications={showNotifications}
+                  className='p-2'
+                />
+              </SidebarMenuItem>
+            </SidebarMenu>
+          )}
         </SidebarHeader>
       )}
 

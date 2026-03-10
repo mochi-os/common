@@ -1,8 +1,7 @@
-// Routing helpers that read server-injected meta tags
-// The Mochi server injects <meta name="mochi:*"> tags into HTML responses
-// to communicate routing context. On dev servers these are absent and we
-// fall back to URL parsing. In shell mode (sandboxed iframe), meta tags
-// are not injected — context comes from the URL path.
+// Routing helpers that derive context from server-injected meta tags or URL path.
+// Authenticated users always run inside the shell's sandboxed iframe, where no
+// meta tags are injected — routing context comes from the URL path.
+// Unauthenticated/public pages may still have meta tags for OG and routing.
 
 // Read a server-injected meta tag value (null when absent)
 function getMeta(name: string): string | null {
@@ -12,13 +11,6 @@ function getMeta(name: string): string | null {
 // Check whether a server-injected meta tag is present
 function hasMeta(name: string): boolean {
   return document.querySelector(`meta[name="${name}"]`) !== null
-}
-
-// Read the app-scoped token injected by the server into the HTML.
-// In shell mode, tokens come via postMessage — this returns '' and the
-// auth store handles initialization via initializeFromShell().
-export function getAppToken(): string {
-  return getMeta('mochi:token') ?? ''
 }
 
 // Canonical path for cross-app API calls to the notifications app
@@ -45,7 +37,7 @@ export function getAppPath(): string {
   if (app !== null) return '/' + app
   // Domain routing or direct entity routing — no app in URL
   if (hasMeta('mochi:domain') || hasMeta('mochi:fingerprint')) return ''
-  // Fallback for dev server: first path segment
+  // Derive from URL path: first path segment
   const match = window.location.pathname.match(/^\/([^/]+)/)
   return match ? '/' + match[1] : ''
 }
@@ -61,7 +53,7 @@ export function getRouterBasepath(): string {
   if (fingerprint) return `/${fingerprint}/`
   if (app) return `/${app}/`
 
-  // Fallback for dev server
+  // Derive from URL path
   const match = window.location.pathname.match(/^\/([^/]+)/)
   return match ? '/' + match[1] + '/' : '/'
 }
@@ -81,7 +73,7 @@ export function getApiBasepath(): string {
   if (fingerprint) return `/${fingerprint}/-/`
   if (app) return `/${app}/`
 
-  // Fallback for dev server
+  // Derive from URL path
   const match = window.location.pathname.match(/^\/([^/]+)/)
   return match ? '/' + match[1] + '/' : '/'
 }
