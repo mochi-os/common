@@ -4,7 +4,7 @@ import { Outlet } from '@tanstack/react-router'
 import { cn } from '../../lib/utils'
 import { getCookie } from '../../lib/cookies'
 import { isDomainEntityRouting } from '../../lib/app-path'
-import { isInShell, installShellLinkInterceptor, installShellNavigationSync } from '../../lib/shell-bridge'
+import { isInShell, installShellLinkInterceptor, installShellNavigationSync, installShellClipboardProxy, getShellInitData } from '../../lib/shell-bridge'
 import { useAuthStore } from '../../stores/auth-store'
 
 import { LayoutProvider } from '../../context/layout-provider'
@@ -76,6 +76,7 @@ export function AuthenticatedLayout({
     if (inShell) {
       installShellLinkInterceptor()
       installShellNavigationSync()
+      installShellClipboardProxy()
     }
   }, [inShell])
 
@@ -89,7 +90,10 @@ export function AuthenticatedLayout({
   // When in shell, suppress notifications in the app (menu app handles them)
   const effectiveShowNotifications = inShell ? false : showNotifications
 
-  const defaultOpen = getCookie('sidebar_state') !== 'false'
+  const shellInit = getShellInitData()
+  const defaultOpen = inShell
+    ? shellInit?.sidebarOpen !== false
+    : getCookie('sidebar_state') !== 'false'
   const hasSidebar = !!(sidebarData && sidebarData.navGroups.length > 0)
   const hasRightPanel =
     !!rightPanel &&

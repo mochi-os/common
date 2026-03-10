@@ -16,7 +16,6 @@ import { Skeleton } from '../../components/ui/skeleton'
 import { requestHelpers } from '../../lib/request'
 import { getErrorMessage } from '../../lib/handle-server-error'
 import { toast } from '../../lib/toast-utils'
-import { NOTIFICATIONS_PATH } from '../../lib/app-path'
 import { useDestinations } from '../../hooks/use-destinations'
 import { usePush } from '../../hooks/use-push'
 import type { SubscribeDialogProps, DestinationToggle, SubscriptionItem } from './types'
@@ -123,17 +122,14 @@ export function SubscribeDialog({
       if (enableBrowserPush && !push.subscribed) {
         try {
           await push.subscribe()
-          // Fetch fresh accounts list to get the new browser account ID
-          const res = await fetch(`${NOTIFICATIONS_PATH}/-/accounts/list?capability=notify`, {
-            credentials: 'include',
-          })
-          if (res.ok) {
-            const data = await res.json()
-            const accounts = data?.data || []
-            const browserAccount = accounts.find((a: { type: string; id: number }) => a.type === 'browser')
-            if (browserAccount) {
-              newBrowserAccountId = browserAccount.id
-            }
+          // Fetch destinations via the app's own proxy to find the new browser account.
+          // Uses the app's token (not cross-app), so this works in sandboxed iframes.
+          const dests = await requestHelpers.get<{
+            accounts?: Array<{ id: number; type: string }>
+          }>(`${appBase}/-/notifications/destinations`)
+          const browserAccount = dests?.accounts?.find((a) => a.type === 'browser')
+          if (browserAccount) {
+            newBrowserAccountId = browserAccount.id
           }
         } catch (error) {
           // If push subscription fails, continue without it

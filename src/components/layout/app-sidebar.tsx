@@ -69,7 +69,7 @@ export function AppSidebar({
   return (
     <Sidebar collapsible={collapsible} variant='sidebar'>
       {!isMobile && (
-        <SidebarHeader className={hideMenu ? 'min-h-10' : undefined}>
+        <SidebarHeader className={hideMenu ? (state === 'collapsed' ? 'min-h-20' : 'min-h-10') : undefined}>
           {!hideMenu && (
             <SidebarMenu>
               <SidebarMenuItem>

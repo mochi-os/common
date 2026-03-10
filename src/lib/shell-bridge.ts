@@ -8,6 +8,7 @@ type ShellInitData = {
   theme?: string
   user: { name: string }
   inShell: boolean
+  sidebarOpen?: boolean
 }
 
 type ShellMessage = {
@@ -98,6 +99,60 @@ export function shellSetTitle(title: string): void {
   document.title = title
   if (isInShell()) {
     window.parent.postMessage({ type: 'title', title }, '*')
+  }
+}
+
+/** Notify the shell of sidebar state changes */
+export function shellSetSidebarState(open: boolean): void {
+  if (isInShell()) {
+    window.parent.postMessage({ type: 'sidebar-state', open }, '*')
+  }
+}
+
+/** Write text to the clipboard. Uses the shell proxy when sandboxed. */
+let clipboardIdCounter = 0
+const clipboardCallbacks = new Map<number, (ok: boolean) => void>()
+
+export function shellClipboardWrite(text: string): Promise<boolean> {
+  // Outside shell, use native API directly
+  if (!isInShell()) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(() => true, () => false)
+    }
+    return Promise.resolve(false)
+  }
+
+  // In shell, proxy through the parent
+  const id = ++clipboardIdCounter
+  return new Promise((resolve) => {
+    clipboardCallbacks.set(id, resolve)
+    window.parent.postMessage({ type: 'clipboard.write', text, id }, '*')
+  })
+}
+
+/**
+ * Monkey-patch navigator.clipboard.writeText to route through the shell proxy.
+ * This makes all existing navigator.clipboard.writeText() calls work automatically
+ * in the sandboxed iframe without changing any app code.
+ */
+let clipboardProxyInstalled = false
+export function installShellClipboardProxy(): void {
+  if (clipboardProxyInstalled || !isInShell()) return
+  clipboardProxyInstalled = true
+
+  if (!navigator.clipboard) {
+    // Create a minimal clipboard object if it doesn't exist
+    Object.defineProperty(navigator, 'clipboard', {
+      value: { writeText: (_text: string) => Promise.resolve() },
+      writable: true,
+      configurable: true,
+    })
+  }
+
+  navigator.clipboard.writeText = function (text: string): Promise<void> {
+    return shellClipboardWrite(text).then((ok) => {
+      if (!ok) throw new DOMException('Clipboard write failed', 'NotAllowedError')
+    })
   }
 }
 
@@ -223,6 +278,15 @@ if (typeof window !== 'undefined') {
     // Handle token refresh
     if (data.type === 'token-refresh' && shellInitData) {
       shellInitData.token = data.token as string
+    }
+
+    // Handle clipboard result
+    if (data.type === 'clipboard.result') {
+      const cb = clipboardCallbacks.get(data.id as number)
+      if (cb) {
+        clipboardCallbacks.delete(data.id as number)
+        cb(data.ok as boolean)
+      }
     }
 
     // Route to all registered listeners
