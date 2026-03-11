@@ -284,6 +284,22 @@ export function shellSubscribeNotifications(
   })
 }
 
+/** Request the shell to show the permission request dialog */
+let permissionIdCounter = 0
+const permissionCallbacks = new Map<number, (result: string) => void>()
+
+export function shellRequestPermission(
+  app: string,
+  permission: string,
+  restricted: boolean
+): Promise<'granted' | 'denied'> {
+  const id = ++permissionIdCounter
+  return new Promise((resolve) => {
+    permissionCallbacks.set(id, resolve as (r: string) => void)
+    window.parent.postMessage({ type: 'request-permission', id, app, permission, restricted }, '*')
+  })
+}
+
 // Global message listener — routes shell messages to registered listeners
 if (typeof window !== 'undefined') {
   window.addEventListener('message', (event: MessageEvent) => {
@@ -309,6 +325,15 @@ if (typeof window !== 'undefined') {
       const cb = subscribeCallbacks.get(data.id as number)
       if (cb) {
         subscribeCallbacks.delete(data.id as number)
+        cb(data.result as string)
+      }
+    }
+
+    // Handle permission-result
+    if (data.type === 'permission-result') {
+      const cb = permissionCallbacks.get(data.id as number)
+      if (cb) {
+        permissionCallbacks.delete(data.id as number)
         cb(data.result as string)
       }
     }
