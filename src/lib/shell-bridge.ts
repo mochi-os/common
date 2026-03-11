@@ -269,6 +269,21 @@ export function authenticatedUrl(url: string): string {
   return `${url}${separator}token=${encodeURIComponent(rawToken)}`
 }
 
+/** Request the shell to show the subscribe-notifications dialog */
+let subscribeIdCounter = 0
+const subscribeCallbacks = new Map<number, (result: string) => void>()
+
+export function shellSubscribeNotifications(
+  app: string,
+  subscriptions: Array<{ label: string; type: string; object?: string; defaultEnabled?: boolean }>
+): Promise<'accepted' | 'declined'> {
+  const id = ++subscribeIdCounter
+  return new Promise((resolve) => {
+    subscribeCallbacks.set(id, resolve as (r: string) => void)
+    window.parent.postMessage({ type: 'subscribe-notifications', id, app, subscriptions }, '*')
+  })
+}
+
 // Global message listener — routes shell messages to registered listeners
 if (typeof window !== 'undefined') {
   window.addEventListener('message', (event: MessageEvent) => {
@@ -286,6 +301,15 @@ if (typeof window !== 'undefined') {
       if (cb) {
         clipboardCallbacks.delete(data.id as number)
         cb(data.ok as boolean)
+      }
+    }
+
+    // Handle subscribe-notifications result
+    if (data.type === 'subscribe-notifications-result') {
+      const cb = subscribeCallbacks.get(data.id as number)
+      if (cb) {
+        subscribeCallbacks.delete(data.id as number)
+        cb(data.result as string)
       }
     }
 

@@ -229,8 +229,8 @@ export function AuthenticatedLayout({
             </div>
           )}
 
-          {/* Content */}
-          <div className={cn('@container/content', 'flex-1 overflow-auto')}>
+          {/* Content — add left padding in shell to clear the fixed menu overlay */}
+          <div className={cn('@container/content', 'flex-1 overflow-auto', inShell && 'pl-12')}>
             {children ?? <Outlet />}
           </div>
 
