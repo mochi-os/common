@@ -27,6 +27,7 @@ const SORT_OPTIONS: SortOption[] = [
 interface SortSelectorProps {
   value: SortType
   onValueChange: (value: SortType) => void
+  options?: SortType[]
   disabled?: boolean
   className?: string
 }
@@ -34,12 +35,17 @@ interface SortSelectorProps {
 export function SortSelector({
   value,
   onValueChange,
+  options,
   disabled,
   className,
 }: SortSelectorProps) {
+  const visibleOptions = options
+    ? SORT_OPTIONS.filter((opt) => options.includes(opt.value))
+    : SORT_OPTIONS
+
   // Map legacy 'relevant' to 'interests' for display
   const effectiveValue = value === 'relevant' ? 'interests' : value
-  const currentOption = SORT_OPTIONS.find((opt) => opt.value === effectiveValue) ?? SORT_OPTIONS[0]
+  const currentOption = visibleOptions.find((opt) => opt.value === effectiveValue) ?? visibleOptions[0]
 
   return (
     <Select
@@ -56,7 +62,7 @@ export function SortSelector({
         </SelectValue>
       </SelectTrigger>
       <SelectContent>
-        {SORT_OPTIONS.map((option) => (
+        {visibleOptions.map((option) => (
           <SelectItem key={option.value} value={option.value}>
             <div className="flex items-center gap-2">
               {option.icon}

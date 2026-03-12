@@ -31,6 +31,7 @@ const TAG_PATTERN = /^[a-z0-9 /-]+$/
 export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd, onInterestUp, onInterestDown }: PostTagsTooltipProps) {
   const [open, setOpen] = useState(false)
   const [value, setValue] = useState('')
+  const [error, setError] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -38,13 +39,24 @@ export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd, onInterestUp,
       setTimeout(() => inputRef.current?.focus(), 0)
     } else {
       setValue('')
+      setError('')
     }
   }, [open])
 
   const submit = async () => {
+    setError('')
     const cleaned = value.trim().toLowerCase()
-    if (!cleaned || cleaned.length > 50 || !TAG_PATTERN.test(cleaned)) return
+    if (!cleaned) return
+    if (cleaned.length > 50) {
+      setError('Tag must be 50 characters or less')
+      return
+    }
+    if (!TAG_PATTERN.test(cleaned)) {
+      setError('Letters, numbers, spaces, and hyphens only')
+      return
+    }
     if (tags.some((t) => t.label === cleaned)) {
+      setError('Tag already exists')
       setValue('')
       return
     }
@@ -85,7 +97,7 @@ export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd, onInterestUp,
             ref={inputRef}
             type='text'
             value={value}
-            onChange={(e) => setValue(e.target.value)}
+            onChange={(e) => { setValue(e.target.value); setError('') }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault()
@@ -95,6 +107,7 @@ export function PostTagsTooltip({ tags, onRemove, onFilter, onAdd, onInterestUp,
             className='text-foreground placeholder:text-muted-foreground h-7 w-full bg-transparent text-sm outline-none'
             placeholder='Add tag...'
           />
+          {error && <p className='text-destructive text-xs'>{error}</p>}
         </div>
       </PopoverContent>
     </Popover>
