@@ -27,8 +27,10 @@ export function EmptyState({
         className
       )}
     >
-      <Icon className='text-muted-foreground mx-auto mb-3 h-10 w-10 opacity-50' />
-      <p className='text-muted-foreground mb-1 text-sm font-medium'>{title}</p>
+      <div className='mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primary/[0.08]'>
+        <Icon className='h-7 w-7 text-primary/60' />
+      </div>
+      <p className='text-muted-foreground mb-1 text-base font-medium'>{title}</p>
       {description && (
         <p className='text-muted-foreground text-xs'>{description}</p>
       )}

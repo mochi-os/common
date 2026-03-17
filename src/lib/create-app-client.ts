@@ -2,7 +2,7 @@ import axios, {
   type AxiosRequestConfig,
   type InternalAxiosRequestConfig,
 } from 'axios'
-import { getAppPath, isDomainEntityRouting, useAuthStore, isInShell } from '@mochi/common'
+import { getAppPath, isDomainEntityRouting, useAuthStore, isInShell } from '@mochi/web'
 
 export interface AppClientOptions {
   /**

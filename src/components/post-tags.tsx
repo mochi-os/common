@@ -133,11 +133,12 @@ export function PostTags({ tags, onRemove, onFilter, onInterestUp, onInterestDow
               onFilter?.(tag.label)
             }}
           >
-            #{tag.label}{tag.relevance ? ` (${tag.relevance})` : ''}
+            <span title={tag.relevance ? `Relevance: ${tag.relevance}` : undefined}>#{tag.label}</span>
           </button>
           <span className='ml-auto inline-flex shrink-0 items-center gap-0.5'>
             <button
               type='button'
+              title='Boost interest'
               className='text-muted-foreground hover:bg-accent hover:text-foreground rounded p-0.5 transition-colors'
               onClick={(e) => {
                 e.preventDefault()
@@ -149,6 +150,7 @@ export function PostTags({ tags, onRemove, onFilter, onInterestUp, onInterestDow
             </button>
             <button
               type='button'
+              title='Reduce interest'
               className='text-muted-foreground hover:bg-accent hover:text-foreground rounded p-0.5 transition-colors'
               onClick={(e) => {
                 e.preventDefault()
@@ -160,6 +162,7 @@ export function PostTags({ tags, onRemove, onFilter, onInterestUp, onInterestDow
             </button>
             <button
               type='button'
+              title='Remove tag'
               className='text-muted-foreground hover:bg-destructive/10 hover:text-destructive rounded p-0.5 transition-colors'
               onClick={(e) => {
                 e.preventDefault()
