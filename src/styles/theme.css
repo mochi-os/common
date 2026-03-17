@@ -1,53 +1,66 @@
 :root {
   color-scheme: light;
-  /* --- Vercel color system (light) --- */
-  --background: oklch(0.99 0 0);
+
+  /* Theme anchor — change these to recolor everything */
+  --hue: 250;
+  --hue-chroma: 0.16;
+  --hue-bg: 250;
+
+  /* --- Color system (light) --- */
+  --background: oklch(0.97 0.004 var(--hue-bg));
   --foreground: oklch(0 0 0);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0 0 0);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0 0 0);
-  --primary: oklch(0.55 0.2 250);
+  --primary: oklch(0.65 var(--hue-chroma) var(--hue));
   --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.96 0.01 250);
-  --secondary-foreground: oklch(0.55 0.2 250);
+  --secondary: oklch(0.96 0.015 var(--hue));
+  --secondary-foreground: oklch(0.55 var(--hue-chroma) var(--hue));
   --muted: oklch(0.97 0 0);
   --muted-foreground: oklch(0.44 0 0);
-  --hover: oklch(0.96 0.01 250);
-  --hover-foreground: oklch(0.55 0.2 250);
+  --hover: oklch(0.96 0.015 var(--hue));
+  --hover-foreground: oklch(0.55 var(--hue-chroma) var(--hue));
   --destructive: oklch(0.5 0.2 25);
   --destructive-foreground: oklch(1 0 0);
   --warning: oklch(0.82 0.16 84);
   --warning-foreground: oklch(0.22 0.02 84);
   --border: oklch(0.92 0 0);
   --input: oklch(0.92 0 0);
-  --ring: oklch(0.55 0.2 250);
+  --ring: oklch(0.65 var(--hue-chroma) var(--hue));
   --chart-1: oklch(0.81 0.17 75.35);
   --chart-2: oklch(0.55 0.22 264.53);
   --chart-3: oklch(0.72 0 0);
   --chart-4: oklch(0.92 0 0);
   --chart-5: oklch(0.56 0 0);
-  --sidebar: oklch(0.99 0 0);
+  --sidebar: oklch(0.975 0.003 var(--hue-bg));
   --sidebar-foreground: oklch(0 0 0);
   --sidebar-primary: oklch(1 0 0);
   --sidebar-primary-foreground: oklch(0 0 0);
   --sidebar-border: oklch(0.94 0 0);
   --sidebar-ring: oklch(0 0 0);
-  --selected: oklch(0.94 0.035 230);
+  --selected: oklch(0.94 0.04 var(--hue));
   --surface-1: oklch(1 0 0);
-  --surface-2: oklch(0.97 0 0);
-  --surface-3: oklch(0.94 0.01 250);
+  --surface-2: oklch(0.97 0.003 var(--hue-bg));
+  --surface-3: oklch(0.94 0.015 var(--hue));
   --interactive-hover: var(--surface-3);
-  --interactive-active: oklch(0.91 0.012 250);
+  --interactive-active: oklch(0.91 0.02 var(--hue));
   --border-strong: oklch(0.82 0 0);
-  --sidebar-hover: oklch(0.96 0.01 250);
-  --sidebar-active: oklch(0.94 0.035 230);
+  --sidebar-hover: oklch(0.95 0.02 var(--hue));
+  --sidebar-active: oklch(0.92 0.05 var(--hue));
   --notification: oklch(0.577 0.245 27.325);
   --notification-foreground: oklch(1 0 0);
 
   /* Text selection colors */
-  --selection: oklch(0.75 0.15 250);
+  --selection: oklch(0.75 0.12 var(--hue));
   --selection-foreground: oklch(1 0 0);
+}
+
+/* Theme presets — add class to <html> to switch */
+.theme-teal {
+  --hue: 185;
+  --hue-chroma: 0.12;
+  --hue-bg: 175;
 }
 
 /* Global text selection styling */
@@ -73,10 +86,10 @@
   --shadow-color: rgba(0, 0, 0, 0.08);
   --shadow-2xs: 0 1px 2px var(--shadow-color);
   --shadow-xs: 0 1px 3px var(--shadow-color);
-  --shadow-sm: 0 2px 4px var(--shadow-color);
-  --shadow: 0 2px 8px var(--shadow-color);
-  --shadow-md: 0 3px 10px var(--shadow-color);
-  --shadow-lg: 0 6px 16px var(--shadow-color);
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.04), 0 1px 3px rgba(0,0,0,0.04);
+  --shadow: 0 1px 3px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.04);
+  --shadow-md: 0 2px 4px rgba(0,0,0,0.06), 0 8px 20px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 8px rgba(0,0,0,0.06), 0 12px 28px rgba(0,0,0,0.05);
   --shadow-xl: 0 8px 20px var(--shadow-color);
   --shadow-2xl: 0 10px 28px var(--shadow-color);
 
@@ -101,81 +114,79 @@
 
 .dark {
   color-scheme: dark;
-  /* --- Base surfaces --- */
-  --background: oklch(0.14 0.012 250);
-  --foreground: oklch(0.96 0.004 250);
-  --card: oklch(0.19 0.012 250);
-  --card-foreground: oklch(0.96 0.004 250);
-  --popover: oklch(0.22 0.013 250);
-  --popover-foreground: oklch(0.96 0.004 250);
 
-  /* --- Primary action blue (raised from 0.55→0.63 to sit above surfaces) --- */
-  --primary: oklch(0.63 0.22 253);
-  --primary-foreground: oklch(0.98 0.002 250);
+  /* --- Base surfaces (from dedup, better layering) --- */
+  --background: oklch(0.14 0.012 var(--hue-bg));
+  --foreground: oklch(0.96 0.004 var(--hue-bg));
+  --card: oklch(0.19 0.012 var(--hue-bg));
+  --card-foreground: oklch(0.96 0.004 var(--hue-bg));
+  --popover: oklch(0.22 0.013 var(--hue-bg));
+  --popover-foreground: oklch(0.96 0.004 var(--hue-bg));
 
-  /* --- Secondary / ghost actions --- */
-  --secondary: oklch(0.24 0.013 250);
-  --secondary-foreground: oklch(0.88 0.006 250);
+  /* --- Primary (keep dynamic hue, but better lightness) --- */
+  --primary: oklch(0.63 var(--hue-chroma) var(--hue));
+  --primary-foreground: oklch(0.98 0.002 var(--hue-bg));
 
-  /* --- Muted (three-tier text hierarchy: 0.96 → 0.64 → disabled) --- */
-  --muted: oklch(0.20 0.012 250);
-  --muted-foreground: oklch(0.64 0.012 250);
+  /* --- Secondary --- */
+  --secondary: oklch(0.24 0.013 var(--hue));
+  --secondary-foreground: oklch(0.88 0.006 var(--hue));
 
-  /* --- Hover / interactive states --- */
-  --hover: oklch(0.23 0.013 250);
-  --hover-foreground: oklch(0.96 0.004 250);
-  --interactive-hover: oklch(0.26 0.015 250);
-  --interactive-active: oklch(0.22 0.015 250);
+  /* --- Muted hierarchy (improved readability) --- */
+  --muted: oklch(0.20 0.012 var(--hue-bg));
+  --muted-foreground: oklch(0.64 0.012 var(--hue-bg));
 
-  /* --- Semantic colors --- */
+  /* --- Interaction states --- */
+  --hover: oklch(0.23 0.013 var(--hue));
+  --hover-foreground: oklch(0.96 0.004 var(--hue-bg));
+  --interactive-hover: oklch(0.26 0.015 var(--hue));
+  --interactive-active: oklch(0.22 0.015 var(--hue));
+
+  /* --- Semantic --- */
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0.002 25);
   --warning: oklch(0.72 0.18 75);
   --warning-foreground: oklch(0.15 0.02 75);
 
-  /* --- Borders (raised from 0.33→0.28 with higher chroma for visibility) --- */
-  --border: oklch(0.28 0.012 250);
-  --border-strong: oklch(0.34 0.014 250);
-  --input: oklch(0.28 0.012 250);
-  --ring: oklch(0.63 0.22 253);
+  /* --- Borders (more visible than main) --- */
+  --border: oklch(0.28 0.012 var(--hue-bg));
+  --border-strong: oklch(0.34 0.014 var(--hue-bg));
+  --input: oklch(0.28 0.012 var(--hue-bg));
+  --ring: oklch(0.63 var(--hue-chroma) var(--hue));
 
   /* --- Charts --- */
   --chart-1: oklch(0.81 0.17 75.35);
-  --chart-2: oklch(0.63 0.22 253);
+  --chart-2: oklch(0.63 var(--hue-chroma) var(--hue));
   --chart-3: oklch(0.56 0 0);
   --chart-4: oklch(0.44 0 0);
   --chart-5: oklch(0.92 0 0);
 
-  /* --- Sidebar (darkest layer at 0.11 — the visual "ground floor") --- */
-  --sidebar: oklch(0.11 0.012 248);
-  --sidebar-foreground: oklch(0.82 0.008 250);
-  --sidebar-primary: oklch(0.63 0.22 253);
-  --sidebar-primary-foreground: oklch(0.98 0.002 250);
-  --sidebar-border: oklch(0.20 0.012 250);
-  --sidebar-ring: oklch(0.63 0.22 253);
-  --sidebar-hover: oklch(0.17 0.013 249);
-  --sidebar-active: oklch(0.31 0.08 248);
+  /* --- Sidebar (strong depth layer) --- */
+  --sidebar: oklch(0.11 0.012 var(--hue-bg));
+  --sidebar-foreground: oklch(0.82 0.008 var(--hue-bg));
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-border: oklch(0.20 0.012 var(--hue-bg));
+  --sidebar-ring: var(--ring);
+  --sidebar-hover: oklch(0.17 0.013 var(--hue-bg));
+  --sidebar-active: oklch(0.31 0.08 var(--hue));
 
-  /* --- Selection & highlight states --- */
-  --selected: oklch(0.32 0.08 248);
+  /* --- Selection --- */
+  --selected: oklch(0.32 0.08 var(--hue));
 
-  /* --- Elevated surfaces (for nested UI, inputs, chips) --- */
-  --surface-1: oklch(0.19 0.012 250);
-  --surface-2: oklch(0.25 0.013 250);
-  --surface-3: oklch(0.28 0.013 250);
+  /* --- Surfaces --- */
+  --surface-1: oklch(0.19 0.012 var(--hue-bg));
+  --surface-2: oklch(0.25 0.013 var(--hue-bg));
+  --surface-3: oklch(0.28 0.013 var(--hue));
 
   /* --- Notifications --- */
   --notification: oklch(0.58 0.23 25);
   --notification-foreground: oklch(0.98 0.002 25);
 
-  /* --- Text selection --- */
-  --selection: oklch(0.32 0.08 248);
-  --selection-foreground: oklch(0.96 0.004 250);
+  /* --- Selection highlight --- */
+  --selection: oklch(0.32 0.08 var(--hue));
+  --selection-foreground: oklch(0.96 0.004 var(--hue-bg));
 
-  /* Fonts and rounding unchanged */
-  --font-sans: 'Open Sans', 'Geist', sans-serif;
-  --radius: 1.25rem;
-
+  /* --- Shadows (keep your style but slightly stronger for dark) --- */
   --shadow-color: rgba(0, 0, 0, 0.5);
   --shadow-2xs: 0 1px 2px var(--shadow-color);
   --shadow-xs: 0 1px 3px var(--shadow-color);
