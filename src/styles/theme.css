@@ -101,69 +101,90 @@
 
 .dark {
   color-scheme: dark;
-  /* --- Vercel dark colors --- */
-  --background: oklch(0.16 0.006 250);
-  --foreground: oklch(0.97 0.003 250);
-  --card: oklch(0.2 0.008 250);
-  --card-foreground: oklch(0.97 0.003 250);
-  --popover: oklch(0.22 0.009 250);
-  --popover-foreground: oklch(0.97 0.003 250);
-  --primary: oklch(0.55 0.2 250);
-  --primary-foreground: oklch(1 0 0);
-  --secondary: oklch(0.25 0.013 250);
-  --secondary-foreground: oklch(0.97 0.003 250);
-  --muted: oklch(0.24 0.007 250);
-  --muted-foreground: oklch(0.76 0.01 250);
-  --hover: oklch(0.28 0.015 250);
-  --hover-foreground: oklch(0.97 0.003 250);
-  --destructive: oklch(0.5 0.2 25);
-  --destructive-foreground: oklch(1 0 0);
-  --warning: oklch(0.76 0.15 82);
-  --warning-foreground: oklch(0.18 0.01 82);
-  --border: oklch(0.33 0.01 250);
-  --input: oklch(0.29 0.01 250);
-  --ring: oklch(0.66 0.16 252);
+  /* --- Base surfaces --- */
+  --background: oklch(0.14 0.012 250);
+  --foreground: oklch(0.96 0.004 250);
+  --card: oklch(0.19 0.012 250);
+  --card-foreground: oklch(0.96 0.004 250);
+  --popover: oklch(0.22 0.013 250);
+  --popover-foreground: oklch(0.96 0.004 250);
+
+  /* --- Primary action blue (raised from 0.55→0.63 to sit above surfaces) --- */
+  --primary: oklch(0.63 0.22 253);
+  --primary-foreground: oklch(0.98 0.002 250);
+
+  /* --- Secondary / ghost actions --- */
+  --secondary: oklch(0.24 0.013 250);
+  --secondary-foreground: oklch(0.88 0.006 250);
+
+  /* --- Muted (three-tier text hierarchy: 0.96 → 0.64 → disabled) --- */
+  --muted: oklch(0.20 0.012 250);
+  --muted-foreground: oklch(0.64 0.012 250);
+
+  /* --- Hover / interactive states --- */
+  --hover: oklch(0.23 0.013 250);
+  --hover-foreground: oklch(0.96 0.004 250);
+  --interactive-hover: oklch(0.26 0.015 250);
+  --interactive-active: oklch(0.22 0.015 250);
+
+  /* --- Semantic colors --- */
+  --destructive: oklch(0.55 0.22 25);
+  --destructive-foreground: oklch(0.98 0.002 25);
+  --warning: oklch(0.72 0.18 75);
+  --warning-foreground: oklch(0.15 0.02 75);
+
+  /* --- Borders (raised from 0.33→0.28 with higher chroma for visibility) --- */
+  --border: oklch(0.28 0.012 250);
+  --border-strong: oklch(0.34 0.014 250);
+  --input: oklch(0.28 0.012 250);
+  --ring: oklch(0.63 0.22 253);
+
+  /* --- Charts --- */
   --chart-1: oklch(0.81 0.17 75.35);
-  --chart-2: oklch(0.58 0.21 260.84);
+  --chart-2: oklch(0.63 0.22 253);
   --chart-3: oklch(0.56 0 0);
   --chart-4: oklch(0.44 0 0);
   --chart-5: oklch(0.92 0 0);
-  --sidebar: oklch(0.18 0.007 250);
-  --sidebar-foreground: oklch(0.97 0.003 250);
-  --sidebar-primary: oklch(1 0 0);
-  --sidebar-primary-foreground: oklch(0 0 0);
-  --sidebar-border: oklch(0.3 0.01 250);
-  --sidebar-ring: oklch(0.72 0 0);
-  --selected: oklch(0.34 0.05 244);
-  --surface-1: oklch(0.2 0.008 250);
-  --surface-2: oklch(0.24 0.01 250);
-  --surface-3: oklch(0.27 0.03 244);
-  --interactive-hover: var(--surface-3);
-  --interactive-active: oklch(0.32 0.014 250);
-  --border-strong: oklch(0.42 0.014 250);
-  --sidebar-hover: oklch(0.27 0.03 244);
-  --sidebar-active: oklch(0.34 0.05 244);
-  --notification: oklch(0.577 0.245 27.325);
-  --notification-foreground: oklch(1 0 0);
 
-  /* Text selection colors (dark mode) */
-  --selection: oklch(0.55 0.15 250);
-  --selection-foreground: oklch(1 0 0);
+  /* --- Sidebar (darkest layer at 0.11 — the visual "ground floor") --- */
+  --sidebar: oklch(0.11 0.012 248);
+  --sidebar-foreground: oklch(0.82 0.008 250);
+  --sidebar-primary: oklch(0.63 0.22 253);
+  --sidebar-primary-foreground: oklch(0.98 0.002 250);
+  --sidebar-border: oklch(0.20 0.012 250);
+  --sidebar-ring: oklch(0.63 0.22 253);
+  --sidebar-hover: oklch(0.17 0.013 249);
+  --sidebar-active: oklch(0.31 0.08 248);
 
-  /* Fonts and rounded look stay the same */
+  /* --- Selection & highlight states --- */
+  --selected: oklch(0.32 0.08 248);
+
+  /* --- Elevated surfaces (for nested UI, inputs, chips) --- */
+  --surface-1: oklch(0.19 0.012 250);
+  --surface-2: oklch(0.25 0.013 250);
+  --surface-3: oklch(0.28 0.013 250);
+
+  /* --- Notifications --- */
+  --notification: oklch(0.58 0.23 25);
+  --notification-foreground: oklch(0.98 0.002 25);
+
+  /* --- Text selection --- */
+  --selection: oklch(0.32 0.08 248);
+  --selection-foreground: oklch(0.96 0.004 250);
+
+  /* Fonts and rounding unchanged */
   --font-sans: 'Open Sans', 'Geist', sans-serif;
   --radius: 1.25rem;
 
-  /* Soft glowing shadows for dark mode */
-  --shadow-color: rgba(255, 255, 255, 0.07);
+  --shadow-color: rgba(0, 0, 0, 0.5);
   --shadow-2xs: 0 1px 2px var(--shadow-color);
   --shadow-xs: 0 1px 3px var(--shadow-color);
-  --shadow-sm: 0 2px 4px var(--shadow-color);
-  --shadow: 0 2px 8px var(--shadow-color);
-  --shadow-md: 0 3px 10px var(--shadow-color);
-  --shadow-lg: 0 6px 16px var(--shadow-color);
-  --shadow-xl: 0 8px 20px var(--shadow-color);
-  --shadow-2xl: 0 10px 28px var(--shadow-color);
+  --shadow-sm: 0 2px 6px var(--shadow-color);
+  --shadow: 0 3px 10px var(--shadow-color);
+  --shadow-md: 0 4px 14px var(--shadow-color);
+  --shadow-lg: 0 8px 20px var(--shadow-color);
+  --shadow-xl: 0 12px 28px var(--shadow-color);
+  --shadow-2xl: 0 16px 40px var(--shadow-color);
 }
 
 @theme inline {
