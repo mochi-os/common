@@ -136,30 +136,34 @@ export function PostTags({ tags, onRemove, onFilter, onInterestUp, onInterestDow
             <span title={tag.relevance ? `Relevance: ${tag.relevance}` : undefined}>#{tag.label}</span>
           </button>
           <span className='ml-auto inline-flex shrink-0 items-center gap-0.5'>
-            <button
-              type='button'
-              title='Boost interest'
-              className='text-muted-foreground hover:bg-accent hover:text-foreground rounded p-0.5 transition-colors'
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onInterestUp?.(tag.qid || tag.label, !tag.qid)
-              }}
-            >
-              <Plus className='size-3.5' />
-            </button>
-            <button
-              type='button'
-              title='Reduce interest'
-              className='text-muted-foreground hover:bg-accent hover:text-foreground rounded p-0.5 transition-colors'
-              onClick={(e) => {
-                e.preventDefault()
-                e.stopPropagation()
-                onInterestDown?.(tag.qid || tag.label, !tag.qid)
-              }}
-            >
-              <Minus className='size-3.5' />
-            </button>
+            {tag.qid && (
+              <button
+                type='button'
+                title='Boost interest'
+                className='text-muted-foreground hover:bg-accent hover:text-foreground rounded p-0.5 transition-colors'
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onInterestUp?.(tag.qid!)
+                }}
+              >
+                <Plus className='size-3.5' />
+              </button>
+            )}
+            {tag.qid && (
+              <button
+                type='button'
+                title='Reduce interest'
+                className='text-muted-foreground hover:bg-accent hover:text-foreground rounded p-0.5 transition-colors'
+                onClick={(e) => {
+                  e.preventDefault()
+                  e.stopPropagation()
+                  onInterestDown?.(tag.qid!)
+                }}
+              >
+                <Minus className='size-3.5' />
+              </button>
+            )}
             <button
               type='button'
               title='Remove tag'
