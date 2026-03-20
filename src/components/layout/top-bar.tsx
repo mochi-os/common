@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { PanelLeft } from 'lucide-react'
+import { Menu } from 'lucide-react'
 
 import { cn } from '../../lib/utils'
 import { useAuthStore } from '../../stores/auth-store'
@@ -14,6 +14,7 @@ type TopBarProps = {
   showSidebarTrigger?: boolean
   vertical?: boolean
   className?: string
+  mobileTitle?: React.ReactNode
 }
 
 export function TopBar({
@@ -21,6 +22,7 @@ export function TopBar({
   showSidebarTrigger = false,
   vertical = false,
   className,
+  mobileTitle,
 }: TopBarProps) {
   const { theme } = useTheme()
   const { isMobile } = useScreenSize()
@@ -36,6 +38,81 @@ export function TopBar({
     return null
   }
 
+  // Mobile with sidebar: [☰] [Logo] ··spacer·· [User]
+  if (showSidebarTrigger && isMobile) {
+    return (
+      <header
+        className={cn(
+          'z-50 flex items-center gap-2 px-2 overflow-visible',
+          className
+        )}
+      >
+        <Button
+          type='button'
+          variant='ghost'
+          size='icon'
+          className='shrink-0'
+          onClick={toggleSidebar}
+          aria-label='Open navigation'
+        >
+          <Menu className='size-5' />
+        </Button>
+
+        <a href='/' title='Home'>
+          <img
+            src='/images/logo-header.svg'
+            alt='Mochi'
+            className='h-6 w-6'
+          />
+        </a>
+
+        <div className='flex-1' />
+
+        <MochiMenu
+          showNotifications={showNotifications}
+          showLogo={false}
+        />
+      </header>
+    )
+  }
+
+  if (isMobile && mobileTitle) {
+    return (
+      <header
+        className={cn(
+          'z-50 w-full overflow-visible',
+          className
+        )}
+      >
+        <div className='grid grid-cols-[2.75rem_minmax(0,1fr)_2.75rem] items-center gap-1'>
+          <a
+            href='/'
+            title='Home'
+            className='flex size-10 items-center justify-center rounded-md transition-colors duration-150 hover:bg-interactive-hover active:bg-interactive-active'
+          >
+            <img
+              src='/images/logo-header.svg'
+              alt='Mochi'
+              className='h-6 w-6'
+            />
+          </a>
+
+          <div className='min-w-0 overflow-hidden text-center whitespace-nowrap text-ellipsis'>
+            {mobileTitle}
+          </div>
+
+          <div className='flex justify-center'>
+            <MochiMenu
+              showNotifications={showNotifications}
+              showLogo={false}
+            />
+          </div>
+        </div>
+      </header>
+    )
+  }
+
+  // Desktop / no-sidebar layout
   return (
     <header
       className={cn(
@@ -44,18 +121,6 @@ export function TopBar({
         className
       )}
     >
-      {showSidebarTrigger && isMobile && (
-        <Button
-          type='button'
-          variant='ghost'
-          size='icon'
-          onClick={toggleSidebar}
-          aria-label='Toggle sidebar'
-        >
-          <PanelLeft className='size-5 text-muted-foreground' />
-        </Button>
-      )}
-
       <MochiMenu
         direction={vertical ? 'vertical' : 'horizontal'}
         showNotifications={showNotifications}
